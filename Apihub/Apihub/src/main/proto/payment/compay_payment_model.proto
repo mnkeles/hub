@@ -1,0 +1,260 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.payments.compay";
+option java_outer_classname = "CompayPaymentModelProto";
+option objc_class_prefix = "TMA";
+
+package tr.com.togg.tdp.tma.ms.payments.compay;
+
+import "common_model.proto";
+import "common_enum.proto";
+import "google/protobuf/timestamp.proto";
+import "address/address_model.proto";
+
+message CompayCreditRequest {
+  common.model.RequestHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+  double totalAmount = 2; // Total amount of Vehicle including taxes, coming from calculateBasketPrice - invoiceTotal
+  int32 installmentCount = 3; // period payment
+  double loanAmount = 4; // quantity of money
+}
+
+message CreateCreditSessionRequest {
+  common.model.RequestHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+  double totalAmount = 2; // Total amount of Vehicle including taxes, coming from calculateBasketPrice - invoiceTotal
+  int32 installmentCount = 3; // period payment
+  double loanAmount = 4; // quantity of money
+  string campaignCode = 5; //Store DB
+  int64 orderId = 7;
+  string incomeType = 8;
+  int32 monthlyIncome = 9;
+  string educationType = 10;
+  string acquirerId = 11;
+  bool isInsured = 12; //Store DB for last step
+}
+
+message CreateCreditSessionResponse {
+  common.model.ResponseHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+  string session_id = 2; // it's unique id for created session in external system
+}
+
+message CompayCreditLimit {
+  common.model.RequestHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+  double totalAmount = 2; // Total amount of Vehicle including taxes, coming from calculateBasketPrice - invoiceTotal
+  int64 orderId = 3;
+}
+
+message CalculateCreditHashRequest {
+  common.model.RequestHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+  string session_id = 2;
+}
+
+message CreateMoneyTransferSessionRequest {
+  common.model.RequestHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+  int64 orderId = 2;
+  double totalAmount = 3; // Total amount of Vehicle including taxes, coming from getBasketPrice - remaningPrice // if customer price doesn't match that we return error
+  common.enums.BalanceCode currency = 4;
+  string acquirerId = 5;
+  address.SelectedAddress address = 6 ;
+}
+
+message CreateMoneyTransferSessionResponse {
+  common.model.ResponseHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+  string session_id = 2; // it's unique id for created session in external system
+}
+
+message CalculateMoneyTransferHashRequest {
+  common.model.RequestHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+  string session_id = 2;
+}
+
+message CalculateMoneyTransferHashResponse {
+  string okiUrl = 1;
+  string failUrl = 2;
+  string callbackUrl = 3;
+  string shopUrl = 4; //cancel //we should to talk
+  string softDescriptor = 5; //
+  string rnd = 6;
+  string hash = 7;
+  string hashAlgorithm = 8;
+  string orderId = 9;
+  string clientId = 10;
+  string amount = 11;
+  string currency = 12;
+  string lang = 13;
+  string acquirerId = 14;
+  string tranType = 15;
+}
+
+message InquireBankListRequest { // it will be come from mongoDB
+  common.model.RequestHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+}
+
+message InquireCreditRequest {
+  common.model.RequestHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+  string session_id = 2;
+  int32 installment_count = 3;
+}
+
+message InquireMoneyTransferRequest {
+  common.model.RequestHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+  string session_id = 2;
+}
+
+message GetOccupationListRequest {
+  common.model.RequestHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+}
+
+message GetEducationListRequest {
+  common.model.RequestHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+}
+
+message CalculateCreditHashResponse {
+  string success_url = 1;
+  string fail_url = 2;
+  string pending_url = 3;
+  string callback_url = 4;
+  string vehicle_model = 5;
+  string vehicle_chassis = 6;
+  string operational_id = 7;
+  string tsrsb = 8;
+  string vehicle_year = 9;
+  string engine_number = 10;
+  string merchant_id = 11;
+  string rnd = 12;
+  string hash = 13;
+  string hash_algorithm = 14;
+  string soft_descriptor = 15;
+  string dob = 16;
+  string final_price = 17;
+  string name_surname = 18;
+  string phone_number = 19;
+  string tckn = 20;
+  string loan_amount = 21;
+  string installment_count = 22;
+  string campaign_code = 23;
+  string aquirer_id = 24;
+  string income_type = 25;
+  string monthly_income = 26;
+  string education = 27;
+  string order_id = 28;
+  string timeout = 29;
+}
+
+message InitiateRegisterRequest {
+  common.model.RequestHeader header = 1;
+  int64 order_id = 2; // reference order id ? do we need payment order id?
+  string operational_id = 3; // transaction
+  string nat_id = 4; // tckn
+  string insurance_policy_number = 5; // order char CAR_INS_POLICY_NO
+  google.protobuf.Timestamp insurance_start_date = 6; // order char  CAR_INS_SDATE
+  google.protobuf.Timestamp insurance_end_date = 7; // order char CAR_INS_EDATE
+  string policy_amount = 8; // order char CAR_INS_POLICY_AMOUNT
+  string agency_code = 9; // order char CAR_INS_AGENCY
+  string insurance_institution_code = 10; //order char CAR_INS_COMP_CODE
+  string invoice_number = 11; // docman externalid
+  string invoice_link = 12; // docman externalid
+  string invoice_document = 13; // extracted invoice pdf in byte arrayformat
+  string license_document = 14; // extracted license pdf in byte arrayformat
+  string policy_document = 15; // extracted motor own demage pdf in byte arrayformat
+}
+
+message InitiateRegisterResponse {
+  string response_code = 1;
+  string response_message = 2;
+}
+
+message MoneyTransfer {
+  CompayStatusEnum status = 1;
+  string host_ref_num = 2;
+  optional string error_message = 3;
+  int64 amount = 4;
+  common.enums.BalanceCode currency = 5;
+  Description description = 6; // from compay
+  string paid_amount = 7; // string because just for viewing
+}
+
+message Bank {
+  string bank_name = 1;
+  string bank_logo = 2; //come from cdn
+  string acquirer_id = 3;
+}
+
+
+message CreditLimit {
+  string installment_count = 1;
+  string loan_amount = 2;
+}
+
+message CreditOption {
+  string interest_rate = 1;
+  string installment_amount = 2;
+  string installment_count = 3;
+  string amount_to_be_paid = 4;
+  string loan_amount = 5;
+  string bank_name = 6;
+  string campaign_name = 7;
+  string cost = 8;
+  string bank_logo = 9;
+  bool is_insured = 10;
+  string acquirer_id = 11;
+  string campaign_code = 12;
+  bool is_participation = 13;
+}
+
+message Credit {
+  CompayStatusEnum status = 1; // from compay
+  Description description = 2; // from compay
+  bool is_insured = 3; // from mongoDB
+  int64 amount = 4;
+  common.enums.BalanceCode currency = 5;
+  string paid_amount = 6; // string because just for viewing
+}
+
+message Description {
+  string title = 1;
+  string body = 2;
+  InfoWidget info_widget = 3;
+}
+
+message InfoWidget {
+  InfoWidgetEnum info_widget_enum = 1;
+  string title = 2;
+}
+
+message ListCustomerCompayCreditHistoryDetailRequest {
+  common.model.RequestHeader header = 1;
+  int64 order_id = 2;
+}
+
+message CustomerCompayCreditHistoryDetail {
+  string bank_name = 1;
+  string branch_code = 2;
+  string status = 3;
+  string paid_amount = 4;
+  google.protobuf.Timestamp date = 5;
+  string error = 6;
+}
+
+enum InfoWidgetEnum {
+  INFO_WIDGET_ENUM_UNSPECIFIED = 0;
+  WARNING = 1;
+  INFO = 2;
+}
+
+enum CompayStatusEnum {
+  COMPAY_STATUS_ENUM_UNSPECIFIED = 0;
+  IN_PROGRESS = 1;
+  APPROVED = 2;
+  PENDING = 3; // MORE INFO NEEDED
+  REJECTED = 4;
+  TIMEOUT = 5;
+  NOT_BANK_CUSTOMER = 6;
+  IN_REGISTER = 7;
+  REGISTERED = 8;
+}
+
+enum RefundStatusEnum {
+  REFUND_STATUS_UNSPECIFIED = 0;
+  REFUND_APPROVED = 1;
+  REFUND_ERROR = 2;
+}

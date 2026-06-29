@@ -1,0 +1,13 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.contents";
+option java_outer_classname = "ContentsServiceProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.contents.client;
+
+import "contents/content_model.proto";
+
+service ContentService {
+  rpc GetSasAndCdnUrls (GetSasAndCdnUrlsRequest) returns (GetSasAndCdnUrlsResponse);
+}

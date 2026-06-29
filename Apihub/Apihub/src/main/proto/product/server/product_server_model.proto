@@ -1,0 +1,14 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.product.server";
+option java_outer_classname = "ProductModelProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.product.server;
+
+import "common_model.proto";
+
+message GetProductStatusRequest{
+  common.model.RequestHeader header = 1;
+  int64 product_id = 2;
+}

@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.notifications.admin.v1";
+option java_outer_classname = "NotificationsAdminProto";
+option objc_class_prefix = "TMA";
+
+package tr.com.togg.tdp.tma.ms.notifications.admin.v1.client;
+
+import "push_notification/notification_admin_model.proto";
+import "google/protobuf/wrappers.proto";
+
+service AdminService {
+  /**
+   * This method creates a notification task which will be executed asynchronously by the server
+   */
+  rpc CreateNotificationTask (CreateNotificationTaskRequest) returns (google.protobuf.BoolValue);
+}

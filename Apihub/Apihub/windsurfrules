@@ -1,0 +1,116 @@
+# Apihub Technology Stack - Detected Versions
+
+## Language
+- **Java**: 21 (CONFIRMED: pom.xml line 16)
+  - Uses Virtual Threads (Project Loom)
+
+## Framework
+- **Spring Boot**: 3.5.7 (CONFIRMED: pom.xml line 7)
+- **Spring AI**: 1.0.3 (CONFIRMED: pom.xml line 22)
+
+## Build Tool
+- **Maven**: Version inherited from Spring Boot parent (ASSUMPTION: Latest Maven 3.x compatible with Spring Boot 3.5.7)
+  - spring-boot-maven-plugin (version from parent)
+  - maven-surefire-plugin: 3.1.2 (CONFIRMED: pom.xml line 277)
+  - allure-maven: 2.12.0 (CONFIRMED: pom.xml line 302)
+  - spotless-maven-plugin: 2.43.0 (CONFIRMED: pom.xml line 334)
+
+## Runtime
+- **JRE**: Eclipse Temurin 21 JRE (CONFIRMED: Dockerfile line 1)
+- **Container Base Image**: eclipse-temurin:21-jre (CONFIRMED: Dockerfile line 1)
+
+## Containerization
+- **Docker**: Version not specified (ASSUMPTION: Any Docker version supporting standard Dockerfile syntax)
+- **Exposed Port**: 4053 (CONFIRMED: Dockerfile line 4, application.yml line 34)
+- **JAR Name**: omniAutomation.jar (CONFIRMED: Dockerfile line 3)
+
+## Database
+- **PostgreSQL**: Driver version inherited from Spring Boot (ASSUMPTION: postgresql:42.x from Spring Boot 3.5.7 dependencies)
+  - JDBC URL: jdbc:postgresql://ttc-multi-type1-internal-db.etiya.com:5432/etiya (CONFIRMED: application.yml line 29)
+  - Hibernate Dialect: PostgreSQLDialect (CONFIRMED: application.yml line 26)
+- **Oracle Database**: 19.6.0.0 (CONFIRMED: pom.xml lines 154, 159)
+  - ojdbc8: 19.6.0.0
+  - ucp: 19.6.0.0
+  - orai18n: 11.2.0.4 (CONFIRMED: pom.xml line 170)
+
+## Key Libraries - Exact Versions
+
+### Security & Authentication
+- **Spring Security**: Version from Spring Boot 3.5.7 parent (ASSUMPTION: 6.x series)
+- **JJWT**: 0.13.0 (CONFIRMED: pom.xml line 113)
+
+### HTTP & Communication
+- **Apache HttpClient5**: 5.2 (CONFIRMED: pom.xml line 200)
+- **gRPC**: 1.68.0 (CONFIRMED: pom.xml lines 209, 214, 219, 236)
+  - grpc-netty-shaded: 1.68.0
+  - grpc-protobuf: 1.68.0
+  - grpc-stub: 1.68.0
+  - grpc-services: 1.68.0
+- **Protobuf Java Util**: 4.32.0 (CONFIRMED: pom.xml line 243)
+- **Reactor Netty**: Version from Spring Boot parent (ASSUMPTION: 1.x series)
+
+### AI & JavaScript
+- **OpenAI GPT3 Java**: 0.18.2 (CONFIRMED: pom.xml line 224)
+- **GraalVM JS**: 22.3.4 (CONFIRMED: pom.xml lines 54, 59)
+- **GraalVM SDK**: 22.3.4 (CONFIRMED: pom.xml line 64)
+
+### Caching
+- **EhCache**: Version from Spring Boot parent with jakarta classifier (ASSUMPTION: 3.x series)
+- **JSR-107 JCache API**: Version from Spring Boot parent (ASSUMPTION: 1.1.x)
+
+### Utilities
+- **Lombok**: 1.18.30 (CONFIRMED: pom.xml line 88)
+- **MapStruct**: 1.6.3 (CONFIRMED: pom.xml lines 188, 316)
+- **lombok-mapstruct-binding**: 0.2.0 (CONFIRMED: pom.xml lines 194, 326)
+- **Apache Commons Lang3**: 3.18.0 (CONFIRMED: pom.xml line 175)
+- **Gson**: 2.13.2 (CONFIRMED: pom.xml line 143)
+- **org.json**: 20180130 (CONFIRMED: pom.xml line 98)
+- **JsonPath**: 2.9.0 (CONFIRMED: pom.xml line 123)
+- **JSch**: 0.1.55 (CONFIRMED: pom.xml line 82)
+- **Hypersistence Utils**: 3.12.0 (CONFIRMED: pom.xml line 229)
+
+### Testing
+- **JUnit Jupiter**: 5.11.4 (CONFIRMED: pom.xml line 164)
+- **Allure**: 2.24.0 (CONFIRMED: pom.xml line 20)
+- **Allure JUnit5**: 2.25.0 (CONFIRMED: pom.xml line 148)
+- **Allure Java Commons**: 2.25.0 (CONFIRMED: pom.xml line 180)
+- **AspectJ**: 1.9.22.1 (CONFIRMED: pom.xml line 21)
+- **Spring Boot Starter Test**: Version from Spring Boot 3.5.7 parent (ASSUMPTION: includes JUnit 5, Mockito, AssertJ)
+
+### Mail
+- **Spring Boot Starter Mail**: 1.5.8.RELEASE (CONFIRMED: pom.xml line 118)
+  - NOTE: This is an older version, potentially incompatible with Spring Boot 3.5.7 (ASSUMPTION: May cause dependency conflicts)
+
+### Validation
+- **Jakarta Validation API**: 3.1.1 (CONFIRMED: pom.xml line 137)
+
+### Code Quality
+- **Spotless**: 2.43.0 (CONFIRMED: pom.xml line 334)
+- **Eclipse Formatter**: 4.33 (CONFIRMED: pom.xml line 338)
+
+## Architecture Pattern
+- **Pattern**: Layered architecture (Controller → Service → Repository)
+- **Controllers**: 14 REST controllers (CONFIRMED: grep search found 14 @RestController annotations)
+- **Services**: 23+ service implementations (CONFIRMED: grep search found 23 @Service annotations)
+- **Repositories**: 20+ JPA repositories (CONFIRMED: directory structure)
+
+## Application Configuration
+- **Server Port**: 4053 (CONFIRMED: application.yml line 34)
+- **JPA**: Hibernate with PostgreSQL dialect (CONFIRMED: application.yml lines 19-27)
+- **Caching**: Enabled with EhCache (CONFIRMED: application.yml lines 15-18)
+- **Async**: Enabled (CONFIRMED: @EnableAsync in OMNIAutomationApplication.java)
+- **Scheduling**: Enabled (CONFIRMED: @EnableScheduling in OMNIAutomationApplication.java)
+
+## Assumptions Summary
+1. Maven version: Latest 3.x compatible with Spring Boot 3.5.7 (not explicitly specified)
+2. Docker version: Any version supporting standard Dockerfile syntax (not explicitly specified)
+3. PostgreSQL driver version: 42.x series from Spring Boot 3.5.7 dependencies (inherited)
+4. Spring Security version: 6.x series from Spring Boot 3.5.7 (inherited)
+5. Reactor Netty version: 1.x series from Spring Boot 3.5.7 (inherited)
+6. EhCache version: 3.x series from Spring Boot 3.5.7 (inherited)
+7. JCache API version: 1.1.x from Spring Boot 3.5.7 (inherited)
+8. Spring Boot Starter Test components: Standard test dependencies from Spring Boot 3.5.7 (inherited)
+9. Potential version conflict: spring-boot-starter-mail 1.5.8.RELEASE may be incompatible with Spring Boot 3.5.7
+
+## No Assumptions (100% Confirmed)
+All explicitly versioned dependencies in pom.xml, Dockerfile base image, application.yml configuration values, and source code annotations have been directly verified from the repository files.

@@ -1,0 +1,590 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.order";
+option java_outer_classname = "OrderModelProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.order;
+
+import "common_model.proto";
+import "common_enum.proto";
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/timestamp.proto";
+import "address/address_model.proto";
+import "protobuf_validations/validation.proto";
+
+message InitializeOrderRequest {
+  common.model.RequestHeader header = 1;
+  common.enums.OrderFlowTypes order_flow_type = 2;
+  OfferInstance main_offer = 3 [(validations.optional) = true];
+  repeated OfferInstance additional_offers = 4 [(validations.optional) = true];
+  repeated Parameter parameters = 5 [(validations.optional) = true];
+}
+
+message InitializeOrderResponse { // Please do not change the digits because its effecting the Mobile APP Force update
+  int64 order_id = 2;
+  CalculatedBasketPrice basket_price = 3;
+  repeated Document documents = 4;
+}
+
+message InitializeInflightCancelOrderRequest {
+  common.model.RequestHeader header = 1;
+  common.enums.OrderFlowTypes order_flow_type = 2;
+  repeated Parameter parameters = 5;
+}
+
+message SubmitNftOrderRequest {
+  common.model.RequestHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+  int64 order_id = 2; // order id
+  address.SelectedAddress address = 3; // customer address
+}
+
+message ListCustomerOrderRequest {
+  common.model.RequestHeader header = 1;
+  bool populate_media = 2;
+  repeated CustomerOrderStatus customer_order_status_list = 3 [(validations.optional) = true]; //listelenmek istenen sipariş statuleri
+}
+
+message GetCustomerOrderDetailRequest {
+  common.model.RequestHeader header = 1;
+  int64 order_id = 2;
+}
+
+message GetCustomerVehicleOrderDetailResponse {
+  OrderInfo order_info = 1;
+  repeated Parameter parameters = 2; // characteristics and offer images will be returned
+  OrderPriceItem price = 3; // Odeme Bilgileri alani
+  address.SelectedAddress address = 4; // address id ler donulecek
+  OrderPriceSummary summary = 5;
+}
+
+message GetCustomerOrderDetailResponse {
+  OrderInfo order_info = 1;
+  repeated Parameter parameters = 2; // characteristics and offer images will be returned
+  OrderPriceItem price = 3; // Odeme Bilgileri alani
+  address.SelectedAddress address = 4; // address id ler donulecek
+}
+
+message GetOrderPriceSummaryRequest {
+  common.model.RequestHeader header = 1;
+  int64 order_id = 2;
+}
+
+message InquirePriceRequest {
+  common.model.RequestHeader header = 1;
+  string order_id = 2;
+}
+
+message InquirePriceResponse {
+  double total_amount = 1;
+  int32 tax_total = 2;
+  string currency = 3;
+}
+
+message ListPreOrderCancelReasonsRequest {
+  common.model.RequestHeader header = 1;
+  common.enums.OrderFlowTypes order_flow_type = 2;
+}
+
+message InitializeInflightChangeOrderRequest {
+  common.model.RequestHeader header = 1;
+  ChangeOrderFlowTypes change_order_flow_type = 2;
+  repeated Parameter parameters = 3 [(validations.optional) = true];
+}
+
+message InitializePreOrderBundleChangeRequest{
+  common.model.RequestHeader header = 1;
+  OfferInstance main_offer = 2;
+  repeated OfferInstance additional_offers = 3 [(validations.optional) = true];
+  repeated Parameter parameters = 4 [(validations.optional) = true];
+}
+
+
+message InitializeInflightChangeOrderResponse {
+  int64 order_id = 1;
+}
+
+message UpdateOrderInvoiceTypeRequest {
+  common.model.RequestHeader header = 1;
+  string invoice_type = 2;
+  int64 reference_order_id = 3;
+  int64 billing_addr_id = 4;
+}
+
+message UpdateOrderFinanceMethodRequest {
+  common.model.RequestHeader header = 1;
+  FinanceMethod payment_method = 2;
+  int64 reference_order_id = 3;
+}
+
+message UpdateOrderInsuranceCharsRequest {
+  common.model.RequestHeader header = 1;
+  int64 reference_order_id = 2;
+  oneof insurance_type {
+    VehicleInsuranceCharType vehicle_insurance = 3;
+    TrafficInsuranceCharType traffic_insurance = 4;
+  }
+  repeated common.model.GenericParameter chars = 5;
+}
+
+message CreateStockProductOrderTemplateRequest {
+  common.model.RequestHeader header = 1;
+  StockProductOrderTemplate product_order_template = 2;
+}
+
+message InitializePreOrderChangeToStockOrderRequest{
+  common.model.RequestHeader header = 1;
+  string  stock_product_order_template_id = 2;
+  int64 order_id = 3;
+  repeated Parameter parameters = 4 [(validations.optional) = true];
+}
+
+message InitializeStockToProductOrderRequest{
+  common.model.RequestHeader header = 1;
+  string  stock_product_order_template_id = 2;
+  repeated Parameter parameters = 3 [(validations.optional) = true];
+}
+
+message ListStockProductOrderTemplatesRequest {
+  common.model.RequestHeader header = 1;
+  int64 customer_order_id = 2; // compatibility will only be calculated when the order id field filled
+  bool populate_stock_count = 3;
+}
+
+message GetStockProductOrderTemplateRequest {
+  common.model.RequestHeader header = 1;
+  string id = 2;
+}
+
+message DeleteStockProductOrderTemplateRequest {
+  common.model.RequestHeader header = 1;
+  string id = 2;
+}
+
+message ListStockTemplateRelatedOrdersRequest {
+  common.model.RequestHeader header = 1;
+  string template_id = 2; // variant code template id for order collection
+  repeated common.model.GenericParameter search_parameters = 3; // characteristic parameters filter for stock orders
+}
+
+message ListStockTemplateRelatedOrdersResponse{
+  repeated int64 order_id = 1;
+}
+
+message StockProductOrderTemplate {
+  string id = 1;
+  string external_id = 2; // variant id for SAP
+  string location_code = 3 ;
+  string location_lbl = 4 ;
+  string model = 5;
+  OfferInstance main_offer = 6 [(validations.optional) = true];
+  repeated OfferInstance additional_offers = 7 [(validations.optional) = true];
+  repeated Parameter parameters = 8 [(validations.optional) = true]; // for spesific type we should use type :
+  OrderCompatibility customer_order_compatibility = 9 [(validations.optional) = true]; // for spesific type we should use type :
+  int32 available_stock_count = 10; // filled via ProductStockService/ListProductStockCounts response.available_stock_count
+  StockPrice stock_price = 11;
+}
+
+message StockPrice {
+  string currency = 1;
+  double total_price = 2; //total_price from BasketPriceDetail
+  double discount_total = 3; //applied_discount from BasketPriceDetail
+  double net_price = 4; // net_price
+}
+
+message OrderCompatibility {
+  int32 compatibility  = 1; // return as percentage
+  map<int64, google.protobuf.BoolValue> compatibility_items = 2; // sample for example - bundle offer id return true , means same bundle
+}
+
+message UpdateOrderInvoiceTypeResponse {
+  int64 order_id = 1;
+}
+
+message UpdateOrderFinanceMethodResponse {
+  int64 order_id = 1;
+}
+
+message ListCustomerOrderCharRequest {
+  common.model.RequestHeader header = 1;
+  int64 order_id = 2;
+}
+
+message GetCustomerOrderCharRequest {
+  common.model.RequestHeader header = 1;
+  int64 order_id = 2;
+  string char_code = 3;
+}
+
+message GetReferenceOrderNumberRequest {
+  common.model.RequestHeader header = 1;
+  int64 order_id = 2;
+}
+
+message GetCustomerOrderStatusHistoryRequest {
+  common.model.RequestHeader header = 1;
+  int64 order_id = 2;
+}
+
+message GetCustomerOrderStatusCreateDateRequest {
+  common.model.RequestHeader header = 1;
+  int64 order_id = 2;
+  ExternalOrderStatusType external_status = 3;
+}
+
+message GetOrderFlowInfoRequest {
+  common.model.RequestHeader header = 1;
+  int64 order_id = 2;
+}
+
+message GetOrderFlowInfoResponse {
+  int64 bsn_inter_id =1;
+  common.model.GenericCodeType business_inter_spec = 2;
+  common.model.GenericCodeType business_flow_spec = 3;
+}
+
+message ListOrderMainProductCharsRequest {
+  common.model.RequestHeader header = 1;
+  int64 order_id = 2;
+  repeated string char_filters =3;
+}
+
+message SubmitOrderInvoicingDocumentsApprovedRequest{
+  common.model.RequestHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+  int64 order_id = 2; // order id
+}
+
+message GeneralCharacteristic {
+  common.model.GenericCodeType characteristic = 1;
+  common.model.GenericInfoType captured_value = 2;
+}
+
+message OrderInfo {
+  int64 order_id = 1; // orderDetail.customerOrderId
+  google.protobuf.Timestamp order_date = 2; // orderDetail.orderDate
+  OrderStatus status = 3; // OrdStEntity
+  ExternalOrderStatus external_status = 4; // CustOrdStHstrEntity
+  common.enums.OrderFlowTypes order_flow_type = 5; // orderDetail.bsnFlowSpecCode
+  string bundle_offer_name = 6; //offerDetail.name
+  int64 bundle_offer_id = 7; //offerDetail.productOfferId
+  OrderPrice price_info = 8;
+  repeated string media_urls = 9; // image urls for order items
+  int64 total_item_quantity = 10; // total item count
+}
+
+message OrderPrice{
+  double total_price = 1;
+  string currency = 2;
+}
+
+message OrderStatus{
+  common.model.GenericCodeType status = 1; // map OrdStEntity.name, OrdStEntity.shortCode,
+  common.model.GenericCodeType parent_status = 2; // map OrdStEntity.parent.name, OrdStEntity.parent.shortCode,
+}
+
+message ExternalOrderStatus{
+  OrderStatus status = 1; // fill from CustOrdStHstrEntity ext_ord_st_id = ord_st_id
+  OrderStatus licencing_status = 2; // fill from CustOrdStHstrEntity ext_lcnc_st_id = ord_st_id
+  OrderStatus payment_status = 3;// fill from CustOrdStHstrEntity ext_pymnt_st_id = ord_st_id
+}
+
+message OrderStatusHistory {
+  OrderStatus order_status = 1;
+  ExternalOrderStatus external_status = 2;
+  google.protobuf.Timestamp created_date = 3;
+  google.protobuf.Timestamp updated_date = 4;
+}
+
+message CalculatedBasketPrice{
+  CalculatedPrice calculated_price = 1;
+  AdvancePrice advance_price = 2;
+}
+
+message AdvancePrice{
+  double total_price = 1;
+  string currency = 2;
+}
+
+message CalculatedPrice{
+  string currency = 1;
+  repeated common.model.GenericInfoType tax_info = 2;
+  repeated AppliedDiscount applied_discount = 3;
+  double total_price = 4;
+}
+
+message GetOrderPaymentDetailRequest {
+  common.model.RequestHeader header = 1;
+  int64 order_id = 2;
+}
+
+message GetOrderPaymentDetailResponse {
+  OrderPriceSummary price_summary = 1;
+  repeated OrderPriceSummaryItem previous_payments = 2;
+}
+
+message OrderPriceSummary{
+  repeated OrderPriceSummaryItem summary_infos = 1; // MAIN, ON_THE_ROAD,ADDITIONAL, ADVANCE and BALANCE will be mapped
+  repeated OrderPriceSummaryItem summary_details = 2; // OTHER and TAX will be mapped
+}
+
+message OrderPriceSummaryItem{
+  string name = 1;
+  string currency = 2;
+  double total_price = 3; // with tax
+  OrderPriceSummaryItemType type = 4;
+  double net_price = 5; // no tax
+  string description = 6;
+  double tax_value = 7; // tax value for accessory sales
+  double tax_total = 8; // total tax for accessory sales
+}
+
+message OrderPriceItem{
+  string currency = 1;
+  double total_price = 2;
+  double tax_price = 3;
+  OrderPriceItemType type = 4;
+}
+
+message UpdateOrderDeliveryPointRequest {
+  common.model.RequestHeader header = 1;
+  string delivery_point = 2;
+  int64 reference_order_id = 3;
+}
+
+enum OrderPriceItemType{
+  ORDER_PRICE_ITEM_TYPE_UNSPECIFIED= 0;
+  TOTAL_PRICE = 2;
+  SHIPMENT_PRICE = 3;
+}
+
+message InitializeBulkStockProductOrdersRequest {
+  common.model.RequestHeader header = 1;
+  repeated BulkOrderCharUpdate selected_orders = 2;
+}
+
+message BulkOrderCharUpdate{
+  int64 order_id = 1; //
+  string template_id = 2;
+  repeated common.model.GenericParameter chars = 3;
+  bool is_serial_provided = 4;//if it is true serial already selected, if false random serial number will be fetched
+}
+
+enum OrderPriceSummaryItemType {
+  ORDER_PRICE_SUMMARY_ITEM_TYPE_UNSPECIFIED = 0;
+  VEHICLE_BASE = 1;
+  VEHICLE_ADDON = 2;
+  VEHICLE_ADDON_FREE = 3;
+  MARKETING_PACK_BASE = 4;
+  ON_THE_ROAD = 5; //total (invoiceTotal)
+  ADVANCE = 6;
+  BALANCE = 7; // expectedBalance (remaining total removed)
+  TAX = 8; // basketPrice.taxes
+  VEHICLE_REGISTRATION_COSTS = 9;
+  NET_TOTAL = 10; // net total (netTotal)
+  NET_TOTAL_WITHOUT_LICENCE = 11; // withoutLicencingTotal
+  REMAINING_TOTAL = 12; // remainingTotal
+  REMAINING_TOTAL_WITHOUT_LICENCE = 13; // remainingWithoutLicencingTotal
+  TOGG_CREDIT_PAYMENT_TYPE = 14; //payment types
+  SELF_CREDIT_PAYMENT_TYPE = 15; //payment types
+  VEHICLE_LICENCING_MTV = 16;
+  VEHICLE_LICENCING = 17;
+  DIGITAL_PRODUCT = 18;
+  DIGITAL_PRODUCT_FREE = 19;
+  WHOLESALE = 20;
+}
+
+
+
+message AppliedDiscount{
+  string discount_name = 1;
+  int64 discount_offer_id = 2;
+  string oneTime_discount_amount = 3;
+  string oneTime_discount_tax_amount = 4;
+  repeated int64 applied_offer_ids = 5;
+}
+
+
+message Parameter {
+  string short_code = 1;
+  string name = 2 [(validations.optional) = true];
+  string value = 3;
+  string type = 4 [(validations.optional) = true]; // CHARACTER ,  IMAGE
+}
+
+message ProductOffer {
+  int64 product_offer_id = 1;
+  bool bundle = 2;
+  string name = 3;
+}
+
+message OfferInstance {
+  ProductOffer product_offer = 1;
+  repeated OfferInstance sub_items = 2;
+  repeated OfferInstanceChars chars = 3;
+  string tariff_version_no =4;
+  int64 quantity =5;
+}
+
+message OfferInstanceChars{
+  common.model.GenericCodeType characteristic =1; //gnl_char info
+  common.model.GenericCodeType characteristic_value =2; //gnl_char_val info
+  string captured_value =3;  // selected value
+}
+
+message Document{
+  string document_url = 1;
+  string document_name = 2;
+  repeated DocumentParameter document_parameters = 3;
+}
+
+message DocumentParameter{
+  string short_code = 1;
+  string default_value = 2;
+  string value = 3;
+}
+
+message Receipt{
+  PaymentType payment_type = 1;
+  double payment_amount = 2;
+  string payment_txn_id = 3;
+  int64 payment_date = 4;
+  string payment_reason = 5;
+  string payment_bank_name = 6;
+  string acquirer_bank = 7;
+  string issuer_bank = 8;
+  google.protobuf.Timestamp reconciliation_date = 9;
+  string payment_cur = 10;
+  string payment_action = 11;
+  string phone_number = 12;
+  string actn_inter_type = 13;
+  bool is_refunded = 14;
+  bool is_refundable = 15 [(validations.optional) = true];
+}
+
+message GetCustomerOrderBillingAddressRequest {
+  common.model.RequestHeader header = 1;
+  int64 order_id = 2;
+}
+
+enum PaymentType {
+  PAYMENT_TYPE_UNSPECIFIED = 0;
+  CREDIT_CARD = 1;
+  WALLET = 2;
+  NFT = 3;
+  MONEY_TRANSFER = 4;
+  TOGG_CREDIT = 5;
+  SELF_CREDIT = 6;
+}
+
+enum AmountType {
+  AMOUNT_TYPE_UNSPECIFIED = 0;
+  AMOUNT = 1;
+  TAX_AMOUNT = 2;
+  DISCOUNT_AMOUNT = 3;
+}
+
+enum FinanceMethod {
+  FINANCE_METHOD_UNSPECIFIED = 0;
+  SELF_FINANCING = 1;
+}
+
+enum ChangeOrderFlowTypes {
+  CHANGE_ORDER_FLOW_UNSPECIFIED = 0;
+  INFLIGHT_CHANGE_PAYMENT_UPDATE = 1;
+  INFLIGHT_CHANGE_CHAR_UPDATE = 2;
+}
+
+enum ExternalOrderStatusType {
+  EXTERNAL_ORDER_STATUS_TYPE_UNSPECIFIED = 0;
+  READY_FOR_HANDOVER = 1;
+}
+
+enum VehicleInsuranceCharType {
+  CAR_INS_UNSPECIFIED = 0;
+  CAR_INS_TRUE = 1;
+  CAR_INS_FALSE = 2;
+  CAR_INS_PROGRESS = 3;
+}
+
+enum TrafficInsuranceCharType {
+  TRF_INS_UNSPECIFIED = 0;
+  TRF_INS_TRUE = 1;
+  TRF_INS_FALSE = 2;
+  TRF_INS_PROGRESS = 3;
+}
+
+message InitializeTransferProductOrderRequest {
+  common.model.RequestHeader header = 1;
+  int64 transfer_product_id = 2;
+  oneof transferred_customer {
+    int64 customer_id = 4;
+    int64 open_id = 5;
+  }
+  repeated Parameter parameters = 6 [(validations.optional) = true];
+}
+
+message SubmitTransferProductOrderRequest {
+  common.model.RequestHeader header = 1;
+  int64 order_id = 2;
+  repeated Parameter parameters = 3 [(validations.optional) = true];
+}
+
+message GetCustomerOrderItemsRequest {
+  common.model.RequestHeader header = 1;
+  int64 order_id = 2 ;
+  bool calculate_price = 3;
+}
+
+message GetCustomerOrderItemsResponse {
+  OrderItemOfferInstance main_offer =1;
+  repeated OrderItemOfferInstance additional_offers =2;
+}
+
+message OrderItemOfferInstance {
+  ProductOffer product_offer = 1;
+  repeated OrderItemOfferInstance sub_items = 2;
+  repeated OfferInstanceChars chars = 3;
+  int64 quantity = 4;
+  CalculatedPrice price = 5;
+}
+
+message InitializePreOrderChangeRequest{
+  common.model.RequestHeader header = 1;
+  OfferInstance main_offer = 2 ;
+  repeated OfferInstance additional_offers = 3 [(validations.optional) = true];
+  repeated Parameter parameters = 4 [(validations.optional) = true];
+}
+
+message InitializePreOrderChangeResponse {
+  int64 order_id = 1;
+}
+
+message SubmitPreOrderChangeRequest{
+  common.model.RequestHeader header = 1;
+  int64 order_id = 2;
+}
+
+enum StockProductOrderTemplateStatus{
+  STOCK_PRODUCT_ORDER_TEMPLATE_STATUS_UNSPECIFIED = 0;
+  ACTIVE = 1;
+  PASSIVE = 2;
+  OUT_OF_STOCK = 3;
+}
+
+message ReserveNftRequest {
+  common.model.RequestHeader header = 1;
+  string code = 2;
+}
+
+message ListAvailableNftCodeRequest {
+  common.model.RequestHeader header = 1;
+}
+
+message ListAvailableNftCodeResponse {
+  repeated string values = 1;
+}
+
+enum CustomerOrderStatus {
+  ORDER_STATUS_UNSPECIFIED = 0;
+  SUBMITTED = 1; // Related to BSS status : ESB, FINISHED, FULL_FINISHED, QUOTE_PYMNT
+}

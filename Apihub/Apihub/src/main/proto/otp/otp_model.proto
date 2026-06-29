@@ -1,0 +1,29 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.otp";
+option java_outer_classname = "OtpModelProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.otp;
+
+import "common_model.proto";
+import "protobuf_validations/validation.proto";
+
+/**
+ * Request object for getting OTP code for the defined operation name and hash code.
+ */
+message ClaimOtpRequest {
+  common.model.RequestHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+  string operation_name = 2; // Operation name ex: RESERVE_SEAT_DEACTIVATION, RESERVE_SEAT, ORDER_FLOW_UNSPECIFIED
+  int64 hash_code = 3; // hash code needed for OTP generation
+}
+
+/**
+ * Request object for verifying OTP code for the defined operation name and hash code.
+ */
+message VerifyOtpRequest {
+  common.model.RequestHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+  string operation_name = 2 [(validations.optional) = true]; // Operation name ex: RESERVE_SEAT_DEACTIVATION, RESERVE_SEAT, ORDER_FLOW_UNSPECIFIED
+  string otp_value = 3; // OTP value will be validated
+  int64 hash_code = 4; // hash code need for OTP validation
+}

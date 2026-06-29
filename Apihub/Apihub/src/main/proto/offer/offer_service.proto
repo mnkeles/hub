@@ -1,0 +1,31 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.offers.client";
+option java_outer_classname = "OfferServiceProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.offers.client;
+
+import "offer/offer_model.proto";
+import "google/protobuf/wrappers.proto";
+
+service OfferService {
+  rpc SearchOffer (SearchOfferRequest) returns (stream BundleOffer);
+}
+
+service OfferServerService {
+  rpc IsOrderBasketValid (IsOrderBasketValidRequest) returns (google.protobuf.BoolValue);
+}
+
+service OfferingQualificationService {
+  rpc SearchOfferingQualification (SearchOfferingQualificationRequest) returns (stream ProductOfferDetail);
+  rpc ListVehicleOrderLicencingOffers (ListVehicleOrderLicencingOfferRequest) returns (stream ProductOfferDetail);
+  rpc GetProductOfferDetails (GetProductOfferDetailsRequest) returns (stream ProductOfferDetail);
+  rpc ListPreOrderChangeOffers (ListPreOrderChangeOfferRequest) returns (stream ProductOfferDetail);
+  rpc GetOfferSlotAvailabilityCount (GetOfferSlotAvailabilityCountRequest) returns (google.protobuf.Int32Value);
+  rpc ListPreOrderChangeOffersForBundleChange (ListPreOrderChangeOffersForBundleChangeRequest) returns (stream ProductOfferDetail);
+}
+
+service CatalogService {
+  rpc ListProdOfferCatalogHierarchy (ListProdOfferCatalogHierarchyRequest) returns (stream ProdOfferCatalogHierarchy);  // tek bir hiearcy donecek ve sub bilgileri eklenecek
+}

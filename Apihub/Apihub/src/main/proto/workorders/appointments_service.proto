@@ -1,0 +1,21 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.workorders.appointments.v1";
+option java_outer_classname = "WorkOrdersServiceProto";
+option objc_class_prefix = "WO";
+
+package tr.com.togg.tdp.tma.ms.workorders.appointments.v1.client;
+
+import "workorders/appointments_model.proto";
+import "google/protobuf/empty.proto";
+
+/*
+
+This is the appointment microservice client protocol.
+Only the appointment microservice should use the services and methods listed below.
+
+*/
+service AppointmentService {
+  rpc CreateWorkOrder (CreateWorkOrderRequest)  returns (CreateWorkOrderResponse);
+  rpc UpdateWorkOrder (UpdateWorkOrderRequest) returns (google.protobuf.Empty);
+}

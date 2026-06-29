@@ -1,0 +1,123 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.workorders.v1";
+option java_outer_classname = "WorkOrdersAcceptanceModelProto";
+option objc_class_prefix = "WO";
+
+package tr.com.togg.tdp.tma.ms.workorders.v1;
+
+import "common_model.proto";
+import "common_enum.proto";
+import "workorders/tmforum_model.proto";
+import "google/protobuf/timestamp.proto";
+
+message CreateAcceptanceRequest {
+  common.model.RequestHeader header = 1;
+  string workorder_id = 2;
+  Acceptance acceptance = 3;
+}
+
+message CreateAcceptanceResponse {
+  Acceptance acceptance = 1;
+}
+
+message GetAcceptanceRequest {
+  common.model.RequestHeader header = 1;
+  string workorder_id = 2;
+}
+
+message GetAcceptanceResponse {
+  Acceptance acceptance = 1;
+}
+
+message UpdateAcceptanceRequest {
+  common.model.RequestHeader header = 1;
+  string workorder_id = 2;
+  Acceptance acceptance = 3;
+}
+
+message UpdateAcceptanceResponse {
+  Acceptance acceptance = 1;
+}
+
+message DeleteAcceptanceRequest {
+  common.model.RequestHeader header = 1;
+  string workorder_id = 2;
+}
+
+message Acceptance {
+
+  // unique identifier
+  string id = 1;
+
+  // The person who dropped off the vehicle
+  string dropped_off_by = 2;
+
+  // The dropped off the vehicle
+  Vehicle dropped_off_vehicle = 3;
+
+  // The vehicle provided as a replacement
+  Vehicle replaced_by_vehicle = 4;
+
+  // if the removed pieces must be returned to the customer
+  bool return_removed_parts = 5;
+
+  google.protobuf.Timestamp replacement_mobility_delivery_time = 6;
+}
+
+message Vehicle {
+
+  // unique identifier
+  string id = 1;
+
+  // Mileage on the vehicle
+  Quantity kilometer = 2;
+
+  // battery level on the vehicle
+  Quantity battery_level = 3;
+
+  // The vehicle licence plate
+  string  license_plate = 4;
+
+  // The vehicle model
+  string  vehicle_model = 5;
+
+  // The items found in the vehicle
+  repeated RelatedEntity items_in_vehicle = 6;
+
+  // The other items found in the vehicle
+  string other_items_in_vehicle = 7;
+
+  // The vehicle's current conditions
+  repeated VehicleCondition current_conditions = 8;
+}
+
+message VehicleCondition {
+
+  // unique identifier
+  string id = 1;
+
+  // The vehicle condition type, e.g. 'dented, damaged, etc.'
+  string type = 2;
+
+  // The vehicle condition description
+  string description = 3;
+
+  // The attachments associated wth the vehicle condition
+  repeated Attachment attachments = 4;
+}
+
+message Attachment {
+
+  // unique identifier
+  string id = 1;
+
+  // The name of the attachment
+  string name = 2;
+
+  // A narrative text describing the content of the attachment
+  string description = 3;
+
+  // The Ref ID of the document at Etiya Document Management
+  string external_id = 4;
+}

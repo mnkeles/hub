@@ -1,0 +1,13 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.achievements.server";
+option java_outer_classname = "AchievementsServerModelProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.achievements;
+
+import "common_model.proto";
+
+message GetUserMagnetCountRequest {
+  common.model.RequestHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+}

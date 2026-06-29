@@ -1,0 +1,20 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.consents";
+option java_outer_classname = "ConsentsServiceProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.consents.client;
+
+import "consents/consents_model.proto";
+import "google/protobuf/empty.proto";
+
+service ConsentService {
+  rpc InquireConsent (InquireConsentRequest) returns (stream InquireConsentResponse); // for navigation microapp
+  rpc CreateConsent (CreateConsentRequest) returns (google.protobuf.Empty);
+}
+
+service UserConsentService {
+  rpc SubmitUserConsent (SubmitUserConsentRequest) returns (google.protobuf.Empty);
+  rpc ListUserConsents (ListUserConsentsRequest) returns (stream ConsentInfo);
+}

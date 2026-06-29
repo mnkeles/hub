@@ -1,0 +1,53 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.customer";
+option java_outer_classname = "CustomerServiceProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.customer.client;
+
+import "customer/customer_model.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+import "address/address_model.proto";
+
+//The service where deactivates an already active user account and get user information
+service CustomerService {
+  //// Deactivates an already active user account.
+  rpc DeactivateUserAccount (DeactivateUserAccountRequest) returns (google.protobuf.Empty);
+  // //Used to get user information
+  rpc GetUserInformation (GetUserInformationRequest) returns (GetUserInformationResponse);
+  //
+  rpc SetUserKYCVerificationLevel (SetUserKYCVerificationLevelRequest) returns (google.protobuf.Empty);
+
+  // //Used to set user information
+  rpc SetUserInformation (SetUserInformationRequest) returns (GetUserInformationResponse);
+
+  rpc SetUserProfileImages (stream SetUserProfileImagesRequest) returns (SetUserProfileImagesResponse);
+  rpc InquireOrgCustomer (InquireOrgCustomerRequest) returns (InquireOrgCustomerResponse);
+
+}
+
+service CustomerAuthService {
+  // GetIdVerificationToken from Amani server.
+  rpc GetIdVerificationToken (GetIdVerificationTokenRequest) returns (GetIdVerificationTokenResponse);
+}
+
+service CustomerAdminService {
+  // Creates the prospect users by CSR
+  rpc CreateProspectUser (CreateProspectUserRequest) returns (google.protobuf.Empty);
+  rpc GetTotpCode (TotpCodeRequest) returns (google.protobuf.Empty);
+}
+
+service CustomerPublishEventService {
+  rpc CompleteProfilePublishEvent (CompleteProfilePublishEventRequest) returns (google.protobuf.Empty);
+}
+
+service CustomerAddressService {
+  rpc CreateCustomerAddress  (CreateCustomerAddressRequest) returns (google.protobuf.Int64Value);
+  rpc ListCustomerAddress (ListCustomerAddressRequest) returns (stream address.ClientAddress);
+  rpc UpdateCustomerAddress (UpdateCustomerAddressRequest) returns (google.protobuf.Int64Value);
+  rpc DeleteCustomerAddress (DeleteCustomerAddressRequest) returns (google.protobuf.Empty);
+  rpc ListCustomerCorporateAddress (ListCustomerAddressRequest) returns (stream address.ClientAddress);
+  rpc ListCustomerIndCorporateAddress (ListCustomerAddressRequest) returns (stream address.ClientAddress);
+}

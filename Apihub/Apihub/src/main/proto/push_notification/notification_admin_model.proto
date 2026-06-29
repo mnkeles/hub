@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.notifications.admin.v1";
+option java_outer_classname = "NotificationsAdminModelProto";
+option objc_class_prefix = "TMA";
+
+package tr.com.togg.tdp.tma.ms.notifications.admin.v1;
+
+import "push_notification/notification_model.proto";
+import "common_model.proto";
+
+message CreateNotificationTaskRequest {
+  common.model.RequestHeader header = 1;
+  string tenant_id = 2;
+  TaskType task_type = 3;
+  Task task = 4;
+  string sender = 5; //Which service account is sending the notification
+}
+
+message Task {
+  oneof task_details {
+    SendToAllUsersNotification all_users_notification = 1; // set only this field when the task type is TASK_TYPE_SEND_TO_ALL_USERS
+    SendToUsersNotifications users_notifications = 2; // set only this field when the task type is TASK_TYPE_SEND_TO_USERS
+  }
+}
+
+message SendToAllUsersNotification {
+  bool send_to_last_registered_device = 1; // the message will be sent only to the last registered device when true
+  Message message = 2;
+}
+
+message SendToUsersNotifications {
+  repeated UserNotification user_notifications = 1;
+}
+
+message UserNotification {
+  string user_id = 1; // The TIAM user's ID (to which TIAM user the message will be sent)
+  oneof device {
+    string device_token = 2; // The device token of the device of the user, if null then the message will be sent to all devices of the user
+    bool send_to_last_registered_device = 3; // the message will be sent only to the last registered device when true
+  }
+  Message message = 4; // Firebase Cloud Messaging (FCM) Message Object.
+}
+
+enum TaskType {
+  TASK_TYPE_UNSPECIFIED = 0;
+  TASK_TYPE_SEND_TO_ALL_USERS = 1;
+  TASK_TYPE_SEND_TO_USERS = 2;
+  reserved 3 to 99;
+  OTHER_TASK_TYPE = 100;
+}

@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.notifications";
+option java_outer_classname = "NotificationsClientProto";
+option objc_class_prefix = "TMA";
+
+package tr.com.togg.tdp.tma.ms.notifications.client;
+
+import "push_notification/notification_model.proto";
+
+service ClientService {
+  /**
+   * This method sends notification to all registered mobile devices of the users
+   */
+  rpc SendToUser (SendMessageRequest) returns (stream SendToUserResponse);
+  rpc ListUserNotifications (ListUserNotificationRequest) returns (stream Message);
+
+}

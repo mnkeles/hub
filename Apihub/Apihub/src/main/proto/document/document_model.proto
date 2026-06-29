@@ -1,0 +1,217 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.document.v1";
+option java_outer_classname = "DocumentModelProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.document.v1;
+
+import "common_model.proto";
+import "common_enum.proto";
+import "google/protobuf/timestamp.proto";
+import "protobuf_validations/validation.proto";
+
+message InquireDocumentRequest{
+  common.model.RequestHeader header = 1;
+  string document_id = 2; // mandatory
+  repeated GovernanceFilterParameter parameters = 3;  // mandatory
+  string fields = 4; // comma separated field names for filtering requested fields
+}
+
+message InquireDocumentResponse{
+  Document document = 1;
+}
+
+message CreateDocumentRequest{
+  common.model.RequestHeader header = 1;
+  Document document = 2; // mandatory
+  repeated GovernanceFilterParameter parameters = 3; // mandatory
+}
+
+message CreateDocumentResponse{
+  string document_id = 1;
+}
+
+message UpdateDocumentRequest{
+  common.model.RequestHeader header = 1;
+  Document document = 2;  // mandatory
+  repeated GovernanceFilterParameter parameters = 3;  // mandatory
+}
+
+message UpdateDocumentResponse{
+  string document_id = 1;
+}
+
+message ListDocumentsRequest {
+  common.model.RequestHeader header = 1;
+  map<string, string> filters = 2;
+  repeated GovernanceFilterParameter governance_filter_parameters = 3;  // mandatory
+}
+
+message AssociationRequest{
+  common.model.RequestHeader header = 1;
+  string document_id = 2;  // mandatory
+  string specification_id = 3;  // mandatory
+}
+
+message AssociationResponse{
+  Document document = 1;
+}
+
+message ListDocumentGovernanceRequest{
+  common.model.RequestHeader header = 1;
+  repeated GovernanceFilterParameter governance_filter_parameters = 2;  // mandatory
+}
+
+message DocumentGovernance{
+  string type = 1;
+  string document_specification_id = 2; // mandatory
+  repeated string origin = 3;
+  DocumentNecessity necessity = 4; // mandatory
+  common.enums.Channel channel = 5; // mandatory
+  repeated DocumentChannelPermission permissions = 6; // mandatory
+  string life_cycle = 7; //mandatory
+}
+
+//wrapper entity for files
+message Document {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string specification_id = 4;  // mandatory
+  repeated Attachment attachments = 5; // mandatory, files
+  repeated GovernanceFilterParameter parameters = 6; // mandatory
+  repeated DocumentChannelPermission allowed_document_actions = 7; //required only for response, includes the allowed actions only for the channel
+  DocumentStatus status = 8;
+  DocumentNecessity necessity = 9;
+  google.protobuf.Timestamp last_updated = 10; // last updated date
+  google.protobuf.Timestamp creation_date = 11; // creation date
+  string life_cycle = 12;
+  string owner_id = 13;
+  string creator_id = 14;
+  string updater_id = 15;
+  DocumentStatusOcr status_ocr = 16 [(validations.optional) = true]; // document status for ocr
+}
+
+//file instances
+message Attachment {
+  string id = 1; // readonly
+  string name = 2; // readonly
+  string description = 3; // readonly
+  string mime_type = 4; // will be provided when we will use getDocumentPutUrl()
+  ExternalIdentifier external_identifier = 5; // mandatory
+  AttachmentStatus status = 6; // readonly
+  string updated_by = 7; // readonly
+  google.protobuf.Timestamp last_updated = 8; // readonly
+  google.protobuf.Timestamp creation_date = 9; // readonly
+  string reject_reason = 10;// mandatory for rejected attachments
+  AttachmentStatusOcr status_ocr = 11 [(validations.optional) = true]; // attachment status for ocr
+}
+
+message ExternalIdentifier{
+  string id = 1; // mandatory
+  string url = 2; // optional
+  ExternalFileSystem external_system = 3; // mandatory
+}
+
+message GetDocumentGetUrlRequest{
+  common.model.RequestHeader header = 1;
+  string document_id = 2; // mandatory
+  repeated GovernanceFilterParameter governance_filter_parameters = 3;  // mandatory
+}
+
+message GetDocumentGetUrlResponse{
+  repeated Attachment attachments = 1; // mandatory
+  google.protobuf.Timestamp expires_at = 2; // mandatory
+}
+
+message GetDocumentPutUrlRequest{
+  common.model.RequestHeader header = 1;
+  string specification_id = 2;  // mandatory
+  string mime_type = 3;  // mandatory
+  repeated GovernanceFilterParameter governance_filter_parameters = 4;  // mandatory
+}
+
+message GetDocumentPutUrlResponse{
+  Attachment attachment = 1;  // mandatory
+  google.protobuf.Timestamp expires_at = 2;  // mandatory
+}
+
+enum ExternalFileSystem{
+  EXTERNAL_FILESYSTEM_UNSPECIFIED = 0;
+  EXTERNAL_FILESYSTEM_UNKNOWN = 1;
+  EXTERNAL_FILESYSTEM_FILENET = 2;
+  EXTERNAL_FILESYSTEM_AWS_S3 = 3;
+}
+
+message GovernanceFilterParameter{
+  GovernanceFilterParameterKey key = 1;
+  string value = 2;
+}
+
+enum GovernanceFilterParameterKey{
+  GOVERNANCE_FILTER_PARAMETER_KEY_UNSPECIFIED = 0;
+  GOVERNANCE_FILTER_PARAMETER_KEY_BSN_INTER_SPEC = 1;
+  GOVERNANCE_FILTER_PARAMETER_KEY_LIFE_CYCLE = 2;
+  GOVERNANCE_FILTER_PARAMETER_KEY_ORDER_ID = 3;
+  GOVERNANCE_FILTER_PARAMETER_KEY_WORK_ORDER_ID = 4;
+  GOVERNANCE_FILTER_PARAMETER_KEY_APPOINTMENT_TYPE = 5;
+  GOVERNANCE_FILTER_PARAMETER_KEY_APPOINTMENT_ID = 6;
+  GOVERNANCE_FILTER_PARAMETER_KEY_CORPORATE_CUSTOMER_ID = 7;
+}
+
+enum DocumentStatus{
+  DOCUMENT_STATUS_UNSPECIFIED = 0;
+  DOCUMENT_STATUS_APPROVED = 1;
+  DOCUMENT_STATUS_REJECTED = 2;
+  DOCUMENT_STATUS_WAITING_FOR_APPROVAL = 3;
+  DOCUMENT_STATUS_DELETED = 4;
+}
+
+enum DocumentStatusOcr{
+  DOCUMENT_STATUS_OCR_UNSPECIFIED = 0;
+  DOCUMENT_STATUS_OCR_APPROVED = 1;
+  DOCUMENT_STATUS_OCR_REJECTED = 2;
+  DOCUMENT_STATUS_OCR_WAITINGFORAPPROVAL = 3;
+  DOCUMENT_STATUS_OCR_ERROR = 4;
+}
+
+enum AttachmentStatus{
+  ATTACHMENT_STATUS_UNSPECIFIED = 0;
+  ATTACHMENT_STATUS_CREATED = 1;
+  ATTACHMENT_STATUS_REVIEWED = 2;
+  ATTACHMENT_STATUS_WAITING_FOR_APPROVAL = 3;
+  ATTACHMENT_STATUS_APPROVED = 4;
+  ATTACHMENT_STATUS_PUBLISHED = 5;
+  ATTACHMENT_STATUS_ARCHIVED = 6;
+  ATTACHMENT_STATUS_REJECTED = 7;
+  ATTACHMENT_STATUS_DELETED = 8;
+}
+
+enum AttachmentStatusOcr{
+  ATTACHMENT_STATUS_OCR_UNSPECIFIED = 0;
+  ATTACHMENT_STATUS_OCR_APPROVED = 1;
+  ATTACHMENT_STATUS_OCR_REJECTED = 2;
+  ATTACHMENT_STATUS_OCR_WAITINGFORAPPROVAL = 3;
+  ATTACHMENT_STATUS_OCR_ERROR = 4;
+}
+
+enum DocumentChannelPermission {
+  DOCUMENT_CHANNEL_PERMISSION_UNSPECIFIED = 0;
+  DOCUMENT_CHANNEL_PERMISSION_READ = 1;
+  DOCUMENT_CHANNEL_PERMISSION_CREATE = 2;
+  DOCUMENT_CHANNEL_PERMISSION_UPDATE = 3;
+  DOCUMENT_CHANNEL_PERMISSION_DELETE = 4;
+  DOCUMENT_CHANNEL_PERMISSION_VIEW = 5;
+  DOCUMENT_CHANNEL_PERMISSION_APPROVE = 6;
+  DOCUMENT_CHANNEL_PERMISSION_REJECT = 7;
+  DOCUMENT_CHANNEL_PERMISSION_DOWNLOAD = 8;
+  DOCUMENT_CHANNEL_PERMISSION_VIEW_SAMPLE = 9;
+  DOCUMENT_CHANNEL_PERMISSION_VIEW_DETAIL = 10;
+}
+
+enum DocumentNecessity {
+  DOCUMENT_NECESSITY_UNSPECIFIED = 0;
+  DOCUMENT_NECESSITY_OPTIONAL = 1;
+  DOCUMENT_NECESSITY_MANDATORY = 2;
+}

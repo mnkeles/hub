@@ -1,0 +1,98 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.workorders.v1";
+option java_outer_classname = "WorkOrdersServiceProto";
+option objc_class_prefix = "WO";
+
+package tr.com.togg.tdp.tma.ms.workorders.v1.client;
+
+import "workorders/workorders_model.proto";
+import "workorders/pdi_model.proto";
+import "workorders/acceptance_model.proto";
+import "google/protobuf/empty.proto";
+
+service WorkOrdersService {
+  rpc GetWorkOrder (GetWorkOrderRequest) returns (GetWorkOrderResponse);
+  rpc UpdateWorkOrder (UpdateWorkOrderRequest) returns (UpdateWorkOrderResponse);
+  rpc DeleteWorkOrder (DeleteWorkOrderRequest) returns (google.protobuf.Empty);
+  rpc ListWorkOrders (ListWorkOrdersRequest) returns (ListWorkOrdersResponse);
+  rpc ListWorkOrdersV2 (ListWorkOrdersRequestV2) returns (ListWorkOrdersResponse);
+  rpc GetWorkOrderFileExport (GetWokOrderFileExportRequest) returns (GetWokOrderFileExportResponse);
+  rpc AccessBoschCatalogUI (AccessBoschCatalogUIRequest) returns (AccessBoschCatalogUIResponse);
+  rpc UpdateWorkOrderVisibility (UpdateWorkOrderVisibilityRequest) returns (google.protobuf.Empty);
+}
+
+service AcceptanceService {
+  rpc CreateAcceptance (CreateAcceptanceRequest) returns (CreateAcceptanceResponse);
+  rpc GetAcceptance (GetAcceptanceRequest) returns (GetAcceptanceResponse);
+  rpc UpdateAcceptance (UpdateAcceptanceRequest) returns (UpdateAcceptanceResponse);
+  rpc DeleteAcceptance (DeleteAcceptanceRequest) returns (google.protobuf.Empty);
+}
+
+service HistoryService {
+  rpc GetWorkOrders (GetWorkOrdersRequest) returns (GetWorkOrdersResponse);
+}
+
+service SmartDeviceService{
+  rpc GetSmartDeviceWorkOrders (GetSmartDeviceWorkOrdersRequest) returns (GetSmartDeviceWorkOrdersResponse);
+}
+
+service ActionService {
+
+  // Offer stage actions
+  rpc ProceedToAcceptance (ProceedToAcceptanceRequest) returns (google.protobuf.Empty);
+
+  // Acceptance stage actions
+  rpc AcceptToService (AcceptToServiceRequest) returns (google.protobuf.Empty);
+
+  // Servicing stage actions
+  rpc SetReadyForPickup (SetReadyForPickupRequest) returns (google.protobuf.Empty);
+
+  // Cancel workOrder before order created / payment details sent
+  rpc CancelWorkOrder (CancelWorkOrderRequest) returns (ActionServiceResponse);
+
+  // Pickup stage actions
+  rpc SendToPaymentConfirmation (SendToPaymentConfirmationRequest)  // set status to WAITINGFORPAYMENTCONFIRMATION for
+      returns (google.protobuf.Empty);                              // INDIVIDUAL customers (currently) before payment is received
+  rpc SendToPayment (SendToPaymentRequest) returns (google.protobuf.Empty);
+  rpc ConfirmDelivery (ConfirmDeliveryRequest) returns (google.protobuf.Empty);
+  rpc FinalizeWorkOrder (FinalizeWorkOrderRequest) returns (google.protobuf.Empty);
+
+  // revert workOrder stage
+  rpc RevertWorkOrderStageToServicing(RevertWorkOrderStageRequest) returns (ActionServiceResponse);
+  rpc RevertWorkOrderStageToAcceptance(RevertWorkOrderStageRequest) returns (ActionServiceResponse);
+
+  // Work Order Item actions
+  rpc ScheduleWorkOrderItem (ScheduleWorkOrderItemRequest) returns (google.protobuf.Empty);
+  rpc StartWorkOrderItem (StartWorkOrderItemRequest) returns (google.protobuf.Empty);
+  rpc ResumeWorkOrderItem (ResumeWorkOrderItemRequest) returns (google.protobuf.Empty);
+  rpc DelayWorkOrderItem (DelayWorkOrderItemRequest) returns (google.protobuf.Empty);
+  rpc PauseWorkOrderItem (PauseWorkOrderItemRequest) returns (google.protobuf.Empty);
+  rpc CompleteWorkOrderItem (CompleteWorkOrderItemRequest) returns (google.protobuf.Empty);
+  rpc ApproveWorkOrderItem (ApproveWorkOrderItemRequest) returns (google.protobuf.Empty);
+  rpc RejectWorkOrderItem (RejectWorkOrderItemRequest) returns (google.protobuf.Empty);
+  rpc SetWorkOrderItemNotWanted (SetWorkOrderItemNotWantedRequest) returns (google.protobuf.Empty);
+  rpc SetWorkOrderItemInQA (SetWorkOrderItemInQARequest) returns (google.protobuf.Empty);
+  rpc SetWorkOrderItemQAPassed (SetWorkOrderItemQAPassedRequest) returns (google.protobuf.Empty);
+  rpc SetWorkOrderItemQAFailed (SetWorkOrderItemQAFailedRequest) returns (google.protobuf.Empty);
+  rpc CancelWorkOrderItem (CancelWorkOrderItemRequest) returns (google.protobuf.Empty);
+  rpc SetWorkOrderStateOfferInProgress (SetWorkOrderStateOfferInProgressRequest) returns (google.protobuf.Empty);
+}
+
+service PaymentService {
+  rpc CheckOut (CheckOutRequest) returns (CheckOutResponse);
+  rpc SavePayment (SavePaymentRequest) returns (SavePaymentResponse);
+  rpc GetPaymentDetail (GetPaymentDetailRequest) returns (GetPaymentDetailResponse);
+}
+
+service WorkOrderPDIService {
+  rpc CreatePDIWorkOrder (CreatePDIWorkOrderRequest) returns (CreatePDIWorkOrderResponse);
+  rpc CreatePDIWorkOrderList (CreatePDIWorkOrderListRequest) returns (CreatePDIWorkOrderListResponse);
+  rpc GetPDICheckList (GetPDICheckListRequest) returns (GetPDICheckListResponse);
+  rpc UpdatePDICheckList (UpdatePDICheckListRequest) returns (google.protobuf.Empty);
+  rpc AcceptPDIWorkOrder (AcceptPDIWorkOrderRequest) returns (PDIStatusActionResponse);
+  rpc UpdatePDIWorkOrderStatus (UpdatePDIWorkOrderStatusRequest) returns (PDIStatusActionResponse);
+  rpc CompletePDI (CompletePDIRequest) returns (PDIStatusActionResponse);
+  rpc AcceptPDIWorkOrderToService (AcceptPDIWorkOrderToServiceRequest) returns (PDIStatusActionResponse );
+  rpc SubmitPDIWorkOrder (SubmitPDIWorkOrderRequest) returns (google.protobuf.Empty);
+}

@@ -1,0 +1,24 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.workorders.appointments.v1";
+option java_outer_classname = "WorkOrdersModelProto";
+option objc_class_prefix = "WO";
+
+package tr.com.togg.tdp.tma.ms.workorders.appointments.v1;
+
+import "common_model.proto";
+
+message CreateWorkOrderRequest {
+  common.model.RequestHeader header = 1;
+  string appointment_id = 2;
+}
+
+message CreateWorkOrderResponse {
+  string work_order_id = 1;
+}
+
+message UpdateWorkOrderRequest {
+  common.model.RequestHeader header = 1;
+  string work_order_id = 2; // the work order to be updated
+  string new_appointment_id = 3; // the new appointment to be associated with the work order
+}

@@ -1,0 +1,78 @@
+pipeline {
+    agent { label 'MTSESB' }
+
+    options {
+        timestamps()
+        disableConcurrentBuilds()
+        buildDiscarder(logRotator(numToKeepStr: '5'))
+        skipDefaultCheckout()
+    }
+
+    tools {
+        git 'windows-git'
+    }
+
+    environment {
+        APP_NAME = 'apihub-frontend'
+        PORT = '4054'
+        PATH = "C:\\opt\\node;${env.PATH}"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout([
+                    $class: 'GitSCM',
+                    branches: scm.branches,
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: scm.extensions ?: [],
+                    gitTool: 'windows-git',
+                    userRemoteConfigs: scm.userRemoteConfigs
+                ])
+            }
+        }
+
+        stage('Stop Existing Process') {
+            steps {
+                bat 'npx pm2 stop %APP_NAME% || exit /b 0'
+                bat 'npx pm2 delete %APP_NAME% || exit /b 0'
+                bat 'ping -n 4 127.0.0.1 > nul'
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                bat 'whoami'
+                bat 'where npm'
+                bat 'npm -v'
+                bat 'npm ci --include=dev --no-audit --no-fund'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                bat 'npm run build'
+            }
+        }
+
+        stage('Start Production Server') {
+            steps {
+                bat "npx pm2 start node_modules\\next\\dist\\bin\\next --name %APP_NAME% -- start -p %PORT%"
+                bat 'npx pm2 save'
+            }
+        }
+
+        stage('Verify Status') {
+            steps {
+                bat 'npx pm2 status'
+                bat 'npx pm2 logs %APP_NAME% --lines 20 --nostream'
+            }
+        }
+    }
+
+    post {
+        failure {
+            bat 'npx pm2 logs %APP_NAME% --lines 50 --nostream || exit /b 0'
+        }
+    }
+}

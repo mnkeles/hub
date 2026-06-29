@@ -1,0 +1,358 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.offers.model";
+option java_outer_classname = "OfferModelProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.offers;
+
+import "common_enum.proto";
+import "common_model.proto";
+import "order/order_model.proto";
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/timestamp.proto";
+
+message InquirePriceRequest {
+  common.model.RequestHeader header = 1;
+  string offer_id = 2;
+}
+
+message InquirePriceResponse {
+  Price price = 1;
+  float availability = 2; // usage_percentage
+}
+
+message SearchOfferRequest {
+  common.model.RequestHeader header = 1;
+  common.enums.OrderFlowTypes order_flow_type = 2;
+}
+
+message IsOrderBasketValidRequest {
+  common.model.RequestHeader header = 1;
+  common.enums.OrderFlowTypes order_flow_type = 2;
+  repeated order.OfferInstance offers = 3;
+}
+
+message SearchOfferingQualificationRequest {
+  common.model.RequestHeader header = 1;
+  common.enums.OrderFlowTypes order_flow_type = 2;
+  repeated ProdCatalFilter prod_catal_filters = 3;
+  repeated CharFilter char_filters = 4;
+  repeated string catalog_types =5;
+  string offer_name = 6;
+}
+
+message ListVehicleOrderLicencingOfferRequest {
+  common.model.RequestHeader header = 1;
+  int64 order_id = 2;
+}
+
+message GetProductOfferDetailsRequest {
+  common.model.RequestHeader header = 1;
+  repeated int64 offer_id = 2;
+}
+
+message ListProdOfferCatalogHierarchyRequest {
+  common.model.RequestHeader header = 1;
+  common.enums.OrderFlowTypes order_flow_type = 2;
+}
+
+message GetOfferSlotAvailabilityCountRequest {
+  common.model.RequestHeader header = 1;
+  int64 offer_id = 2;
+}
+
+message ProdOfferCatalogHierarchy {
+  CatalogInfo catalog_info = 1; // sarj grubu
+  repeated ProdOfferCatalogHierarchy sub_catalogs = 2; // dısarida sarj , evde sarj
+}
+
+message CharFilter { //filterCharList
+  string char_code = 1; // gnl_char short_code -- filterCharList.shortCode
+  string value = 2;  // gnl_char_val value -- filterCharList.selectedItemList.get(0).value
+}
+
+message ProdCatalFilter { // prodCatalFilter.catalFilterParams
+  ProdCatalFilterType prod_catal_filter_type = 1; //prodCatalFilter.catalFilterParams.entityDataType must be mapped correctly CHAR : GNL_CHAR ,  CHAR_VAL :  GNL_CHAR_VAL
+  string row_id = 2; // prodCatalFilter.catalFilterParams.rowId
+  string value = 3; // prodCatalFilter.catalFilterParams.val
+}
+
+message BundleOffer {
+  int64 id = 1; //productOfferId
+  string name = 2; //offerName
+  string title = 3; //description
+  Price price = 4; // bundle base price
+  repeated BundleMedia bundle_medias = 5;
+  oneof component_groups {
+    StandardComponentGroups standard_component_groups = 6; //SubItems
+    EnoviaComponentGroups enovia_component_group = 7;
+  }
+  optional Detail detail = 8; // for detail json object mapping in offer definition
+  google.protobuf.Timestamp estimated_delivery_date = 9 ; //   tr.com.togg.tdp.common.model.CommonDate estimated_delivery_date = 9; da olabilir ama hesaplanabilir olmasi icin timestampt olmali
+  // bu bilgi db de nasil tutulacak o da onemli! characterictic gün olarak tutulabilir,offset olarak tutulmalı. +90 gün , +1 ay etc..
+  repeated CatalogInfo catalog_infos = 10;
+  OfferSpecificationInfo specification_info = 11;
+  repeated OfferCategoryRelation role_category_relation = 12;
+}
+
+message CatalogInfo{
+  int64 id = 1; //prodCatalId
+  string name = 2; //prodCatalName
+  string code = 3; // prodCatalCode
+  int32 sort = 4; // sort
+  repeated Media media = 5; // catalog media types mapped
+}
+
+message StandardComponentGroups{
+  repeated ComponentGroup component_groups = 1;
+}
+
+message EnoviaComponentGroups{
+  repeated EnoviaComponentGroup enovia_component_group = 1;
+}
+
+message ReserveSlotUsage {
+  float availability = 1;
+  google.protobuf.BoolValue period_started = 2;
+}
+
+message Detail {
+  string description = 1;
+  repeated DetailItem cardItems = 2;
+  repeated DetailItem summaryItems = 3;
+  repeated DetailSpec specifications = 4;
+  repeated Media backgroundMedias = 5;
+  GenericPopup popup = 6;
+  string data= 7;
+}
+
+message DetailSpec {
+  string title = 1;
+  string short_code = 2;
+  repeated DetailSpecItem items = 3;
+}
+
+message DetailSpecItem {
+  CharType characteristic = 1;
+  string image_url = 2;
+}
+
+message DetailItem{
+  string name = 1;
+  string value = 2;
+}
+
+message Price {
+  double price = 1;
+  string currency = 2;
+  double net_price = 3;
+  double tax_price = 4;
+  double total_price = 5;
+  double discount_price = 6;
+}
+
+message PriceDetail {
+  double net_price = 1;
+  double tax_price = 2;
+  double total_price = 3;
+  string currency = 4;
+}
+
+message OfferPriceDetail {
+  int64 offer_id =1;
+  PriceDetail price = 2;
+}
+
+message ComponentGroup {
+  string name = 1;
+  string label = 2;
+  repeated Offer offers = 3;
+  int32 min_selected_offer = 4;
+  int32 max_selected_offer = 5;
+}
+
+message Offer {
+  int64 id = 1; // /enoviaFamilyRelationList/0/contentItems/0/productOfferId
+  string name = 2; // // /enoviaFamilyRelationList/0/contentItems//0/name
+  string label = 3;
+  string description = 4;// /enoviaFamilyRelationList/0/contentItems/0/decription
+  repeated Media media = 5; // foreground and picture can be configured for each offer
+  Price price = 6;
+  int32 estimation_delay_day = 7; // delivery time etkisi verilecek, gun bazinda burasi Nisan – Temmuz 2023” veya “Temmuz – Ekim 2023 gösterim isteyebilirlermis , min max alan koymak gerekebilir!
+  repeated CharType characteristics = 8;
+}
+
+message CharType {
+  string short_code = 1;
+  string value = 2 ;
+  string name = 3;
+}
+
+message EnoviaComponentGroup {
+  common.model.GenericInfoType family_info = 1; // /enoviaFamilyRelationList/0/enoviaFamilyType
+  common.model.GenericInfoType sub_family_info = 2; // /enoviaFamilyRelationList/0/name , short_code, description
+  common.model.GenericInfoType family_group_info = 3; // /enoviaFamilyRelationList/0/enoviaFamilyGroupType
+  int32 min_selected_offer = 4; // /enoviaFamilyRelationList/0/minContentCardinality
+  int32 max_selected_offer = 5; // /enoviaFamilyRelationList/0/maxContentCardinality
+  repeated EnoviaComponent components = 6; // /enoviaFamilyRelationList/0/contentItems
+  google.protobuf.BoolValue is_modify_available = 7;
+  google.protobuf.BoolValue is_price_effected = 8;// /enoviaFamilyRelationList/0/is_prc_effctd
+}
+
+
+message EnoviaComponent{// = BSS'deki Enovia Family Relation
+  Offer offer = 5; //
+  EnoviaSubFamilyContentType content_type = 2; // /enoviaFamilyRelationList/0/contentItems/0/relationType
+  google.protobuf.BoolValue is_default = 3;
+  int32 sort = 1; // /enoviaFamilyRelationList/0/contentItems/0/sort
+}
+
+message Media {
+  string name = 1;
+  common.enums.MediaType media_type = 2;
+  int32 sorting_order = 3;
+  oneof attribute {
+    string media_url = 4;
+    string color_code = 5;
+    string media_path = 6;
+  }
+  string code = 7; // for TGA format naming creation
+}
+
+message BundleMedia {
+  string name = 1;
+  Media media = 2;
+  repeated int64 offer_ids = 3;
+}
+
+message OfferSpecificationInfo{
+  common.model.GenericCodeType productSpec = 1;
+  oneof specification{
+    common.model.GenericCodeType serviceSpec = 2;
+    common.model.GenericCodeType resourceSpec = 3;
+  }
+}
+
+message OfferCategoryRelation{
+  common.model.GenericInfoType main_product_offer =1;
+  common.model.GenericInfoType related_product_offer =2;
+  CategoryRoleRelationTypes relation_type = 3;
+  int32 max_cardinality = 4;
+  int32 min_cardinality = 5;
+}
+
+
+message OfferHierarchyLimit{
+  int32 max_cardinality = 2;
+  int32 min_cardinality = 3;
+}
+
+message SimpleOfferInfo{
+  int64 offer_id =1;
+  int64 parent_offer_id =2;
+  google.protobuf.BoolValue is_bundle = 3;
+}
+
+message GenericPopup {
+  repeated string imgUrl = 1;
+  string title = 2;
+  string body = 3;
+  string note = 4;
+  Button applyButton = 5;
+  Button rejectButton = 6;
+}
+
+message Button {
+  string name = 1;
+  string url = 2;
+}
+
+message ProductOfferDetail {
+  int64 id = 1; //productOfferId
+  string name = 2; //offerName
+  string title = 3; //description
+  ProductOfferType type = 4; //offerName
+  bool is_bundle = 5;
+  Price price = 6; // bundle base price
+  repeated CharType characteristics = 7; // is_vsbl only true returned
+  repeated ProductOfferMedia medias = 8;
+  oneof component_groups {
+    StandardComponentGroups standard_component_groups = 9; //SubItems
+    EnoviaComponentGroups enovia_component_group = 10;
+  }
+  repeated ProductOfferDetail sub_items = 11; // If offer not in any component group
+  optional Detail detail = 12; // for detail json object mapping in offer definition
+  repeated CatalogInfo catalog_infos = 13;
+  OfferSpecificationInfo specification_info = 14;
+  repeated OfferCategoryRelation role_category_relation = 15;
+  google.protobuf.BoolValue is_price_effected = 16; // prod_ofr.extra_field1
+  google.protobuf.BoolValue is_shipment_required = 17; // bff/search response productOffer.shipmentRequired
+  google.protobuf.BoolValue is_installment_required = 18; // bff/search response productOffer.installmentRequired
+  OfferHierarchyLimit quantity_limits = 19;
+  google.protobuf.BoolValue is_check_slot_available = 20; // bff/search response  prod_ofr.extra_field2
+}
+
+message ProductOfferMedia {
+  string name = 1;
+  Media media = 2;
+  repeated int64 offer_ids = 3;
+}
+
+message ListPreOrderChangeOfferRequest {
+  common.model.RequestHeader header = 1;
+  int64 order_id = 2;
+}
+
+message ListPreOrderChangeOffersForBundleChangeRequest {
+  common.model.RequestHeader header = 1;
+}
+
+enum ProductOfferType {
+  PRODUCT_OFFER_TYPE_UNSPECIFIED = 0;
+  OFFER = 1;
+  DISCOUNT = 2;
+}
+
+enum ProdCatalFilterType {
+  PROD_CATAL_FILTER_TYPE_UNSPECIFIED = 0;
+  CHAR = 1;
+  CHAR_VAL = 2;
+}
+
+enum CategoryRoleRelationTypes {
+  CATEGORY_ROLE_RELATION_TYPE_UNSPECIFIED = 0;
+  REQUIRED = 1;
+  EXCLUDE = 2;
+  SUPPORTED = 3;
+}
+
+enum DataType{
+  DATA_TYPE_UNSPECIFIED = 0;
+  SRVC_SPEC = 1; //serviceSpec
+  RSRC_SPEC = 2; //resourceSpec
+  PROD_SPEC = 3; //productspec
+  PROD_OFR = 4; //productOffer
+}
+
+enum EnoviaSubFamilyContentType {
+  ENOVIA_SUB_FAMILY_CONTENT_TYPE_UNSPECIFIED = 0;
+  INCLUDED = 1;
+  OPTIONAL = 2;
+  STANDARD = 3; // meaning default selection
+  AUTO = 4; // use later
+  MANDATORY = 5;
+}
+
+//TODO enum for UI mapping
+enum EnoviaFamilyCodeType {
+  ENOVIA_FAMILY_CODE_TYPE_UNSPECIFIED = 0;
+  EXTERIOR_COLOR = 1;
+  MIRROR = 2;
+  EXTERIOR_REAR_GLASS = 3;
+  EXTERIOR_ROOF = 4;
+  SEAT_TRIM = 5;
+  WHEEL = 6;
+  FOG_LIGHT = 7;
+  INTERIOR_THM = 8;
+}

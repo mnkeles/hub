@@ -1,0 +1,40 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.achievements.server";
+option java_outer_classname = "AchievementsServerServiceProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.achievements.server;
+
+import "achievement/server/achievement_server_model.proto";
+import "google/protobuf/wrappers.proto";
+
+/**
+ * The MagnetServerService is used to provide to manage or retrieve user magnet for internal usage.
+ This service is closed to external access, only internal access is allowed.
+ Currently, the service provides two primary functionalities: retrieving the total count of magnets a user has
+ and retrieving the count of active magnets for a user.
+
+ Business Rules; As it closed to external access, there is no user Authentication or Authorization for this service.
+ Any internal service can access directly. The provided token will be used only for fetching user info.
+
+ Error Handling;
+ -Since this service will be used for internal access,
+ it is assumed that the token will exist and therefore the user information will be valid.
+ -INTERNAL(500): In unexpected situations, an error as INTERNAL(500) is returned.
+ */
+service MagnetServerService {
+  /**
+  This grpc service retrieves the total number of magnets associated with a user provided by the token by grouping the city.
+  When more than one magnet is exist from the same city, it will be counted as one ( 1 )
+  This includes both active and inactive(deleted status) magnets.
+   */
+  rpc GetUserTotalMagnetCount (GetUserMagnetCountRequest) returns (google.protobuf.Int64Value);
+
+  /**
+  This grpc service retrieves the number of active magnets associated with a user provided by the token without any filter like city or country.
+  Active magnets are those that are currently in use or valid.
+   */
+  rpc GetUserActiveMagnetCount (GetUserMagnetCountRequest) returns (google.protobuf.Int64Value);
+}
+

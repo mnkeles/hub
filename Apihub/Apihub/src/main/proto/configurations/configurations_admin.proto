@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.configurations.service.admin";
+option java_outer_classname = "ConfigurationsAdminServiceProto";
+option objc_class_prefix = "MS";
+
+package tr.com.togg.tdp.tma.ms.configurations.service.admin.client;
+
+import "configurations/configurations_model.proto";
+import "google/protobuf/empty.proto";
+import "common_configuration_model.proto";
+//The service used by admins where configurations are updated, deleted and created
+service ConfigurationsAdminService {
+  //Updates configurations
+  rpc UpdateConfiguration(UpdateConfigurationRequest) returns (UpdateConfigurationResponse);
+  //Deletes configurations
+  rpc DeleteConfiguration(DeleteConfigurationRequest) returns (google.protobuf.Empty);
+  //Creates configurations
+  rpc CreateConfiguration(CreateConfigurationRequest) returns (CreateConfigurationResponse);
+}
+
+service GeneralCharacteristicAdminService {
+  //Lists configurations
+  rpc ListCharacteristicsByGroup(ListCharacteristicsByGroupRequest) returns (stream common.configuration.model.CharacteristicDefinition);
+
+}
+
+

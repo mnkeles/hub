@@ -1,0 +1,15 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.wallet.server";
+option java_outer_classname = "WalletServerServiceProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.wallet.server;
+
+import "wallet/server/wallet_server_model.proto";
+import "google/protobuf/wrappers.proto";
+
+service WalletServerService {
+  rpc IsCustomerHasAccount (IsCustomerHasAccountRequest) returns (google.protobuf.BoolValue);
+  rpc IsCustomerHasDigitalAccount (IsCustomerHasDigitalAccountRequest) returns (google.protobuf.BoolValue);
+}

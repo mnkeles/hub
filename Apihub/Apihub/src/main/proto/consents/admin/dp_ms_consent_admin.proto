@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.dp.ms.consent.admin";
+option java_outer_classname = "ConsentAdminProto";
+option objc_class_prefix = "CONSENT";
+import "consents/admin/dp_ms_consent_model.proto";
+
+package togg.tdp.dp.ms.consent.admin;
+
+service UserConsentAdminService {
+  rpc SubmitConsent (model.SubmitConsentRequest) returns (model.SubmitConsentResponse);
+  rpc GetConsents (model.GetConsentsRequest) returns (model.GetConsentsResponse);
+}

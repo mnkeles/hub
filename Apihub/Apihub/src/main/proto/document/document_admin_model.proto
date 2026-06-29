@@ -1,0 +1,93 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.document.admin.v1";
+option java_outer_classname = "DocumentModelProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.document.admin.v1;
+
+import "common_model.proto";
+import "google/protobuf/timestamp.proto";
+import "document/document_model.proto";
+
+message UpdateDocumentStatusRequest {
+  common.model.RequestHeader header = 1;
+  string document_owner = 2; // mandatory
+  string document_id = 3; // mandatory
+}
+
+message UpdateDocumentRequest{
+  common.model.RequestHeader header = 1;
+  string document_owner = 2; // mandatory
+  document.v1.Document document = 3; // mandatory
+  repeated document.v1.GovernanceFilterParameter parameters = 4; // mandatory
+}
+
+message GetDocumentGetUrlRequest{
+  common.model.RequestHeader header = 1;
+  string document_owner = 2; // mandatory
+  string document_id = 3; // mandatory
+  repeated document.v1.GovernanceFilterParameter governance_filter_parameters = 4; // mandatory
+}
+
+message GetDocumentGetUrlResponse{
+  repeated document.v1.Attachment attachments = 1;
+  google.protobuf.Timestamp expires_at = 2;
+}
+
+message GetDocumentPutUrlRequest{
+  common.model.RequestHeader header = 1;
+  string document_owner = 2; // mandatory
+  string specification_id = 3; // mandatory
+  string mime_type = 4; // mandatory
+  repeated document.v1.GovernanceFilterParameter governance_filter_parameters = 5; // mandatory
+}
+
+message GetDocumentPutUrlResponse{
+  document.v1.Attachment attachment = 1;
+  google.protobuf.Timestamp expires_at = 2;
+}
+
+message UpdateDocumentAttachmentStatusRequest {
+  common.model.RequestHeader header = 1;
+  string document_owner = 2;// mandatory
+  string document_id = 3;// mandatory
+  string attachment_id = 4;// mandatory
+  string reason = 5;// mandatory for rejected attachments
+}
+
+/*
+While listing, documents can be filtered out.
+Provide GOVERNANCE_FILTER_PARAMETER_KEY_BSN_INTER_SPEC parameter and
+provide a map of key and value pairs, where the key is the data field and the value is the data.
+The query string ANDs all of the provided map entries.
+
+Examples:
+Filter by mimeType:
+  key: toggAttachment.mimeType and value: application/pdf
+Filter by role creator:
+  key: toggAttachment.relatedParty.role and value: creator
+Filter by status:
+  key: status and value: WAITINGFORAPPROVAL
+
+To learn more about the possible filters please refer to the Etiya ToggDocument TMF REST API data model
+*/
+message ListDocumentsRequest {
+  common.model.RequestHeader header = 1;
+  map<string, string> filters = 2;
+  string document_owner = 3; // mandatory
+  repeated document.v1.GovernanceFilterParameter governance_filter_parameters = 4;  // mandatory
+  int32 page = 5;
+  int32 limit = 6;
+}
+
+message CreateDocumentRequest{
+  common.model.RequestHeader header = 1;
+  document.v1.Document document = 2; // mandatory
+  string document_owner = 3; // mandatory
+  repeated document.v1.GovernanceFilterParameter parameters = 4; // mandatory
+}
+
+message CreateDocumentResponse{
+  string document_id = 1;
+}

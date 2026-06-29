@@ -1,0 +1,23 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.otp";
+option java_outer_classname = "OtpServiceProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.otp.client;
+
+import "otp/otp_model.proto";
+import "google/protobuf/wrappers.proto";
+
+service OtpService {
+  /**
+   * This method retrieve user information from customer service then generates a 6 digit TOTP password and sends it as an SMS message.
+  */
+  rpc ClaimOtp (ClaimOtpRequest) returns (google.protobuf.BoolValue);
+  /**
+   * This method receives a phone number verification confirmation request, validates confirmation request against code
+   * request, validates if the TOTP password expired, validates if TOTP matches.
+  */
+  rpc VerifyOtp (VerifyOtpRequest) returns (google.protobuf.BoolValue);
+}
+

@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    
+    <!--
+        ÖNEMLİ:
+        Her changeset için benzersiz bir ID kullanın,aynı id çalışmaz
+        liquibase ile atılan kayıtlar id numarası ile bir tabloya yazılır (databasechangelog tablosu)
+        kullanılmış bir id ile tekrar kayıt atılmaya çalışırsa eğer o kayıt atılmaz.
+        Her id bir kere çalışır , bundan sonra proje yeniden çalıştırıldığında daha önce atılan kayıt
+        tekrar atılmaz.
+        SELECT * FROM databasechangelog;
+
+    <changeSet id="gnl_api_call_log_processFlow2" author="apihub">
+    <comment>Atılan kayıtı buraya yaz</comment>
+        <addColumn tableName="gnl_api_call_log">
+            <column name="process_flow2" type="VARCHAR(100)" defaultValue="ACTIVE">
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="v1.0.0-001-create-sample-table" author="apihub">
+        <comment>Örnek tablo oluşturma - Bu changeset'i silebilirsiniz</comment>
+        <createTable tableName="sample_table">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="created_date" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="v1.0.0-002-add-column-to-sample" author="apihub">
+        <comment>Mevcut tabloya yeni kolon ekleme örneği</comment>
+        <addColumn tableName="sample_table">
+            <column name="status" type="VARCHAR(50)" defaultValue="ACTIVE">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="v1.0.0-003-create-index" author="apihub">
+        <comment>Index oluşturma örneği</comment>
+        <createIndex indexName="idx_sample_name" tableName="sample_table">
+            <column name="name"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="v1.0.0-004-modify-column-type" author="apihub">
+        <comment>Kolon tipi değiştirme örneği</comment>
+        <modifyDataType tableName="sample_table" columnName="name" newDataType="VARCHAR(500)"/>
+    </changeSet>
+
+    <changeSet id="unique-id" author="author-name">
+        <dropColumn tableName="tablo_adi" columnName="silinecek_kolon"/>
+    </changeSet>
+
+    <changeSet id="unique-id" author="author-name">
+        <comment>Foreign Key Ekleme</comment>
+        <addForeignKeyConstraint
+        baseTableName="child_table"
+        baseColumnNames="parent_id"
+        constraintName="fk_child_parent"
+        referencedTableName="parent_table"
+        referencedColumnNames="id"
+        onDelete="CASCADE"/>
+    </changeSet>
+
+    -->
+
+    <changeSet id="2026-06-17-001-add-project-id-to-users-and-ldap-user" author="apihub">
+        <comment>users ve ldap_user tablolarına nullable project_id alanı eklenir. Boş ise kullanıcı tüm projeleri görebilir.</comment>
+        <addColumn tableName="users">
+            <column name="project_id" type="BIGINT"/>
+        </addColumn>
+        <addColumn tableName="ldap_user">
+            <column name="project_id" type="BIGINT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="2026-06-17-002-add-project-id-indexes" author="apihub">
+        <comment>Kullanıcı proje filtreleri için index eklenir.</comment>
+        <createIndex indexName="idx_users_project_id" tableName="users">
+            <column name="project_id"/>
+        </createIndex>
+        <createIndex indexName="idx_ldap_user_project_id" tableName="ldap_user">
+            <column name="project_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="2026-06-17-003-add-project-id-foreign-keys" author="apihub">
+        <comment>users.project_id ve ldap_user.project_id project.project_id alanına bağlanır.</comment>
+        <addForeignKeyConstraint
+                baseTableName="users"
+                baseColumnNames="project_id"
+                constraintName="fk_users_project"
+                referencedTableName="project"
+                referencedColumnNames="project_id"
+                onDelete="SET NULL"/>
+        <addForeignKeyConstraint
+                baseTableName="ldap_user"
+                baseColumnNames="project_id"
+                constraintName="fk_ldap_user_project"
+                referencedTableName="project"
+                referencedColumnNames="project_id"
+                onDelete="SET NULL"/>
+    </changeSet>
+
+    <changeSet id="2026-06-24-001-add-run-summary-to-perf-rslt" author="apihub">
+        <comment>JMeter-like run-level performance summary JSON payload.</comment>
+        <addColumn tableName="perf_rslt">
+            <column name="run_summary" type="jsonb"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="2026-06-25-001-add-threshold-result-to-perf-rslt" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="perf_rslt" columnName="threshold_result"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="perf_rslt">
+            <column name="threshold_result" type="jsonb"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="2026-06-25-001-add-analysis-summary-to-perf-rslt" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="perf_rslt" columnName="analysis_summary"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="perf_rslt">
+            <column name="analysis_summary" type="jsonb"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="2026-06-25-001-add-error-analysis-to-perf-rslt" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="perf_rslt" columnName="error_analysis"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="perf_rslt">
+            <column name="error_analysis" type="jsonb"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="2026-06-25-001-add-environment-metrics-to-perf-rslt" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="perf_rslt" columnName="environment_metrics"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="perf_rslt">
+            <column name="environment_metrics" type="jsonb"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="2026-06-25-001-add-duration-seconds-to-perf-rslt" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="perf_rslt" columnName="duration_seconds"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="perf_rslt">
+            <column name="duration_seconds" type="int"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="2026-06-25-001-add-loop-count-to-perf-rslt" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="perf_rslt" columnName="loop_count"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="perf_rslt">
+            <column name="loop_count" type="int"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="2026-06-25-001-add-think-time-ms-to-perf-rslt" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="perf_rslt" columnName="think_time_ms"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="perf_rslt">
+            <column name="think_time_ms" type="int"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="2026-06-25-001-add-timeout-ms-to-perf-rslt" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="perf_rslt" columnName="timeout_ms"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="perf_rslt">
+            <column name="timeout_ms" type="int"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="2026-06-25-001-add-environment-base-url-to-perf-rslt" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="perf_rslt" columnName="environment_base_url"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="perf_rslt">
+            <column name="environment_base_url" type="varchar(1000)"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="2026-06-25-002-add-result-schema-version-to-perf-rslt" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="perf_rslt" columnName="result_schema_version"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="perf_rslt">
+            <column name="result_schema_version" type="int" defaultValueNumeric="1">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="2026-06-25-002-add-threshold-preset-to-perf-rslt" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="perf_rslt" columnName="threshold_preset"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="perf_rslt">
+            <column name="threshold_preset" type="varchar(32)" defaultValue="NORMAL">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="2026-06-25-002-add-threshold-config-to-perf-rslt" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="perf_rslt" columnName="threshold_config"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="perf_rslt">
+            <column name="threshold_config" type="jsonb"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="2026-06-25-002-add-is-baseline-to-perf-rslt" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="perf_rslt" columnName="is_baseline"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="perf_rslt">
+            <column name="is_baseline" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="2026-06-25-002-add-baseline-result-id-to-perf-rslt" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="perf_rslt" columnName="baseline_result_id"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="perf_rslt">
+            <column name="baseline_result_id" type="bigint"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="2026-06-25-002-add-baseline-comparison-to-perf-rslt" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="perf_rslt" columnName="baseline_comparison"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="perf_rslt">
+            <column name="baseline_comparison" type="jsonb"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="2026-06-25-002-add-validation-checklist-to-perf-rslt" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="perf_rslt" columnName="validation_checklist"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="perf_rslt">
+            <column name="validation_checklist" type="jsonb"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,18 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.loyalty";
+option java_outer_classname = "LoyaltyServiceProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.loyalty.client;
+
+import "loyalty/loyalty_model.proto";
+
+service LoyaltyHistoryService {
+  /**
+   * This method retrieve loyalty history data.
+   * Combine Magnet history data and BSS loyalty history retrieved from DB.
+  */
+  rpc ListLoyaltyHistory (ListLoyaltyHistoryRequest) returns (stream LoyaltyHistoryDetail); //
+}
+

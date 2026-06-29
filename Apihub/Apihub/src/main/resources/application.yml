@@ -1,0 +1,92 @@
+spring:
+  ai:
+    mcp:
+      client:
+        enabled: true
+        name: apihub-client
+        sse:
+          connections:
+            apihub:
+              url: ${MCP_URL:http://localhost:9999}
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+      chat:
+        options:
+          model: gpt-5.4
+          stream-usage: true
+        api-key: ${OPENAI_API_KEY:}
+  main:
+    allow-bean-definition-overriding: true
+    lazy-initialization: true
+    banner-mode: log
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 105MB
+  cache:
+    jcache:
+      config: classpath:ehcache.xml
+      provider: org.ehcache.jsr107.EhcacheCachingProvider
+  jpa:
+    database: POSTGRESQL
+    show-sql: true
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        enable_lazy_load_no_trans: true
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog.xml
+    default-schema: omni_webservices_automation
+    drop-first: false
+    ## drop-first: true olursa eğer tüm db silinir
+  datasource:
+    url: jdbc:postgresql://ttc-multi-type1-internal-db.etiya.com:5432/etiya
+    username: omni_webservices_automation
+    password: VQXsYtvff2ALUE5H
+    driverClassName: org.postgresql.Driver
+server:
+  port: 4053
+logging:
+  file:
+    path: logs/application.log
+  level:
+    org:
+      hibernate: ERROR
+      atmosphere: WARN
+jwt:
+  auth:
+    secret: ZUMZFRV9V1Hd9x5pkHWoxsqFWOpJH5Mj
+    issuer: Api-Hub
+    expiration: 1800000
+    refresh_expiration: 3600000
+
+ldap:
+  enabled: true
+  url: ldap://172.22.192.5:389
+  base: OU=Accounts,DC=etiyacorp,DC=local
+  username: ${LDAP_USERNAME:mockhub.login@etiyacorp.local}
+  password: ${LDAP_PASSWORD:kp#ADgMZ4DwGZjqmNPLxEGUhgM9z@}
+  user:
+    dn:
+      pattern: sAMAccountName={0},OU=Accounts,DC=etiyacorp,DC=local
+  ssl:
+    enabled: false
+    verify-certificate: false
+  connection:
+    timeout: 10000
+  read:
+    timeout: 10000
+  pool:
+    min-size: 3
+    max-size: 10
+  role:
+    default: READER
+
+security:
+  login:
+    max-attempts: 5
+    lockout-duration-minutes: 15
+    attempt-window-minutes: 5

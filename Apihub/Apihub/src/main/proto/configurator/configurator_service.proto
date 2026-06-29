@@ -1,0 +1,31 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.configurator";
+option java_outer_classname = "ConfiguratorServiceProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.configurator.client;
+
+import "configurator/configurator_model.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+service VehicleConsumptionService{
+  rpc CalculateSaving (CalculateSavingRequest) returns (CalculateSavingResponse);
+  rpc CalculateChargingTimes(CalculateChargingTimeRequest) returns (stream CalculateChargingTimeResponse);
+}
+
+service ConfiguratorPriceService{
+  rpc GetBasketPrice(GetBasketPriceRequest) returns (GetBasketPriceResponse);
+}
+
+service ShoppingCartService{
+  rpc SaveShoppingCart(SaveShoppingCartRequest) returns (google.protobuf.Empty);
+  rpc GetShoppingCart(GetShoppingCartRequest) returns (GetShoppingCartResponse);
+  rpc ClearShoppingCart(ClearShoppingCartRequest) returns (google.protobuf.Empty);
+}
+
+service SharedConfiguratorService{
+  rpc SaveSharedConfiguration(SaveSharedConfigurationRequest) returns (google.protobuf.StringValue); // returns uuid for collection
+  rpc GetSharedConfiguration(GetSharedConfigurationRequest) returns (ConfigurationTemplate); // returns uuid for collection
+}

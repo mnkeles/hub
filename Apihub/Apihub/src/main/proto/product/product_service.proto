@@ -1,0 +1,31 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.product";
+option java_outer_classname = "ProductServiceProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.product.client;
+
+import "product/product_model.proto";
+import "google/protobuf/wrappers.proto";
+
+service ProductService {
+  rpc ListCustomerProducts (CustomerProductListRequest) returns (stream Product);
+  rpc HasCustomerActiveProducts (CustomerProductListRequest) returns (google.protobuf.BoolValue);
+  rpc DeactivateReserveSeatProduct (DeactivateReserveSeatProductRequest) returns (DeactivateReserveSeatProductResponse);
+  rpc GetProductOwnershipDetail(ProductOwnershipDetailRequest) returns (ProductOwnershipDetailResponse);
+  rpc CheckProductOwnership(ProductOwnershipDetailRequest) returns (google.protobuf.BoolValue);
+  rpc ListCustomerAccountProducts(ListCustomerAccountProductsRequest) returns (stream Product);
+  rpc GetProductDetails (GetProductDetailsRequest) returns (ProductDetails);
+}
+
+service VehicleProductService {
+  rpc ListCustomerVehicleProduct (ListCustomerVehicleProductRequest) returns (stream VehicleProduct);
+  rpc ListCustomerVehicleDetails (ListCustomerVehicleDetailsRequest) returns (VehicleProductDetails);
+  rpc GetCustomerVehicleProductByIdentNumber (GetCustomerVehicleProductByIdentNumberRequest) returns (GetCustomerVehicleProductByIdentNumberResponse);
+}
+
+service ProductStockService {
+  rpc ListStockProductSerials (ListStockProductSerialsRequest) returns (stream ProductStockVariantInfo); // get serial numbers via variant
+  rpc ListProductStockCounts (ListProductStockCountsRequest) returns (stream ProductStockVariantInfo); // check stock counts via variant
+}

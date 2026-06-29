@@ -1,0 +1,172 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.configurator";
+option java_outer_classname = "ConfiguratorModelProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.configurator;
+
+import "common_model.proto";
+import "offer/offer_model.proto";
+import "google/protobuf/timestamp.proto";
+import "protobuf_validations/validation.proto";
+
+message CalculateSavingRequest{
+  common.model.RequestHeader header = 1;
+  int32 home_charge = 2;
+  int32 work_charge = 3;
+  int32 charge_station = 4;
+  VehicleConsumptionType vehicle_consumption_type = 5;
+  double fuel_consumption_value = 6; // fuelConsumptionValueFor100km
+  double annual_mileage = 7;
+  string region_code = 8;
+
+}
+
+message CalculateSavingResponse{
+  double annual_electrical_consumption_cost = 1;
+  double annual_fuel_consumption_cost = 2;
+  double total_saving_amount = 3;
+
+}
+
+message CalculateChargingTimeRequest{
+  common.model.RequestHeader header = 1;
+  int64 distance = 2;
+}
+
+message CalculateChargingTimeResponse{
+  string charge_spot_type_code = 1;
+  string charge_spot_type_name = 2;
+  string charge_type_code = 3;
+  string charge_type_name = 4;
+  string charge_time = 5;
+  string charge_capacity = 6;
+  int64 distance = 7;
+}
+
+message GetBasketPriceRequest{
+  common.model.RequestHeader header = 1;
+  string reason = 2;
+  repeated BasketOffer offers = 3;
+  google.protobuf.Timestamp fixed_price_date = 4 ;
+  int32 fixed_price_period = 5;
+  string order_id = 6;
+}
+
+message SaveConfigurationRequest{
+  common.model.RequestHeader header = 1;
+  ConfigurationTemplate configuration_template = 2;
+}
+
+message SaveSharedConfigurationRequest{
+  common.model.RequestHeader header = 1;
+  ConfigurationTemplate configuration_template = 2;
+}
+message ConfigurationTemplateOfferInstanceChars{
+  common.model.GenericCodeType characteristic =1; //gnl_char info
+  common.model.GenericCodeType characteristic_value =2; //gnl_char_val info
+  string captured_value =3;  // selected value
+}
+
+message ConfigurationTemplateOfferInstance {
+  int64 product_offer_id = 1;
+  repeated ConfigurationTemplateOfferInstance sub_items = 2;
+  repeated ConfigurationTemplateOfferInstanceChars chars = 3;
+}
+
+message ConfigurationTemplate {
+  string id = 1;
+  ConfigurationTemplateOfferInstance main_offer = 2 [(validations.optional) = true];
+  repeated ConfigurationTemplateOfferInstance additional_offers = 3 [(validations.optional) = true];
+  repeated common.model.GenericParameter parameters = 4 [(validations.optional) = true];
+  string name = 5 ; // configuration label/alias
+}
+
+message GetSharedConfigurationRequest{
+  common.model.RequestHeader header = 1;
+  string configuration_template_id = 2; // shared configuration collection id
+}
+
+message GetConfigurationRequest{
+  common.model.RequestHeader header = 1;
+  string id = 2;
+}
+
+message BasketOffer{
+  offers.SimpleOfferInfo offer = 1;
+  int64 tariff_id = 2;
+  int32 quantity = 3;
+}
+
+
+message GetBasketPriceResponse{
+  BasketPriceDetail total_price = 1;
+  repeated OfferBasketPriceDetail offers = 2;
+}
+
+message BasketPriceDetail {
+  double net_price = 1;
+  double tax_price = 2;
+  double total_price = 3;
+  string currency = 4;
+  double remaining_price = 5;
+  double applied_discount = 6;
+  double catalog_price = 7;
+  repeated BasketPriceTaxDetail tax_details = 8;
+}
+
+message BasketPriceTaxDetail{
+  string code = 1; //tax_SHORTCODE
+  string value = 2; //tax_VALUE
+  string description = 3; //tax_SHORTNAME
+  string amount = 4; //tax_AMOUNT
+  UnitType type = 5; //tax_UNIT
+}
+
+message OfferBasketPriceDetail {
+  int64 offer_id = 1;
+  BasketPriceDetail price = 2;
+}
+
+message SaveShoppingCartRequest{
+  common.model.RequestHeader header = 1;
+  ShoppingCart shopping_cart = 2;
+}
+message ShoppingCart{
+  repeated ShoppingCartItem items = 1;
+}
+
+message ShoppingCartItem{
+  int64 offer_id = 1;
+  string offer_name = 2;
+  int32 quantity = 3;
+  repeated common.model.GenericParameter chars = 4;
+  repeated ShoppingCartItem sub_items = 5;
+}
+
+message GetShoppingCartResponse{
+  repeated ShoppingCartItem items = 1;
+
+}
+
+message GetShoppingCartRequest{
+  common.model.RequestHeader header = 1;
+}
+
+message ClearShoppingCartRequest{
+  common.model.RequestHeader header = 1;
+}
+
+
+enum VehicleConsumptionType {
+  VEHICLE_CONSUMPTION_TYPE_UNDEFINED = 0;
+  FUEL = 1;
+  DIESEL = 2;
+}
+
+enum UnitType {
+  UNIT_TYPE_UNDEFINED = 0;
+  FIXED = 1;
+  PERCENTAGE = 2;
+}

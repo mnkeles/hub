@@ -1,0 +1,63 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.address.server";
+option java_outer_classname = "AddressServerModelProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.address.server;
+
+import "common_model.proto";
+
+message CreateAddressRequest {
+  common.model.RequestHeader header = 1;
+  int64 city_id = 2;
+  int64 country_id = 3;
+  string address = 4;
+  int64 sub_province_id = 5;
+  string neighbourhood = 6;
+  string postal_code = 7;
+  AddressType address_type = 8;
+  string alias = 9; // label of address
+  int64 row_id = 10; // addr table relation entity primary key information
+  int64 customer_id  = 11 ;
+  repeated common.model.GenericParameter parameters = 12 ; // used for additional parameters like tax info
+}
+
+message ListAddressRequest{
+  common.model.RequestHeader header = 1;
+  AddressType data_type = 2; //specify address type
+  int64 row_id =3 ; // can be cust_id or cust_account_id according to he address type selection
+}
+
+message GetAddressOwnerRequest {
+  common.model.RequestHeader header = 1;
+  int64 address_id = 2;
+}
+
+message UpdateAddressRequest {
+  common.model.RequestHeader header = 1;
+  int64 city_id = 2;
+  int64 country_id = 3;
+  string address = 4;
+  int64 sub_province_id = 5;
+  string neighbourhood = 6;
+  string postal_code = 7;
+  AddressType address_type = 8; //specify address type
+  string alias = 9; // label of address
+  int64 address_id = 10; // addr table relation entity primary key information
+  repeated common.model.GenericParameter parameters = 11 ; // used for additional parameters like tax info
+}
+
+message DeleteAddressRequest {
+  common.model.RequestHeader header = 1;
+  int64 address_id = 2;
+}
+
+enum AddressType{
+  ADDRESS_TYPE_UNSPECIFIED = 0;
+  CUSTOMER = 1;
+  BILLING = 2;
+  SHIPMENT = 3; //Delivery
+  CUST_CORPORATE = 4;
+  CUST_IND_CORPORATE = 5;
+}

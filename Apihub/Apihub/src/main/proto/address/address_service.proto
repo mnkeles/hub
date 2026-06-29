@@ -1,0 +1,85 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.address";
+option java_outer_classname = "AddressServiceProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.address.client;
+
+import "address/address_model.proto";
+import "common_model.proto";
+
+/**
+ -The AddressService is used to retrieve various geographic entities within the system, such as cities, countries, sub-provinces, and address details.
+
+ Business Rules;
+ - Some of api, which is pointed at the description of it,  must be authenticated to ensure that the user has the necessary permissions to access.
+ - Each API explains in its description whether it requires authorization or not.
+
+ - For each service that authorization required, token user will be used.
+ If token user has "impersonator" role, requestHeader.userId will be used for all operations.
+
+ Error Handling;
+ -INTERNAL_SERVER_ERROR(500): In unexpected situations, an error as INTERNAL(500) is returned.
+ -API specific errors will be explained in the API details.
+ */
+service AddressService {
+  /**
+   - Retrieve a list of cities of requested country_id
+
+   Request:
+   - country id required
+
+   Response:
+   - A stream of GenericCodeType messages representing which contains id, code and name of the cities.
+
+  Business Rules;
+   - This is public api and authorization not required.
+   - Will be returned empty response if country not valid.
+   */
+  rpc GetCities (GetCitiesRequest) returns (stream common.model.GenericCodeType);
+
+  /**
+   - Retrieve a list of countries.
+
+   Response:
+   - A stream of GenericCodeType messages representing which contains id, code and name of the countries.
+
+  Business Rules;
+   - This is public api and authorization not required.
+  */
+  rpc GetCountries (GetCountriesRequest) returns (stream common.model.GenericCodeType);
+
+  /**
+   - Retrieve a list of sub-provinces.
+
+   Request:
+   - city id required
+
+   Response:
+   - A stream of GenericCodeType messages representing which contains id, code and name of the sub-provinces.
+
+  Business Rules;
+   - This is public api and authorization not required.
+   - Will be returned empty response if city id not valid.
+  */
+  rpc GetSubProvinces (GetSubProvincesRequest) returns (stream common.model.GenericCodeType);
+
+
+  /**
+   - Retrieve the details of a specific address.
+
+   Request:
+   - address_id required
+
+   Response:
+   - ClientAddress: The detailed information of the specified address.
+
+   Errors:
+   - NOT_FOUND(404): If the address does not exist.
+   - INTERNAL_SERVER_ERROR(500): If token has no "impersonator" role and the requested address_id's owner
+    not equal with the token user, process fails and a GRPC error is returned.
+    ADDRESS_OWNER_MISMATCH error code will be added to response header
+   */
+  rpc GetAddressDetail(GetAddressDetailRequest) returns (ClientAddress);
+}

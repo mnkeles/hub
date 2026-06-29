@@ -1,0 +1,273 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.program.events";
+option java_outer_classname = "ProgramEventsModelProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.program.events;
+
+import "common_model.proto";
+import "customer/customer_model.proto";
+import "google/protobuf/timestamp.proto";
+import "protobuf_validations/validation.proto";
+
+message RegisterProgramRequest {
+  common.model.RequestHeader header = 1;
+  string first_name = 2;
+  string last_name = 3;
+  customer.ClientNationalId natId = 4 [(validations.optional) = true];
+  common.model.CommonDate birthdate = 5;
+  int64 program_spec_id = 6;
+}
+
+message ListProgramUserTasksRequest {
+  common.model.RequestHeader header = 1;
+  int64 program_spec_id = 2;
+}
+message ListProgramRequest {
+  common.model.RequestHeader header = 1;
+}
+
+message GetProgramUserTaskDetailRequest {
+  common.model.RequestHeader header = 1;
+  int64 program_task_id = 2;
+}
+
+message ActivateUserTaskRequest {
+  common.model.RequestHeader header = 1;
+  int64 program_task_id = 2;
+}
+
+message GetLeaderboardRequest {
+  common.model.RequestHeader header = 1;
+  int64 program_spec_id = 2;
+}
+
+message GetLeaderboardResponse {
+  google.protobuf.Timestamp program_end_date = 1;
+  repeated LeaderboardMember top_list = 2;
+  repeated LeaderboardMember previous_list = 3;
+  LeaderboardMember current_user = 4;
+  repeated LeaderboardMember next_list = 5;
+  repeated LeaderboardMember last_list = 6;
+}
+
+message GetMemberProgramScoreRequest {
+  common.model.RequestHeader header = 1;
+  int64 program_spec_id = 2;
+}
+
+message BurnPointsRequest {
+  common.model.RequestHeader header = 1;
+  int64 reward_id = 2; // suanda reward icerisindeki tanimdan burn edilecek pointin alinmasi lazm
+  repeated common.model.GenericParameter parameters = 3; // ekrandan girilecek data_blob alaninda tutulacak bilgiler
+}
+
+message ListRewardsRequest {
+  common.model.RequestHeader header = 1;
+  int64 program_spec_id = 2;
+}
+
+message GetRewardDetailRequest {
+  common.model.RequestHeader header = 1;
+  int64 program_reward_id = 2;
+}
+
+message ListEarnedHistoryRequest {
+  common.model.RequestHeader header = 1;
+  int64 program_spec_id = 2; // tabloya alan klemek gerekeiblir incele
+}
+
+message ListBurnedHistoryRequest {
+  common.model.RequestHeader header = 1;
+}
+
+message GetBalanceRequest {
+  common.model.RequestHeader header = 1;
+}
+
+message EarnedHistory {
+  string task_name = 1;
+  int64 earned_point = 2;
+  google.protobuf.Timestamp transaction_date = 3;
+  string task_id = 4;
+}
+
+message BurnedHistory {
+  string reward_name = 1;
+  int64 exchange_point = 2;
+  RewardQuantity quantity_info = 3;
+  google.protobuf.Timestamp exchange_date = 4;
+  string data = 5;
+  int64 reward_id = 6;
+}
+
+message RewardDetail{
+  int64 id = 1;
+  string code = 2;
+  string name = 3;
+  string description = 4;
+  int64 exchange_rate =5;
+  RewardQuantity quantity_info = 6;
+  google.protobuf.Timestamp start_date = 7;
+  google.protobuf.Timestamp end_date = 8;
+  string type = 9; // gnl_tp.shrt_code for prg_rwrd_tp_id
+  string media_url = 10;
+  string dynamic_data = 11; //prg_rwrd.data_blob.dynamicRewardInfo object will be mapped
+}
+
+message RewardQuantity{
+  string unit_type = 1;  //prg_rwrd.data_blob.rewardQuantityInfo.unitType
+  string unit_type_label = 2; //prg_rwrd.data_blob.rewardQuantityInfo.unitTypeLabel with multilanguage support
+  string quantity = 3; //prg_rwrd.data_blob.rewardQuantityInfo.quantity
+  string quantity_label = 4; //prg_rwrd.data_blob.rewardQuantityInfo.quantityLabel with multilanguage support
+}
+
+message LeaderboardMember{
+  string name_surname = 1;
+  int64 score = 2;
+  int64 rank = 3;
+  bool current_member = 4;
+}
+
+message ProgramDetail {
+  int64 id = 1;
+  string name = 2; // prg_spec.data_blob.detail.name object will be mapped
+  string description = 3; // prg_spec.data_blob.detail.description object will be mapped
+  repeated ProgramDescriptionItem description_items = 4; // prg_spec.data_blob object will be mapped
+  string code = 5; // prg_spec.shrt_code object will be mapped
+  google.protobuf.Timestamp start_date = 6; // prg_spec.sdate object will be mapped
+  google.protobuf.Timestamp end_date = 7; // prg_spec.edate object will be mapped
+  bool is_member_registered = 8; // prg_member and prg_spec will be checked together and if any prg_spec_id and open_id related user have any record in prg_member table --> means registered true
+  string eula_url = 9; // prg_spec.data_blob.eula_url object will be mapped
+  repeated ProgramDetail related_programs = 10; // program spec'e type koyulacak sadece kampanya tipli iliskiler donulmeli!
+  int32 sort = 11;
+}
+
+message ProgramDescriptionItem {
+  string name = 1; // prg_spec.data_blob.detail.descriptionItems.name object will be mapped
+  string description = 2; // prg_spec.data_blob.detail.descriptionItems.description object will be mapped
+  string media_url = 3; // prg_spec.data_blob.detail.descriptionItems.mediaUrl object will be mapped
+  int32 sort = 4; // prg_spec.data_blob.detail.descriptionItems.sort object will be mapped
+}
+
+message UserTaskDetail {
+  ProgramTask task = 1;
+  TaskStatus status = 2; // program_member_task.st_id
+  string earned_point = 3;
+}
+
+message ProgramUserTaskDetail {
+  UserTaskDetail detail = 1;
+  ProgramTaskData data = 2;
+  repeated ProgramTaskResult result = 3;
+  ProgramTaskRelation task_relation = 4;
+}
+
+message ProgramTask {
+  int64 id = 1;
+  string name = 2; // prg_Task.datablob.name
+  string description = 3;
+  string media_url = 4;
+  ProgramTaskDescriptionItem description_item = 5;
+  TaskType type = 6;  // prg_Task.task_tp_id
+  int32 max_occurrence = 7; // prg_Task.ruleblob
+  TaskPeriod period_type = 8; // prg_Task.ruleblob
+  bool is_pinned = 9; // prg_Task.is_pinned
+  google.protobuf.Timestamp start_date = 10; // prg_Task.sdate
+  google.protobuf.Timestamp end_date = 11; // prg_Task.edate
+  string point = 12; // prg_Task.point
+  // kazandigi puan bilgisini biz program detayda donecegiz, hatta quizler icin de belli bir yuzde ile carpması gerektigini anlatmamz lazm!
+  bool visible = 13; // prg_Task.is_vsb
+  int32 sort = 14; // prg_Task.sort
+  int64 program_spec_id = 15;
+  string event_code = 16;
+  Notification notification = 17;
+  string code = 18;
+}
+
+message Notification {
+  string title = 1;
+  string body = 2;
+}
+
+message ProgramTaskRelation {
+  int64 related_task_point = 1; // prg_Task.rule_blob.rules.RELATED_TASK_ID.value(task_id) and get the point information from prg_Task table with pk = prg_Task_id
+  int32 related_task_interval = 2; // prg_Task.rule_blob.rules.RELATED_TASK_INTERVAL.value
+  int32 interval_progress_count = 3 ; // prg_member_task and prg_member_task_pgrss table logic will be calculated by the given task id .
+  // gunluk task ise interval sayisi kadar , pespese recordlar yok ise bu tabloda task_progress_combo = 1 zaten
+}
+
+message ProgramTaskData {
+  string name = 1; // prg_Task.datablob.name
+  string value = 2;
+  string time_limit = 3;
+  repeated ItemValue value_items = 4;
+}
+
+message ProgramTaskResult {
+  ResultType type = 1;
+  Result data = 2;
+}
+
+message Result {
+  string name = 1; // prg_Task.datablob.name
+  string value = 2;
+  string description = 3;
+  string media_url = 4;
+}
+
+message ProgramTaskDescriptionItem{
+  string title = 1;
+  string media_url = 2;
+  Item item = 3;
+  string redirect_button_url = 4; // added for redirection mapping
+  string redirect_button_name = 5;
+  string redirect_button_description = 6;
+}
+
+message Item {
+  string value = 1;
+  repeated ItemValue values = 2;
+}
+
+message ItemValue {
+  string name = 1;
+  string value = 2;
+  int32 sort = 3;
+  string media_url = 4;
+  string short_code = 5;
+}
+
+enum TaskPeriod {
+  TASK_PERIOD_UNSPECIFIED = 0;
+  DAILY = 1;
+  WEEKLY = 2;
+  MONTHLY = 3;
+  ANNUALLY = 4;
+  LIFE_TIME = 5;
+}
+
+enum TaskStatus {
+  TASK_STATUS_UNSPECIFIED = 0;
+  ACTIVATED = 1;
+  COMPLETED = 2;
+  PRE_COMPLETED = 3;
+  NOT_ACTIVATED = 4;
+}
+
+enum TaskType {
+  TASK_TYPE_UNSPECIFIED = 0;
+  VIDEO = 1;
+  QUIZ = 2;
+  ONBOARDING = 3;
+  OTHER = 4;
+}
+
+enum ResultType {
+  RESULT_TYPE_UNSPECIFIED = 0;
+  SUCCESS = 1;
+  ERROR = 2;
+  ANSWER_ERROR = 3;
+  TIMEOUT_ERROR = 4;
+}

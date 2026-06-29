@@ -1,0 +1,157 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.workorders.v1";
+option java_outer_classname = "WorkOrdersTmforumModelProto";
+option objc_class_prefix = "WO";
+
+package tr.com.togg.tdp.tma.ms.workorders.v1;
+
+import "google/protobuf/timestamp.proto";
+
+message Note {
+
+  // Identifier of the note within its containing entity
+  string id = 1;
+
+  // Author of the note
+  string author = 2;
+
+  // Date of the note
+  google.protobuf.Timestamp date = 3;
+
+  // Text of the note
+  string text = 4;
+
+  // related technician name of regarding item
+  string technician_name = 5;
+}
+
+message Place {
+  string id = 1;
+  string name = 2;
+}
+
+message Quantity {
+
+  // Numeric value in a given unit
+  float amount = 1;
+
+  // Unit
+  string units = 2;
+}
+
+message RelatedEntity {
+
+  // Identifier of the referred entity.
+  string id = 1;
+
+  // Name of the referred entity.
+  string name = 2;
+}
+
+message RelatedParty {
+
+  // Identifier of the referred party.
+  string id = 1;
+
+  // Name of the referred party.
+  string name = 2;
+
+  // Role played by the related party
+  string role = 3;
+}
+
+message Money {
+
+  // Currency (ISO4217 norm uses 3 letters to define the currency)
+  string unit = 1;
+
+  // A signed floating point number, the meaning of the sign is according to the context of the API that uses this Data type
+  float value = 2;
+}
+
+message Price {
+  Money duty_free_amount = 1;
+  Money tax_included_amount = 2;
+
+  // Tax rate
+  float tax_rate = 3;
+
+  // Percentage to apply for ProdOfferPriceAlteration(discount)
+  float percentage = 4;
+}
+
+/*
+Etiya note:                                    H.Ö., 2023-04-17T07:57:22Z
+For the start and the end of the period, use IETC-RFC-3339 format
+e.x. 2019-10-12T07:20:50.52Z
+  for Javascript; use Date.prototype.toISOString()
+  for Java; use DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX")
+*/
+message TimePeriod {
+
+  // Start of the time period, using IETC-RFC-3339 format
+  string startDateTime = 1;
+
+  // End of the time period, using IETC-RFC-3339 format
+  string endDateTime = 2;
+}
+
+message Work {
+
+  // unique identifier - readonly
+  string id = 1;
+
+  // reserved for future use - not used
+  Quantity actual_duration = 2;
+
+  // Date when the order was completed - readonly
+  google.protobuf.Timestamp completion_date = 3;
+
+  // * provide scheduled timeslot for the delivery - required
+  TimePeriod delivery_timeslot = 4;
+
+  // Is the description of the work unit. It could be the same as the description of the work specification. - optional
+  string description = 5;
+
+  // * Date when the requester expects the work to be completed - required
+  google.protobuf.Timestamp expected_completion_date = 6;
+
+  // Name of the work unit. It could be the same as the name of the work specification - optional
+  string name = 7;
+
+  // reserved for future use - not used
+  Note note = 8;
+
+  // Date at which the work order which triggered this unit of work's creation/change/termination was created - readonly
+  google.protobuf.Timestamp order_date = 9;
+
+  // reserved for future use - not used
+  float percentage_complete = 10;
+
+  // reserved for future use, it should be set during the creation of the work order item
+  Quantity planned_duration = 11;
+
+  // * provide the list of involving technicians with their toggids and names - required
+  repeated RelatedParty related_party = 12;
+
+  // * provide scheduled duration - required
+  Quantity scheduledDuration = 13;
+
+  // readonly
+  WorkStateType state = 14;
+}
+
+enum WorkStateType {
+  WORK_STATE_TYPE_UNSPECIFIED = 0;
+  WORK_STATE_TYPE_ACKNOWLEDGED = 1;
+  WORK_STATE_TYPE_REJECTED = 2;
+  WORK_STATE_TYPE_PENDING = 3;
+  WORK_STATE_TYPE_HELD = 4;
+  WORK_STATE_TYPE_INPROGRESS = 5;
+  WORK_STATE_TYPE_CANCELLED = 6;
+  WORK_STATE_TYPE_COMPLETED = 7;
+  WORK_STATE_TYPE_FAILED = 8;
+  WORK_STATE_TYPE_PARTIAL = 9;
+  OTHER_WORK_STATE_TYPE = 100;
+}

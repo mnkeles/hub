@@ -1,0 +1,21 @@
+package etiya.omniAutomation.service;
+
+import etiya.omniAutomation.entity.ApiInformationEntity;
+import etiya.omniAutomation.results.DataResult;
+import etiya.omniAutomation.results.Result;
+
+import java.util.List;
+
+public interface IApiInformationService {
+
+    DataResult<List<ApiInformationEntity>> getAll();
+
+    DataResult<List<ApiInformationEntity>> getApiInformationByIsActive(int isActive);
+
+    Result save(ApiInformationEntity apiInformationEntity);
+
+    Result deleteApiInformation(long id);
+
+    Result update(ApiInformationEntity apiInformationEntity);
+
+}

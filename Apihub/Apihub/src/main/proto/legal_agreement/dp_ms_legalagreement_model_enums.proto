@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.dp.ms.legalagreements.model.enums.v2";
+option java_outer_classname = "LegalAgreementsModelEnumsProto";
+option objc_class_prefix = "LA";
+
+package togg.tdp.dp.ms.legalagreements.model.enums.v2;
+
+enum Language {
+  USER_LANGUAGE_UNSPECIFIED = 0;
+  TR = 1;
+  EN = 2;
+  DE = 3;
+  reserved 4 to 99;
+  OTHER_LANGUAGE = 100;
+}
+
+enum Channel {
+  CHANNEL_UNSPECIFIED = 0;
+  MOBILE = 1;
+  WEB_PORTAL = 2;
+  CAR = 3;
+  ALL = 4;
+  reserved 5 to 99;
+  OTHER_CHANNEL = 100;
+}
+
+enum UserActionType {
+  USER_ACTION_TYPE_UNSPECIFIED = 0;
+  READ = 1;
+  ACCEPT = 2;
+  REJECT = 3;
+  reserved 4 to 98;
+  REAPPROVAL_NEEDED = 99;
+  OTHER_USER_ACTION_TYPE = 100;
+}
+
+enum LegalDocumentType {
+  LEGAL_DOCUMENT_TYPE_UNSPECIFIED = 0;
+  DATA_PROTECTION = 1;
+  DATA_PRIVACY = 2;
+  DATA_USAGE = 3;
+  reserved 4 to 99;
+  OTHER_DOCUMENT_TYPE = 100;
+}
+
+
+enum Country {
+  COUNTRY_UNSPECIFIED = 0;
+  TURKEY = 1;
+  GERMANY = 2;
+  UK = 3;
+  reserved 4 to 99;
+  OTHER_COUNTRY = 100;
+}

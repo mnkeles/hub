@@ -1,0 +1,209 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.customer";
+option java_outer_classname = "CustomerModelProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.customer;
+
+import "common_model.proto";
+import "common_enum.proto";
+import "queue_messaging/queue_messaging_model.proto";
+import "google/protobuf/wrappers.proto";
+import "address/address_model.proto";
+import "protobuf_validations/validation.proto";
+
+
+// Deactivates an already active user.
+message DeactivateUserAccountRequest {
+  //The value of header
+  common.model.RequestHeader header = 1;
+}
+//Used to get user information
+message GetUserInformationRequest {
+  //The value of header
+  common.model.RequestHeader header = 1;
+  //The value of offer id
+  int64 offer_id = 2 [(validations.optional) = true];
+}
+//The result is the GetUserInformationRequest
+message GetUserInformationResponse {
+  //Used to get user information values
+  Client userInformation = 1;
+  //The value of billing address
+  address.ClientAddress  billing_address = 2;
+}
+
+message SetUserInformationRequest {
+  common.model.RequestHeader header = 1;
+  string first_name = 2;
+  string last_name = 3;
+  ClientNationalId natId = 4 [(validations.optional) = true];
+  common.model.GenericCodeType address_country = 6;
+  common.model.CommonDate birthdate = 5;
+}
+message SetUserProfileImagesRequest {
+  string tenant_id = 1; // Togg ID unique ID.
+  string user_id = 2; // userid
+  ImageDataChunk data_chunk = 3; // part of image object
+}
+message ImageDataChunk {
+  bytes data = 1;
+  int32 size = 2;
+}
+message SetUserProfileImagesResponse {
+  uint32 size = 2;
+}
+
+message CreateProspectUserRequest {
+  common.model.RequestHeader header = 1;
+  string first_name = 2;
+  string last_name = 3;
+  string email = 4;
+  string totp_code = 5;
+}
+
+message TotpCodeRequest {
+  common.model.RequestHeader header = 1;
+  string email = 2;
+}
+
+message GetIdVerificationTokenRequest{
+  common.model.RequestHeader header = 1;
+}
+
+message GetIdVerificationTokenResponse{
+  string token = 1;
+  string status =2;
+  string status_code =3;
+}
+
+message SetUserKYCVerificationLevelRequest{
+  common.model.RequestHeader header = 1;
+}
+
+message CompleteProfilePublishEventRequest{
+  common.model.RequestHeader header = 1;
+  queue.messaging.SourcePoint source = 2;
+}
+
+message InquireOrgCustomerRequest {
+  common.model.RequestHeader header = 1;
+  string tax_id = 2;
+}
+
+message GetCustomerAddressDetailRequest {
+  common.model.RequestHeader header = 1;
+  int64 address_id = 2;
+}
+
+message UpdateCustomerAddressRequest{
+  common.model.RequestHeader header = 1;
+  address.ClientAddress address = 2;
+}
+
+message DeleteCustomerAddressRequest{
+  common.model.RequestHeader header = 1;
+  int64 address_id = 2;
+}
+
+message InquireOrgCustomerResponse{
+  BasicInfo basicInfo = 1;
+  RegistrationInfo registrationInfo = 2;
+  BillingAccount billing_account = 3;
+}
+
+//Values of client
+message Client {
+  //Client national id
+  ClientNationalId natId = 1;
+  //First name
+  string first_name = 2;
+  //Last name
+  string last_name = 3;
+  //Phone number
+  ClientPhoneNumber phone_number = 4;
+  //Address
+  address.ClientAddress address = 5;
+  //Email
+  string email = 6;
+  //Language
+  tr.com.togg.tdp.common.enums.UserLanguage language = 7;
+  //Birthdate
+  tr.com.togg.tdp.common.model.CommonDate birthdate = 8;
+  //Checks over 18
+  google.protobuf.BoolValue is_adult = 9;
+}
+
+
+//Values of client phone number
+message ClientPhoneNumber {
+  //Client country code
+  int32 country_code = 1;
+  //Client national number
+  uint64 national_number = 2;
+  //Client phone number verification status
+  ClientPhoneNumberVerificationStatus verification_status = 3; // read-only
+}
+//Values of client national id
+message ClientNationalId {
+  // Required
+  common.model.GenericCodeType country = 1;
+  // Required
+  string national_id_number = 2;
+}
+message BasicInfo {
+  string registration_name = 1;
+  string customer_type = 2;
+  CustomerOrganization customerOrganization = 3;
+  string tax_id = 4;
+}
+
+message CustomerOrganization {
+  string organization_type = 1;
+}
+
+message RegistrationInfo {
+  repeated CommunicationInfo communicationInfo = 1;
+}
+
+message CommunicationInfo {
+  string contact_data = 1;
+  ContactMediumType contactMediumType = 2;
+}
+
+message ContactMediumType {
+  string short_code = 1;
+}
+
+message BillingAccount {
+  int64 customer_account_id = 1;
+  bool primary_account = 2;
+}
+
+message CreateCustomerAddressRequest{
+  common.model.RequestHeader header = 1;
+  address.ClientAddress address = 2; // customer address
+  CustomerAddressType type = 3;
+}
+
+//Values of client phone number verification status
+enum ClientPhoneNumberVerificationStatus {
+  //Verification status unspecified
+  VERIFICATION_STATUS_UNSPECIFIED = 0;
+  //Unverified
+  UNVERIFIED = 1;
+  //Verified
+  VERIFIED = 2;
+}
+
+message ListCustomerAddressRequest{
+  common.model.RequestHeader header = 1;
+}
+
+enum CustomerAddressType {
+  CUSTOMER_ADDRESS_TYPE_UNSPECIFIED = 0;
+  CUSTOMER = 1;
+  CUST_CORPORATE = 2;
+  CUST_IND_CORPORATE = 3;
+}

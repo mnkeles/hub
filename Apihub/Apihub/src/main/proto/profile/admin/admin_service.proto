@@ -1,0 +1,326 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tiam.ms.admin";
+option java_outer_classname = "AdministrationProto";
+option objc_class_prefix = "ADMIN";
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+package togg.toggid.ms.admin;
+
+// Service to be used by Togg ID administrators to assist users in different use-cases as
+// password reset and enable/disable users.
+service AdministrationService {
+  // Trigger a password reset email that will be send to the user.
+  rpc TriggerPasswordReset(TriggerPasswordResetRequest) returns (google.protobuf.Empty);
+  // Activates an already inactive user.
+  rpc ActivateUser(ActivateUserRequest) returns (google.protobuf.Empty);
+  // Deactivates an already active user.
+  rpc DeactivateUser(DeactivateUserRequest) returns (google.protobuf.Empty);
+  // Get information about User
+  rpc GetUserProfile (GetUserProfileRequest) returns (GetUserProfileResponse);
+  // Get information about user National ID number
+  rpc GetNationalIdNumber(GetNationalIdNumberRequest) returns (GetNationalIdNumberResponse);
+  // Get information about user Know Your Customer Data (KYC) Verification level
+  rpc GetUserKYCVerificationLevel(GetUserKYCVerificationLevelRequest) returns (GetUserKYCVerificationLevelResponse);
+
+  //Create prospect user for interested users with simplified inputs like email, first name and last name.
+  rpc CreateProspectUser(CreateProspectUserRequest) returns (CreateProspectUserResponse);
+  //Get prospect user  information for interested users.
+  rpc GetProspectUser(GetProspectUserRequest) returns (GetProspectUserResponse);
+  //List prospect users  for interested users.
+  rpc ListProspectUsers(ListProspectUsersRequest) returns (ListProspectUsersResponse);
+  // Execute Email ACtions
+  rpc ExecuteEmailActions(ExecuteEmailActionsRequest) returns (google.protobuf.Empty);
+
+  // Set information about user Know Your Customer Data (KYC) Verification level
+  rpc SetUserKYCVerificationLevel(SetUserKYCVerificationLevelRequest) returns (SetUserKYCVerificationLevelResponse);
+
+  //Get TOTP code for prospect users
+  rpc GetTotpCode(TotpCodeRequest) returns (google.protobuf.Empty);
+
+  rpc SetUserProfile (SetUserProfileRequest) returns (SetUserProfileResponse);
+
+  rpc SetNationalIdNumber(SetNationalIdNumberRequest) returns (SetNationalIdNumberResponse);
+
+}
+
+//Send Prospect User Activation Request for given
+message ExecuteEmailActionsRequest {
+  //Required.tenantId of user.required
+  string tenant_id = 1;
+  //Optional.Redirect url if is not defined in client,illegal argument will be thrown caused by ToggId BadRequest exception
+  string redirect_url = 2;
+  //Required.unique of user.required
+  oneof unique_id {
+    // Togg ID unique ID.
+    string user_id = 3;
+    // Togg ID unique user name/email.
+    string user_name = 4;
+  }
+  //optional lifespan in seconds
+  int32  lifespan = 5;
+  //Required.Email Actions
+  repeated  EmailActionType actions = 6;
+
+}
+// List prospect users method request.
+message ListProspectUsersRequest {
+  //tenantId of users. required.
+  string tenant_id = 1;
+  // pagination offset.Default value is zero.
+  int32 offset = 2;
+  //Pagination count. Default value is 50.
+  int32 count = 3;
+}
+
+//List prospect users method response.
+message ListProspectUsersResponse {
+  //List of prospect users.
+  repeated UserProfile results = 1;
+  //Current Offset
+  int32 current_offset = 2;
+  //Current count
+  int32 current_count = 3;
+}
+
+
+//Get Prospect User Request information
+message GetProspectUserRequest {
+  //tenantId of user.required
+  string tenant_id = 1;
+  //unique of user.required
+  oneof unique_id {
+    // Togg ID unique ID.
+    string user_id = 3;
+    // Togg ID unique user name/email.
+    string user_name = 4;
+  }
+}
+
+//Get Prospect User Response Information.
+message GetProspectUserResponse {
+  //User Information.
+  UserProfile result = 1;
+}
+
+//Create Prospect User without password.
+message CreateProspectUserRequest {
+
+  // tenant Id  for user. required
+  string tenant_id = 1;
+  //first name of user. required
+  string first_name = 2;
+  //last name of user. required
+  string last_name = 3;
+  // email of user. required
+  string email = 4;
+  // totp code. required
+  string totp_code = 5;
+}
+
+//Create Prospect User
+message CreateProspectUserResponse {
+  UserProfile result = 1;
+}
+
+message TriggerPasswordResetRequest {
+  // Required. Unique identifier.
+  oneof unique_id {
+    // Togg ID unique ID.
+    string user_id = 1;
+    // Togg ID unique user name/email.
+    string user_name = 2;
+  }
+}
+
+
+message ActivateUserRequest {
+  // Required. Unique identifier.
+  oneof unique_id {
+    // Togg ID unique ID.
+    string user_id = 1;
+    // Togg ID unique user name/email.
+    string user_name = 2;
+  }
+}
+
+
+message DeactivateUserRequest {
+  // Required. Unique identifier.
+  oneof unique_id {
+    // Togg ID unique ID.
+    string user_id = 1;
+    // Togg ID unique user name/email.
+    string user_name = 2;
+  }
+}
+
+message GetUserProfileRequest {
+  string user_id = 1;
+}
+
+message GetUserProfileResponse {
+  UserProfile result = 1;
+}
+
+message GetNationalIdNumberRequest {
+  string user_id = 1;
+  Country country = 2;
+}
+
+message GetNationalIdNumberResponse {
+  NationalId national_id = 1;
+}
+
+message GetUserKYCVerificationLevelRequest {
+  string user_id = 1;
+}
+
+message GetUserKYCVerificationLevelResponse {
+  KYCVerificationLevel verification_level = 1;
+}
+
+message SetUserKYCVerificationLevelRequest {
+  string tenant_id = 1;
+  string user_id = 2;
+  KYCVerificationLevel verification_level= 3;
+}
+
+message SetUserKYCVerificationLevelResponse {
+  KYCVerificationLevel verification_level= 1;
+}
+
+message SetUserProfileRequest {
+  UserProfile user_profile = 1;
+}
+
+message SetUserProfileResponse {
+  UserProfile result = 1;
+}
+
+message UserProfile {
+  string tenant_id = 1;
+  string user_id = 2;
+  string first_name = 3;
+  string last_name = 4;
+  string email = 5;
+  Language language = 6;
+  Country country = 7;
+  PhoneNumber phone_number = 8;
+  bool enabled = 9; //default value is FALSE
+  Date birthdate = 10;
+}
+
+
+enum Language {
+  USER_LANGUAGE_UNSPECIFIED = 0;
+  TR = 1;
+  EN = 2;
+  DE = 3;
+  reserved 4 to 99;
+  OTHER_LANGUAGE = 100;
+}
+
+enum Status {
+  STATUS_UNSPECIFIED = 0;
+  OK = 1;
+  KO = 2;
+}
+
+/* ISO 3166-1 alpha-3 country codes */
+enum Country {
+  COUNTRY_UNSPECIFIED = 0;
+  TUR = 1;
+  DEU = 2;
+  GBR = 3;
+  reserved 4 to 99;
+  OTHER_COUNTRY = 100;
+}
+
+message PhoneNumber {
+  int32 country_code = 1; // ITU country code
+  uint64 national_number = 2;
+  PhoneNumberVerificationStatus verification_status = 3; // read-only
+}
+
+enum PhoneNumberVerificationStatus {
+  VERIFICATION_STATUS_UNSPECIFIED = 0;
+  UNVERIFIED = 1;
+  VERIFIED = 2;
+}
+
+message NationalId {
+  // Required
+  Country country = 1;
+  // Required
+  string national_id_number = 2;
+  // Required
+  google.protobuf.Timestamp issued_at = 3;
+  // Required
+  google.protobuf.Timestamp valid_through = 4;
+  // Required
+  string issued_by = 5;
+}
+
+// Represents a whole or partial calendar date, such as a birthday. The time of
+// day and time zone are either specified elsewhere or are insignificant. The
+// date is relative to the Gregorian Calendar. This can represent one of the
+// following:
+message Date {
+  // Year of the date. Must be from 1 to 9999, or 0 to specify a date without
+  // a year.
+  int32 year = 1;
+
+  // Month of a year. Must be from 1 to 12, or 0 to specify a year without a
+  // month and day.
+  int32 month = 2;
+
+  // Day of a month. Must be from 1 to 31 and valid for the year and month, or 0
+  // to specify a year by itself or a year and month where the day isn't
+  // significant.
+  int32 day = 3;
+}
+
+// Describes KYC (Know Your Customer) information
+enum KYCVerificationLevel {
+  // Level is not specified
+  UNSPECIFIED = 0;
+  // Level-0: Anonymous (Users, without any check)
+  LEVEL_0_ANONYMOUS = 1;
+  // Level-1: Not Validated (Users, with consistency check via national identity number, name, and date of birth)
+  LEVEL_1_NOT_VALIDATED = 2;
+  // Level-2: Validated (Users, validated via the third party. Ex: Bank account)
+  LEVEL_2_VALIDATED = 3;
+  // Level-3: Contracted (Users, validate via Face2Face or other accepted methods)
+  LEVEL_3_CONTRACTED = 4;
+}
+/**
+Email Actions
+ */
+enum EmailActionType {
+  EMAIL_ACTION_TYPE_UNSPECIFIED = 0;
+  UPDATE_PROFILE = 1;
+  UPDATE_PASSWORD = 2;
+  VERIFY_EMAIL = 3;
+  SEND_VERIFY_EMAIL = 4;
+  SEND_RESET_PASSWORD = 5;
+}
+
+//TOTP Code Request
+message TotpCodeRequest {
+  string tenant_id = 1;
+  string email = 2;
+}
+
+message SetNationalIdNumberRequest {
+  string tenant_id = 1;
+  string user_id = 2;
+  NationalId national_id = 3;
+}
+
+message SetNationalIdNumberResponse {
+  NationalId national_id = 1;
+}

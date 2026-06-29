@@ -1,0 +1,26 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.order.server";
+option java_outer_classname = "OrderServerServiceProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.order.server;
+
+import "order/server/order_server_model.proto";
+import "order/order_model.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+service BulkOrderService {
+  rpc ProcessBulkPreOrder (ProcessBulkPreOrderRequest) returns (google.protobuf.Empty);
+  rpc ProcessOrderBasketPriceUpdate(ProcessOrderBasketPriceUpdateRequest) returns (google.protobuf.Empty);
+  rpc ProcessBulkPreOrderCreate (InitializeOrderRequest) returns (google.protobuf.Int64Value);
+}
+
+service BulkOrderCharUpdateService {
+  rpc ProcessOrderCharUpdate (ProcessOrderCharUpdateRequest) returns (InitializeOrderResponse);
+}
+
+service OrderServerService {
+  rpc InitializePreOrderPartialCancelOrder (InitializePreOrderPartialCancelOrderRequest) returns (google.protobuf.Int64Value);
+}

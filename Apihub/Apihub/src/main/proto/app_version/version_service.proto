@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.settings";
+option java_outer_classname = "VersionsServiceProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.settings.client;
+
+import "app_version/version_model.proto";
+import "google/protobuf/empty.proto";
+
+ //VersionsService is the service of getting the latest version, adding new versions,
+ // deleting versions, updating versions and listing all available versions
+service VersionsService {
+  //Gets the latest version
+  rpc GetLatestVersion (GetLatestVersionRequest) returns (GetLatestVersionResponse);
+  //Adds a version
+  rpc AddVersion(AddVersionRequest) returns (AddVersionResponse);
+  //Removes a version
+  rpc RemoveVersion(RemoveVersionRequest) returns (RemoveVersionResponse);
+  //Updates an existing version
+  rpc UpdateVersion(UpdateVersionRequest) returns (UpdateVersionResponse);
+  //Lists all available versions for a specific platform
+  rpc ListAllVersions(google.protobuf.Empty) returns (ListAllVersionsResponse);
+
+}

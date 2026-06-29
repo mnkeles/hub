@@ -1,0 +1,32 @@
+syntax = "proto2";
+
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.validations";
+option java_outer_classname = "ValidationFieldOptions";
+option objc_class_prefix = "TIAMAS";
+
+import "google/protobuf/descriptor.proto";
+
+package tr.com.togg.tdp.tma.ms.validations;
+
+extend google.protobuf.FieldOptions {
+    optional int64 max = 50001;
+    optional int64 min = 50002;
+    optional bool past = 50003;
+    optional bool future = 50004;
+    optional int64 repeatMax = 50005;
+    optional int64 repeatMin = 50006;
+    optional string regex = 50007;
+    optional bool required = 50008; //Default value for all
+    optional bool forbidden = 50009;
+    optional bool optional = 50010;
+}
+
+extend google.protobuf.FieldOptions {
+    optional int64 invalid_enum = 70001;
+}
+
+extend google.protobuf.OneofOptions {
+    optional bool oneof_optional = 60010;
+    optional bool oneof_required = 60011;
+}

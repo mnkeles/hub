@@ -1,0 +1,122 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.achievements";
+option java_outer_classname = "AchievementsModelProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.achievements;
+
+import "common_model.proto";
+import "queue_messaging/queue_messaging_model.proto";
+import "google/protobuf/timestamp.proto";
+
+message ListMagnetRequest {
+  common.model.RequestHeader header = 1;
+}
+
+message ListMagnetResponse { // blue button will be decided later , for now ui can add this blue button to the first record of the list
+  string country_code = 1 ;
+  int32 total_magnet = 2; // total city count  per country
+  repeated MagnetMedia magnet_details = 3;
+  string country_name = 4;
+}
+
+message GetMagnetRequest {
+  common.model.RequestHeader header = 1;
+  string magnet_id = 2;
+}
+
+message DeleteMagnetRequest {
+  common.model.RequestHeader header = 1;
+  string magnet_id = 2;
+}
+
+message CreateMagnetRequest{
+  common.model.RequestHeader header = 1;
+  string navigation_info = 2; // this will be clarified with the
+}
+
+message ListUserMagnetHistoryRequest {
+  common.model.RequestHeader header = 1;
+}
+
+message NavigationBonusPublishEventRequest{
+  common.model.RequestHeader header = 1;
+  queue.messaging.SourcePoint source = 3;
+  repeated queue.messaging.EventParameter parameter_list = 4;
+}
+
+message MagnetMedia{
+  string magnet_id = 1; //Unique id of magnet
+  string image_url = 2; //Magnet image url
+  string city_code = 3; //City code of created magnet
+  google.protobuf.Timestamp achieve_date = 4; //achieved date
+  string city_name = 5; //City name of created magnet
+  /**
+   - Magnet create point like internal request or external system channel
+   -- MOBILE_APP,MOBILE_APP_NAV, CSR, ACTIVATION(auto-create by system)
+   */
+  string source_point = 6;
+}
+
+message Magnet{
+ MagnetMedia magnet_media = 1; //magnet media detail
+ TransportationType transportation_type = 2; // By which means of transportation was the magnet earned?
+ Route route = 3;
+}
+
+message Route{
+  int32 distance = 1;
+  int64 duration = 2;
+  RoutePoint starting_point = 3; // Destination
+  RoutePoint arrival_point = 4; // Arrival
+}
+
+message RoutePoint {
+  string city_name = 1 ;
+  Weather point_weather = 2 ;
+}
+
+message Weather {
+  int32 temperature = 1;
+  string temperatureType = 2 ;
+  WeatherStatus  status = 3;
+}
+
+enum WeatherStatus {
+    UNSPECIFIED_WEATHER_STATUS = 0;
+    RAINY = 1 ; // will be defined later
+}
+
+enum TransportationType {
+    UNSPECIFIED_TRANSPORT_TYPE = 0; // Unknown
+    WALK = 1;  // walk
+    CAR = 2;
+    BUS = 3;
+    ELECTRIC_CAR = 4;
+    PEDESTRIAN = 5;
+    SCOOTER = 6;
+    PUBLIC_TRANSIT = 7;
+    TAXI = 8;
+    BICYCLE = 9;
+    TRUCK = 10;
+    FERRY = 11;
+    CAR_SHUTTLE_TRAIN = 12;
+    RENTED_VEHICLE = 13;
+}
+
+
+message MagnetHistoryDetail {// use magnet and magnethistory collection from mongo db
+  MagnetStatus status = 1 ;
+  string city_name = 2;
+  google.protobuf.Timestamp history_date = 4;
+}
+
+enum MagnetStatus {
+  MAGNET_STATUS_UNDEFINED = 0;
+  ACTIVE = 1;
+  PENDING = 2;
+  DELETED = 3;
+  INVOKE_ERROR = 5; // navigation create magnet failed status
+  CALLBACK_ERROR = 6; // artgenerator callback failed status
+}

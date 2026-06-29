@@ -1,0 +1,322 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.payments";
+option java_outer_classname = "PaymentsModelProto";
+option objc_class_prefix = "TMA";
+
+package tr.com.togg.tdp.tma.ms.payments;
+
+import "common_model.proto";
+import "common_enum.proto";
+import "address/address_model.proto";
+import "order/order_model.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+
+message GetCardsRequest {
+  common.model.RequestHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+}
+
+message GetCardsResponse {
+  common.model.ResponseHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+  string eula_version = 2; // agreement document version
+  Eula eula_content = 3; // document content
+  repeated Card cards = 4; // credit card info
+}
+
+message UpdateCardRequest {
+  common.model.RequestHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+  string card_id = 2; // card id
+  string card_alias = 3; // card name
+  string eula_version = 4; // agreement document version
+  google.protobuf.BoolValue is_default = 5; // default card or not
+}
+
+message UpdateCardResponse {
+  common.model.ResponseHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+}
+
+message DeleteCardRequest {
+  common.model.RequestHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+  string card_id = 2; // card id
+}
+
+message DeleteCardResponse {
+  common.model.ResponseHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+}
+
+message ApproveEulaRequest {
+  common.model.RequestHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+  string card_id = 2; // card id
+  string card_alias = 3; // card name
+  string eula_version = 4; // agreement document version
+}
+
+message ApproveEulaResponse{
+  common.model.ResponseHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+}
+
+message GetEulaRequest {
+  common.model.RequestHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+}
+
+message GetEulaResponse {
+  common.model.ResponseHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+  string eula_version = 2; // agreement document version
+  Eula eula_content = 3; // document content
+}
+
+message ValidateCardRequest {
+  common.model.RequestHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+  string bin_value = 2; // ???????
+}
+
+message ValidateCardResponse{
+  common.model.ResponseHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+}
+
+message CalculateHashRequest {
+  common.model.RequestHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+}
+
+message CalculateHashResponse {
+  common.model.ResponseHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+  string application_name = 2; // togg is default, application name for which this system call this API
+  TransactionDetails transaction = 3; // transaction time
+  string hash_data = 4; // unique key for each transaction
+}
+
+message RegisterCardRequest {
+  common.model.RequestHeader header = 1;
+  string card_alias = 2; // card name
+  string card_token = 3; // unique key for card
+  string eula_version = 4; // agreement document version
+  bool is_default = 5; // is default card
+  string threed_session_id = 6; // it's unique id for created session in external system
+}
+
+message RegisterCardResponse {
+  common.model.ResponseHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+  string card_id = 2; // card id
+}
+
+message CreateThreeDSessionRequest {
+  common.model.RequestHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+  oneof card {
+    string card_id = 2; // card id
+    string card_token = 3; // unique key for card
+  }
+  double amount = 4;
+  common.enums.Channel channel = 5;
+  string order_id = 6;
+  address.SelectedAddress address = 7;
+  payments.PaymentOption payment_option = 8;
+  string card_last_four_digit = 9;
+  string card_first_six_digit = 10;
+  string card_alias = 11;
+  bool register_card = 12;
+}
+
+message CreateThreeDSessionResponse {
+  common.model.ResponseHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+  string session_id = 2; // it's unique id for created session in external system
+  string callback_url = 3; // call back URL
+}
+
+message ReverseRefundRequest {
+  common.model.RequestHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+  string order_id = 2; // order id
+  repeated order.Receipt receipts = 3; //operation detail
+}
+
+message ListPaymentTransactionHistoryRequest {
+  common.model.RequestHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+  google.protobuf.Timestamp start_date = 2; // history start date
+  google.protobuf.Timestamp end_date = 3; // history end date
+}
+
+message ListOrderPaymentTransactionHistoryRequest {
+  common.model.RequestHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+  google.protobuf.Timestamp start_date = 2; // history start date
+  google.protobuf.Timestamp end_date = 3; // history end date
+  int64 order_id = 4;
+}
+
+message PaymentTransactionHistory {
+  common.enums.BalanceCode balance_code = 1; // currency code
+  double amount = 2; // quantity of money
+  google.protobuf.Timestamp date = 3; // transaction date
+  string transaction_id = 4; // transaction id
+  string subject = 5; // operation title
+  string name = 6; // name of operation
+  int64 order_id = 7; // order id
+  string acquirer_bank = 8; // acquirer_bank
+  string issuer_bank = 9; // issuer_bank
+  string reference_transaction_id = 10; // previous transaction id
+  google.protobuf.Timestamp reconciliation_date = 11; /// reconciliation date
+  string description = 12; // transaction history description
+  repeated TransactionHistoryDetail transaction_history_detail = 13; // sub detail of transaction
+  payments.PaymentTransactionType payment_transaction_type = 14; // payment transaction type
+  string payment_type = 15;
+  string payment_action = 16;
+  string acquirer_bank_code = 17;
+  string issuer_bank_code = 18;
+  string reference_order_id = 19;
+  string auth_number = 20;
+  string bill_payment_number = 21;
+}
+
+message TransactionHistoryDetail{
+  payments.PaymentChannel payment_channel = 1;  // Paymentchannel=1 (kredi kartı), =2 (para transferi)
+  oneof PaymentChannelInfo {
+    string iban = 2;      // will be set when Paymentchannel=2 (para transferi / Money Transfer)
+    string payment_id = 3; // will be set when Paymentchannel=1  (kredi kartı / Credit Card)
+  }
+  oneof TransferDetail{
+    string card_last_four_digit = 4;  // will be set when Paymentchannel=1  (kredi kartı / Credit Card)
+    string name_surname = 5;  //mtUser= name-surname information of the user making the money transfer (para transferi yapan kullanıcınin ad-soyad bilgisi)
+    // name_surname will be set when Paymentchannel=2 (para transferi / Money Transfer)
+  }
+  double amount = 6; // quantity of money
+  string subject = 7; // operation title
+}
+
+message Eula {
+  string content_tr = 1; // document content in tr
+  string content_en = 2; // document content in en
+  string url_tr = 3; // eula URl in tr
+  string url_en = 4; // eula URl in en
+}
+
+message Card {
+  string id = 1; // card id
+  string masked_no = 2; // sample: 1212 **** **** **** 1212
+  string alias = 3; // card name
+  string brand = 4; // card brand
+  google.protobuf.BoolValue is_default = 5; // is card default
+  google.protobuf.BoolValue is_expired = 6; // is card expired
+  google.protobuf.BoolValue show_eula = 7; // show agreement document or not
+}
+
+enum PaymentOption {
+  UNSPECIFIED_PAYMENT_OPTION = 0;
+  WALLET_TOPUP_PAY = 1; // First topup then pay with wallet
+  WALLET_TOPUP_CARD = 2; // only wallet top up with credit card
+  WALLET_TOPUP_TRANSFER = 3; // only wallet top up with bank transfer
+  CREDIT_CARD_PAY = 4; // pay with V-Pos
+  WALLET_KYC_AND_TOPUP_CARD = 5; // KYC and top up wallet with card
+  WALLET_KYC_AND_TOPUP_TRANSFER = 6; // KYC and top up wallet with bank transfer
+  WALLET_PAY = 7;
+  REGISTER_CREDIT_CARD = 8;
+}
+
+message TransactionDetails {
+  string id = 1; // transaction id
+  string time_stamp = 2; // transaction time
+}
+
+message PayRequest{
+  common.model.RequestHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+  string order_id = 2; // order id
+  address.SelectedAddress address = 3; // customer address
+  payments.PaymentOption payment_option = 4; // payment options
+}
+
+message PayResponse{
+  string wallet_order_id = 1; // wallet order id
+  oneof result{
+    string transaction_id = 2; // transaction id
+    string validation_token = 3; // validation token
+  }
+}
+
+message ConfirmPaymentRequest{
+  common.model.RequestHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+  string order_id = 2; // order id
+  string wallet_order_id = 3; // wallet order id
+  address.SelectedAddress address = 4; // customer address
+  payments.PaymentOption payment_option = 5; // payment options
+  string otp_value = 6; // OTP code
+  string validation_token = 7; // validation token
+}
+
+message ConfirmSelfCreditRequest{
+  common.model.RequestHeader header = 1;
+  double credit_amount = 2;
+  string acquirer_bank_code = 3;
+  string issuer_bank_code = 4;
+  string egm_code = 5; // Emniyet Genel Mudurlugu - Arac Rehin Kodu
+  google.protobuf.Timestamp approved_date = 6;
+  string installment_number = 7;
+  int64 order_id = 8;
+  string payment_txn_id = 9;
+}
+
+message UpdateSelfCreditHistoryRequest{
+  common.model.RequestHeader header = 1;
+  string issuer_bank_code = 2;
+  string egm_code = 3; // Emniyet Genel Mudurlugu - Arac Rehin Kodu
+  string payment_txn_id = 4;
+}
+
+message GetPaymentLinkRequest{
+  common.model.RequestHeader header = 1;
+  int64 order_id = 2; // BSS order id
+  double amount = 3;
+  int32 installment_count = 4;
+  repeated common.model.GenericParameter parameters = 5; //work_order_id, plate_no
+}
+
+message GetPaymentLinkResponse{
+  string session_id = 1; // paymentLinks session table _id value.
+  string url = 2;
+  PaymentLinkStatus status = 3;
+}
+
+message CheckPaymentLinkStatusRequest{
+  common.model.RequestHeader header = 1;
+  int64 order_id = 2; // BSS order id
+}
+
+message CheckPaymentLinkStatusResponse{
+  PaymentLinkStatus status = 1;
+}
+
+message GetCreditCardCommissionRequest{
+  common.model.RequestHeader header = 1;
+  double amount = 2;
+  string bin_value = 3;
+}
+
+message GetCreditCardCommissionResponse{
+  double amount = 1; // transactionAmount
+  double transaction_fee = 2; // commissionAmount
+  double total_amount = 3; // transactionAmount + commissionAmount
+}
+
+enum PaymentLinkStatus{
+  PAYMENT_LINK_STATUS_UNSPECIFIED = 0;
+  ACTIVE = 1;
+  PAID = 2;
+  FAIL = 3;
+  PAYMENT_CANCELLED = 4; //DELETED and SOFT_DELETED
+}
+
+enum PaymentChannel {
+  UNSPECIFIED_PAYMENT_CHANNEL = 0;
+  CREDIT_CARD = 1;
+  BANK_TRANSFER = 2;
+}
+enum PaymentTransactionType {
+  UNSPECIFIED_PAYMENT_TRANSACTION_TYPE = 0;
+  RECEIVE_CREDIT_CARD = 1; //Received_Vpos
+  REFUND_CREDIT_CARD = 2; //_Refund_Vpos
+  RECEIVE_WALLET = 3;
+  REFUND_WALLET = 4;
+  TRANSFER = 5;
+  PURCHASE_MONEY_TRANSFER = 6;
+  REFUND_MONEY_TRANSFER = 7;
+  PURCHASE_CREDIT = 8;
+  REFUND_CREDIT = 9;
+  AUTH_WALLET = 10;
+}

@@ -1,0 +1,79 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.consents";
+option java_outer_classname = "ConsentsModelProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.consents;
+
+import "common_model.proto";
+
+
+message InquireConsentRequest {
+  common.model.RequestHeader header = 1;
+}
+
+message InquireConsentResponse {
+  UserConsentStatus user_consent_status = 1;
+  UserConsentType user_consent_type = 2;
+}
+
+message CreateConsentRequest {
+  tr.com.togg.tdp.common.model.RequestHeader header = 1;
+  UserConsentStatus user_consent_status = 2;
+  UserConsentType user_consent_type = 3;
+}
+
+message ListUserConsentsRequest {
+  common.model.RequestHeader header = 1;
+}
+
+message GetConsentsAdminResponse  {
+  repeated ConsentInfo consents = 1;
+}
+
+message SubmitUserConsentRequest {
+  common.model.RequestHeader header = 1;
+  repeated ConsentInfo consents = 2;
+  ConsentSource source = 3;
+}
+
+message ConsentResponse {
+  string consent_type = 1;
+  string status = 2;
+}
+
+message ConsentInfo {
+  UserConsentType consent_type = 1;
+  UserConsentStatus status = 2;
+}
+
+enum UserConsentStatus {
+  USER_CONSENT_UNDEFINED = 0;
+  YES = 1; // ONAY = 0 for TIAM mapping
+  NO = 2; //  RET = 1 for TIAM mapping
+}
+
+enum UserConsentType {
+  USER_CONSENT_TYPE_UNDEFINED = 0;
+  MAGNET = 1;
+  CALL = 2 ; // ARAMA = 1 for TIAM mapping
+  MESSAGE = 3 ; // MESAJ = 2 for TIAM mapping
+  EMAIL = 4; // EPOSTA = 3 for TIAM mapping
+}
+
+enum ConsentSource {
+  USER_CONSENT_SOURCE_UNDEFINED = 0;
+  CS_PHYSICAL = 1 ; // HS_FIZIKSEL_ORTAM = 0;
+  CS_WET_SIGNATURE = 2; // HS_ISLAK_IMZA = 1;
+  CS_WEB = 3; // HS_WEB = 2;
+  CS_CALL_CENTER = 4 ; // HS_CAGRI_MERKEZI = 3;
+  CS_SOCIAL_MEDIA = 5 ; // HS_SOSYAL_MEDYA = 4;
+  CS_EMAIL = 6; // HS_EPOSTA = 5;
+  CS_MESSAGE = 7; // HS_MESAJ = 6;
+  CS_MOBILE = 8 ; // HS_MOBIL = 7;
+  CS_E_MEDIA = 9; // HS_EORTAM = 8;
+  CS_ACTIVITY = 10 ; // HS_ETKINLIK = 9;
+  CS_2015 = 11; // HS_2015 = 10;
+  CS_ATM = 12 ; // HS_ATM = 11;
+}

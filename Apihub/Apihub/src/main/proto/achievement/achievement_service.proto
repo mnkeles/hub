@@ -1,0 +1,132 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.achievements";
+option java_outer_classname = "AchievementsServiceProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.achievements.client;
+
+import "achievement/achievement_model.proto";
+import "google/protobuf/empty.proto";
+
+
+/**
+ -The MagnetService is used to manage magnet entities within the system.
+ -The service provides functionalities to list, retrieve, create, and delete magnets.
+
+ Business Rules;
+ -Each request must be authenticated to ensure that the user
+ has the necessary permissions to access.
+ -For each service, token user will be used.
+ If token user has "impersonator" role, requestHeader.userId will be used for all operations.
+
+ Error Handling;
+ -INTERNAL_SERVER_ERROR(500): In unexpected situations, an error as INTERNAL(500) is returned.
+ -API specific errors will be explained in the API details.
+ */
+service MagnetService {
+  /**
+   ListMagnets is streams a list of magnets based on the requested user.
+   */
+  rpc ListMagnets (ListMagnetRequest) returns (stream ListMagnetResponse);
+  /**
+   -GetMagnet retrieves detailed information about a specific magnet identified by the request parameter : magnet_id
+   -Error Handling; MAGNET_NOT_FOUND error will be return if magnet_id not valid or
+   the given magnet_id not associated with the requested user
+   */
+  rpc GetMagnet (GetMagnetRequest) returns (Magnet);
+
+  /**
+   -CreateMagnet api triggered by Navigation app.
+   -Service creates a new magnet entity based on the information provided in the request.
+   -After the request received from the navigation app, the create magnet request is forwarded to the ArtGen system
+   and then the callback is waited.
+   -ArtGen system sends the magnet url related to created magnet through the callback API,
+   and then the magnet become active in the system
+   -After magnet activation completed system send notification to use and publishes CREATE_MAGNET event through queue ms
+   -CREATE_MAGNET event can be used for user activity or any other achievement like YENILIG earns.
+   -If any error occurs while accessing the ArtGen system, the magnet creation process will fail and return an error.
+
+   Business Rules;
+   -User Consent Status should be set YES to apply create magnet request from navigation app
+   -The city and country sent for the magnet must be registered in the system.
+
+   Error Handling;
+   -PERMISSION_DENIED : will be returned as GRPC error if user allowed to magnet operations. USER_CONSENT_NOT_ALLOWED error code
+   will be added to response header
+   -NOT_FOUND : will be returned as GRPC error when country or city not found. COUNTRY_NOT_FOUND and CITY_NOT_FOUND codes will be
+   added to response header.
+   -INTERNAL_SERVER_ERROR : will be returned as GRPC error if navigation app's request format not valid. NAVIGATION_INFO_FORMAT_ERROR code
+   will be added to response header
+   */
+  rpc CreateMagnet (CreateMagnetRequest) returns (google.protobuf.Empty);
+  /**
+   -DeleteMagnet deletes a specified magnet based on the information provided in the request.
+
+   Business Rules;
+   -Only the magnet owner or a user with the "impersonator" role can delete magnets.
+
+   Error Handling;
+   -PERMISSION_DENIED : will be returned as GRPC error if user allowed to do any operations on the provided magnet.
+   USER_NOT_AUTHORIZED_FOR_MAGNET code    will be added to response header
+   */
+  rpc DeleteMagnet (DeleteMagnetRequest) returns (google.protobuf.Empty); // change status of the instance
+}
+
+/**
+ -The MagnetHistoryService is used to retrieve the history of magnets associated with a user
+
+ Business Rules;
+ -Each request must be authenticated to ensure that the user
+ has the necessary permissions to access.
+ -For each service, token user will be used.
+ If token user has "impersonator" role, requestHeader.userId will be used for all operations.
+
+ Error Handling;
+ -Proper error messages and status codes should be returned in case of failures such as invalid user IDs,
+ data retrieval issues, or unauthorized access.
+ -INTERNAL_SERVER_ERROR(500): In unexpected situations, an error as INTERNAL(500) is returned.
+ -API specific errors will be explained in the API details.
+ */
+service MagnetHistoryService {
+  /**
+  -This ListUserMagnetHistory streams the history of magnets associated with a specified user.
+  -The history includes both the current magnet details and their historical changes (deleted magnets)
+
+   Business Rules;
+   - If user not exist or no magnet or history found, service will return no item when stream completed
+
+   Error Handling;
+   -No specific error message
+   */
+  rpc ListUserMagnetHistory (ListUserMagnetHistoryRequest) returns (stream MagnetHistoryDetail); // return the magnet and magnet history collection
+}
+
+/**
+ -The AchievementPublishEventService is used to handle the publication of achievement-related events.
+
+ Business Rules;
+ -Each request must be authenticated to ensure that the user
+ has the necessary permissions to access.
+ -For each service, token user will be used.
+ If token user has "impersonator" role, requestHeader.userId will be used for all operations.
+
+ Error Handling;
+ -Proper error messages and status codes should be returned in case of failures such as invalid user IDs,
+ data retrieval issues, or unauthorized access.
+ -INTERNAL_SERVER_ERROR(500): In unexpected situations, an error as INTERNAL(500) is returned.
+ -API specific errors will be explained in the API details.
+ */
+service AchievementPublishEventService {
+  /**
+  -This service created for Navigation app to apply navigation usage to system.
+
+   Business Rules;
+  -This service used for only publish navigation event. There is no data validation.
+  -Data validation will be handled by consumer. If navigation app sends invalid data, event process will be failed.
+
+   Error Handling;
+   -No specific error message
+   */
+  rpc NavigationBonusPublishEvent (NavigationBonusPublishEventRequest) returns (google.protobuf.Empty);
+}

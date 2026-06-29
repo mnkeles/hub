@@ -1,0 +1,68 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.payments.compay";
+option java_outer_classname = "CompayPaymentServiceProto";
+option objc_class_prefix = "TMA";
+
+package tr.com.togg.tdp.tma.ms.payments.compay.client;
+
+import "payment/compay_payment_model.proto";
+import "common_model.proto";
+
+service CompayCreditService {
+  /**
+   * Method for inquiring credit over bank
+   */
+  rpc InquireCreditOptions (CompayCreditRequest) returns (stream CreditOption);
+  /**
+   * Method for inquiring credit limit bddk
+   */
+  rpc InquireCreditLimit (CompayCreditLimit) returns (CreditLimit);
+  /**
+   * Method for InquireCredit
+   */
+  rpc InquireCredit (InquireCreditRequest) returns (Credit);
+  /**
+   * Method for calculateHash
+   */
+  rpc CalculateCreditHash (CalculateCreditHashRequest) returns (CalculateCreditHashResponse);
+  /**
+   * Method for session
+   */
+  rpc CreateCreditSession (CreateCreditSessionRequest) returns (CreateCreditSessionResponse);
+}
+
+service CompayCreditDocumentService{
+  /**
+ * Method compay register
+ */
+  rpc InitiateRegister (InitiateRegisterRequest) returns (InitiateRegisterResponse);
+}
+
+service CompayMoneyTransferService {
+  /**
+   * Method for calculateHash
+   */
+  rpc InquireBankList (InquireBankListRequest) returns (stream Bank);
+  /**
+     * Method for InquireMoneyTransfer
+     */
+  rpc InquireMoneyTransfer (InquireMoneyTransferRequest) returns (MoneyTransfer);
+  /**
+   * Method for calculateHash
+   */
+  rpc CalculateMoneyTransferHash (CalculateMoneyTransferHashRequest) returns (CalculateMoneyTransferHashResponse);
+  /**
+   * Method for session
+   */
+  rpc CreateMoneyTransferSession (CreateMoneyTransferSessionRequest) returns (CreateMoneyTransferSessionResponse);
+}
+
+service CompayStaticInformationService {
+  rpc GetOccupationList (GetOccupationListRequest) returns (stream common.model.GenericCodeType);
+  rpc GetEducationList (GetEducationListRequest) returns (stream common.model.GenericCodeType);
+}
+
+service CompayCreditHistoryService{
+  rpc ListCustomerCompayCreditHistoryDetail (ListCustomerCompayCreditHistoryDetailRequest) returns (stream CustomerCompayCreditHistoryDetail);
+}

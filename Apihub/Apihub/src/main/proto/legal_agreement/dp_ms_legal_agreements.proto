@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.dp.ms.legalagreements.v2";
+option java_outer_classname = "LegalAgreementsProto";
+option objc_class_prefix = "LA";
+
+package togg.tdp.dp.ms.legalagreements.v2;
+
+import "legal_agreement/dp_ms_legalagreement_model_enums.proto";
+import "legal_agreement/dp_ms_legalagreement_model_core.proto";
+
+service ClientService {
+  rpc ListLegalDocuments (ListLegalDocumentsRequest) returns (ListLegalDocumentsResponse);
+  rpc ActOnLegalDocument (ActOnLegalDocumentRequest) returns (ActOnLegalDocumentResponse);
+}
+
+message ListLegalDocumentsRequest {
+  string tenant_id = 1;
+  string user_id = 2;
+}
+
+message ListLegalDocumentsResponse {
+  repeated LegalDocumentResource resources = 1;
+}
+
+message LegalDocumentResource {
+  model.core.v2.LegalAgreementDocument legal_document = 1;
+  model.enums.v2.UserActionType latest_user_action = 2;
+}
+
+message ActOnLegalDocumentRequest {
+  model.core.v2.UserAction user_action = 1;
+}
+
+message ActOnLegalDocumentResponse {
+  LegalDocumentResource resource = 1;
+}

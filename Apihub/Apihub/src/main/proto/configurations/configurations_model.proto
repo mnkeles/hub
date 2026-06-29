@@ -1,0 +1,88 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.configurations.model";
+option java_outer_classname = "ConfigurationsModelProto";
+option objc_class_prefix = "MS";
+
+package tr.com.togg.tdp.tma.ms.configurations;
+
+import "google/protobuf/struct.proto";
+import "common_model.proto";
+
+message Configuration {
+  //Value of key
+  string key = 1;
+  // Represents a double value
+  google.protobuf.Value value = 2;
+}
+
+message UpdateConfigurationRequest {
+  common.model.RequestHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+  //The values in the configuration are taken.
+  Configuration configuration = 2;
+}
+message UpdateConfigurationResponse {
+  //The values in the configuration are taken.
+  Configuration configuration = 1;
+}
+message DeleteConfigurationRequest {
+  common.model.RequestHeader header = 1;
+  //The value of key
+  string key = 2;
+}
+message CreateConfigurationRequest {
+  common.model.RequestHeader header = 1;
+  //The values in the configuration are taken.
+  Configuration configuration = 2;
+}
+message CreateConfigurationResponse {
+  //The values in the configuration are taken.
+  Configuration configuration = 1;
+}
+
+message ListConfigurationsResponse {
+  //The values in the configuration are taken
+  repeated Configuration configurations = 1;
+}
+
+message GetConfigurationRequest {
+  common.model.RequestHeader header = 1;
+  //The value of key
+  string key = 2;
+}
+message GetConfigurationResponse {
+  //The values in the configuration are taken
+  Configuration configuration = 1;
+}
+
+message ListenConfigurationsRequest {
+  common.model.RequestHeader header = 1;
+  //The value of keys
+  repeated string keys = 2;
+}
+
+message ListenConfigurationsResponse {
+  //The values in the configuration are taken
+  Configuration configurations = 1;
+}
+
+message ListCharacteristicsByGroupRequest {
+  common.model.RequestHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+  string  char_group_code = 2;
+}
+
+message ListCurrencyRequest {
+  common.model.RequestHeader header = 1;
+}
+
+message ListDeliveryPointsRequest {
+  common.model.RequestHeader header = 1;
+}
+
+message Currency{
+  int64 id = 1;
+  string code = 2;
+  int32 numeric_code = 3;
+  string name = 4;
+}

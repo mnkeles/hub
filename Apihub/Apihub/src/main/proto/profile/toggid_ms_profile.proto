@@ -1,0 +1,237 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "tr.com.togg.toggid.ms.profile";
+option java_outer_classname = "ProfileProto";
+option objc_class_prefix = "PROFILE";
+
+package togg.toggid.ms.profile;
+
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+// Deprecated. Should be changed to Administration Service
+service ProfileService {
+  // Deprecated. Change will be only allowed through user account web interface
+  rpc GetUserProfile (GetUserProfileRequest) returns (GetUserProfileResponse);
+  // Deprecated. Change will be only allowed through user account web interface
+  rpc SetUserProfile (SetUserProfileRequest) returns (SetUserProfileResponse);
+  // Deprecated. Change will be only allowed through user account web interface
+  rpc ResetPassword (ResetPasswordRequest) returns (ResetPasswordResponse);
+  // Deprecated. Change will be only allowed through user account web interface
+  rpc GetUserProfileImage (GetUserProfileImageRequest) returns (stream GetUserProfileImageResponse);
+  // Deprecated. Change will be only allowed through user account web interface
+  rpc SetUserProfileImage (stream SetUserProfileImageRequest) returns (SetUserProfileImageResponse);
+  // For internal usage
+  rpc VerifyUserPhoneNumber (VerifyUserPhoneNumberRequest) returns (google.protobuf.Empty);
+
+  // Deactivates an already active user.
+  rpc DeactivateUser(DeactivateUserRequest) returns (google.protobuf.Empty);
+
+  // Get information about user National ID number
+  rpc GetNationalIdNumber(GetNationalIdNumberRequest) returns (GetNationalIdNumberResponse);
+  // Set information about user National ID number
+  rpc SetNationalIdNumber(SetNationalIdNumberRequest) returns (SetNationalIdNumberResponse);
+
+  // Get information about user Know Your Customer Data (KYC) Verification level
+  rpc GetUserKYCVerificationLevel(GetUserKYCVerificationLevelRequest) returns (GetUserKYCVerificationLevelResponse);
+  // Set information about user Know Your Customer Data (KYC) Verification level
+  rpc SetUserKYCVerificationLevel(SetUserKYCVerificationLevelRequest) returns (SetUserKYCVerificationLevelResponse);
+}
+
+message DeactivateUserRequest {
+  string tenantId=1;
+}
+
+message GetUserProfileRequest {
+  string tenant_id = 1;
+  string user_id = 2;
+}
+
+message GetUserProfileResponse {
+  UserProfile result = 1;
+}
+
+message SetUserProfileRequest {
+  UserProfile user_profile = 1;
+}
+
+message SetUserProfileResponse {
+  UserProfile result = 1;
+}
+
+message ResetPasswordRequest {
+  string tenant_id = 1;
+  string user_id = 2;
+  string new_password = 3;
+}
+
+message ResetPasswordResponse {
+  Status status = 1;
+}
+
+message GetUserProfileImageRequest {
+  string tenant_id = 1;
+  string user_id = 2;
+}
+
+message GetUserProfileImageResponse {
+  DataChunk data_chunk = 1;
+}
+
+message SetUserProfileImageRequest {
+  string tenant_id = 1;
+  string user_id = 2;
+  DataChunk data_chunk = 3;
+}
+
+message SetUserProfileImageResponse {
+  uint32 size = 2;
+}
+
+message VerifyUserPhoneNumberRequest {
+  string tenant_id = 1;
+  string user_id = 2;
+  PhoneNumber phone_number = 3;
+}
+
+message GetNationalIdNumberRequest {
+  string tenant_id = 1;
+  string user_id = 2;
+  Country country = 3;
+}
+
+message GetNationalIdNumberResponse {
+  NationalId national_id = 1;
+}
+
+message SetNationalIdNumberRequest {
+  string tenant_id = 1;
+  string user_id = 2;
+  NationalId national_id = 3;
+}
+
+message SetNationalIdNumberResponse {
+  NationalId national_id = 1;
+}
+
+message GetUserKYCVerificationLevelRequest {
+  string tenant_id = 1;
+  string user_id = 2;
+}
+
+message GetUserKYCVerificationLevelResponse {
+  KYCVerificationLevel verification_level= 1;
+}
+
+message SetUserKYCVerificationLevelRequest {
+  string tenant_id = 1;
+  string user_id = 2;
+  KYCVerificationLevel verification_level= 3;
+}
+
+message SetUserKYCVerificationLevelResponse {
+  KYCVerificationLevel verification_level= 1;
+}
+
+message UserProfile {
+  string tenant_id = 1;
+  string user_id = 2;
+  string first_name = 3;
+  string last_name = 4;
+  string email = 5;
+  Language language = 6;
+  Country country = 7;
+  PhoneNumber phone_number = 8;
+  google.protobuf.BoolValue enabled = 9; //default value is FALSE
+  Date birthdate = 10;
+}
+
+message DataChunk {
+  bytes data = 1;
+  int32 size = 2;
+}
+
+enum Language {
+  USER_LANGUAGE_UNSPECIFIED = 0;
+  TR = 1;
+  EN = 2;
+  DE = 3;
+  reserved 4 to 99;
+  OTHER_LANGUAGE = 100;
+}
+
+enum Status {
+  STATUS_UNSPECIFIED = 0;
+  OK = 1;
+  KO = 2;
+}
+
+/* ISO 3166-1 alpha-3 country codes */
+enum Country {
+  COUNTRY_UNSPECIFIED = 0;
+  TUR = 1;
+  DEU = 2;
+  GBR = 3;
+  reserved 4 to 99;
+  OTHER_COUNTRY = 100;
+}
+
+message PhoneNumber {
+  int32 country_code = 1; // ITU country code
+  uint64 national_number = 2;
+  PhoneNumberVerificationStatus verification_status = 3; // read-only
+}
+
+enum PhoneNumberVerificationStatus {
+  VERIFICATION_STATUS_UNSPECIFIED = 0;
+  UNVERIFIED = 1;
+  VERIFIED = 2;
+}
+
+message NationalId {
+  // Required
+  Country country = 1;
+  // Required
+  string national_id_number = 2;
+  // Required
+  google.protobuf.Timestamp issued_at = 3;
+  // Required
+  google.protobuf.Timestamp valid_through = 4;
+  // Required
+  string issued_by = 5;
+}
+
+// Represents a whole or partial calendar date, such as a birthday. The time of
+// day and time zone are either specified elsewhere or are insignificant. The
+// date is relative to the Gregorian Calendar. This can represent one of the
+// following:
+message Date {
+  // Year of the date. Must be from 1 to 9999, or 0 to specify a date without
+  // a year.
+  int32 year = 1;
+
+  // Month of a year. Must be from 1 to 12, or 0 to specify a year without a
+  // month and day.
+  int32 month = 2;
+
+  // Day of a month. Must be from 1 to 31 and valid for the year and month, or 0
+  // to specify a year by itself or a year and month where the day isn't
+  // significant.
+  int32 day = 3;
+}
+
+// Describes KYC (Know Your Customer) information
+enum KYCVerificationLevel {
+  // Level is not specified
+  UNSPECIFIED = 0;
+  // Level-0: Anonymous (Users, without any check)
+  LEVEL_0_ANONYMOUS = 1;
+  // Level-1: Not Validated (Users, with consistency check via national identity number, name, and date of birth)
+  LEVEL_1_NOT_VALIDATED = 2;
+  // Level-2: Validated (Users, validated via the third party. Ex: Bank account)
+  LEVEL_2_VALIDATED = 3;
+  // Level-3: Contracted (Users, validate via Face2Face or other accepted methods)
+  LEVEL_3_CONTRACTED = 4;
+}

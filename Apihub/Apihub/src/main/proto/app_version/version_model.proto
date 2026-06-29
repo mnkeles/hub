@@ -1,0 +1,69 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.settings";
+option java_outer_classname = "VersionsModelProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.settings;
+
+import "common_model.proto";
+
+message GetLatestVersionRequest {
+  common.model.RequestHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+  //Platform value "mobile, wsc"
+  repeated string platformNames = 2;
+}
+
+message GetLatestVersionResponse {
+  //The version information
+  repeated Version version = 1;
+}
+
+message Version {
+  //Unique id of version
+  string id = 1;
+  //value of platform name ("mobile, wsc" )
+  string platformName = 2;
+  //version information
+  string version = 3;
+  //min version number in the version
+  string minVersion = 4;
+}
+
+message AddVersionRequest {
+  common.model.RequestHeader header = 1;
+  //Unique id of AddVersionRequest
+  Version version = 2;
+}
+
+message AddVersionResponse {
+  //Unique id of AddVersionResponse
+  string id = 1;
+}
+
+message RemoveVersionRequest {
+  common.model.RequestHeader header = 1;
+  //Unique id of RemoveVersionRequest
+  string id = 2;
+}
+
+message RemoveVersionResponse {
+  //Unique id of RemoveVersionResponse
+  Version version = 1;
+}
+
+message UpdateVersionRequest {
+  common.model.RequestHeader header = 1;
+  //Unique id of UpdateVersionRequest
+  Version version = 2;
+}
+
+message UpdateVersionResponse {
+  //Unique id of UpdateVersionResponse
+  Version version = 1;
+}
+
+message ListAllVersionsResponse {
+  //Unique id of ListAllVersionsResponse
+  repeated Version versions = 1;
+}

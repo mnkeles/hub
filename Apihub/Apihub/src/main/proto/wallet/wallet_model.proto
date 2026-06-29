@@ -1,0 +1,405 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.wallet";
+option java_outer_classname = "WalletModelProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.wallet;
+
+import "common_model.proto";
+import "common_enum.proto";
+import "customer/customer_model.proto";
+import "address/address_model.proto";
+import "google/protobuf/timestamp.proto";
+import "payment/payment_model.proto";
+import "wallet/digital_wallet_model.proto";
+import "protobuf_validations/validation.proto";
+
+message GetAccountRequest {
+  common.model.RequestHeader header = 1;
+}
+message GetAccountKycStatusRequest {
+  tr.com.togg.tdp.common.model.RequestHeader header = 1;
+}
+message GetAccountKycStatusResponse{
+  AccountType account_type = 1;
+}
+
+message GetAccountResponse {
+  WalletAccount wallet_account = 1;
+}
+
+message GetAccountDetailRequest {
+  common.model.RequestHeader header = 1;
+  int64 offer_id = 2 [(validations.optional) = true];
+}
+
+message GetAccountDetailResponse {
+  tr.com.togg.tdp.tma.ms.customer.Client user_information = 1;
+  address.ClientAddress  billing_address = 2;
+  oneof account {
+    WalletAccount wallet_account = 3;
+    bool wallet_account_not_exist = 4;
+  }
+}
+
+message ClaimOtpTokenRequest {
+  common.model.RequestHeader header = 1;
+}
+
+message ClaimOtpTokenResponse {
+  string validation_token = 1;
+}
+
+message CreateWalletRequest {
+  common.model.RequestHeader header = 1;
+  oneof otp {
+    bool otp_verified = 2;
+    CreateWalletOtp create_wallet_otp = 3;
+  }
+}
+
+message GetWalletBalanceRequest {
+  common.model.RequestHeader header = 1;
+}
+
+message CreateWalletResponse {
+  string phone_number = 1;
+}
+
+message VerifyCustomerCredibilityRequest {
+  common.model.RequestHeader header = 1;
+  string card_first_six_digit = 2;
+  string card_last_four_digit = 3;
+}
+
+message VerifyCustomerCredibilityResponse {
+  AccountType account_type = 1;
+}
+
+message GetBankListRequest {
+  common.model.RequestHeader header = 1;
+}
+
+message GetBankListResponse {
+  repeated BankDetail bank_detail = 1;
+  string description = 2;  // created by BFF Togg-{msisdn/phoneNumber}
+}
+
+message GetWalletTransactionHistoryRequest {
+  common.model.RequestHeader header = 1;
+  google.protobuf.Timestamp start_date = 2;
+  google.protobuf.Timestamp end_date = 3;
+}
+
+message GetWalletTransactionHistoryResponse {
+  common.enums.BalanceCode balance_code = 1;
+  double amount = 2;
+  google.protobuf.Timestamp date = 3;
+  string transaction_id = 4;
+  string subject = 5;
+  repeated payments.TransactionHistoryDetail transaction_history_detail =6;
+  payments.PaymentTransactionType payment_transaction_type = 7;
+  string transaction_sub_type = 8;
+}
+
+message GetWalletTransactionInfoRequest{
+  common.model.RequestHeader header = 1;
+  string wallet_order_id = 2;
+  WalletTransactionTypes wallet_transaction_type =3;
+}
+
+message GetWalletTransactionInfoResponse{
+  string status = 1;
+  string description = 2;
+  double amount = 3;
+  string msisdn =4;
+  google.protobuf.Timestamp transaction_date = 5;
+}
+
+message CheckCustomerLimitForTopUpRequest{//FS_PRE_AUTH
+  common.model.RequestHeader header = 1;
+  double amount = 2;
+  oneof CardInfo {
+    string card_id = 3; // if card registered
+    string card_token = 4; // card not registered
+  }
+}
+
+message CheckCustomerLimitForTopUpResponse{//FS_PRE_AUTH response
+  string wallet_order_id = 1;
+  double total_fee = 2;
+  double total_amount = 3;
+}
+
+message TopUpWalletRequest{//FS_POST_AUTH
+  common.model.RequestHeader header = 1;
+  oneof CardInfo {
+    string card_id = 2; // if card registered
+    string card_token = 3; // card not registered
+  }
+  string card_last_four_digit = 4;
+  string wallet_order_id = 5;
+  double amount = 6;
+  string threeDSessionID = 7;
+}
+
+message TopUpWalletResponse{//FS_POST_AUTH response
+  double total_fee = 1;
+  double total_amount = 2;
+}
+
+message ClaimOtpTokenToMakePaymentRequest{//PRE_AUTH (Customer 2FA)
+  common.model.RequestHeader header = 1;
+  double amount = 2;
+
+}
+
+message ClaimOtpTokenToMakePaymentResponse{//PRE_AUTH (Customer 2FA) response
+  string wallet_order_id = 1;
+  string validation_token = 2;
+}
+
+message MakePaymentWithOtpTokenRequest{//POST_AUTH (make payment)
+  common.model.RequestHeader header = 1;
+  string otp_value = 2;
+  string validation_token = 3;
+  double amount = 4;
+  string wallet_order_id = 5;
+}
+
+message MakePaymentWithOtpTokenResponse{//POST_AUTH (make payment) response
+  string wallet_order_id = 1;
+  google.protobuf.Timestamp transaction_create_date = 2;
+  string transaction_id = 3; //MakePaymentRequest'te paycell'e gonderilen
+}
+
+message MakePaymentRequest{//AUTH == (make payment)
+  common.model.RequestHeader header = 1;
+  double amount = 2;
+  string wallet_order_id = 3;
+  string transaction_id = 4; //paycell'e gonderilen
+  string auth_type = 5 ;
+}
+
+message MakePaymentResponse{//AUTH == (make payment) response
+  string wallet_order_id = 1; //MakePaymentRequest'te gelen ile ayni
+  string phone_number = 2;
+  google.protobuf.Timestamp transaction_create_date = 3;
+  string transaction_id = 4; //MakePaymentRequest'te paycell'e gonderilen
+}
+
+message RefundToWalletRequest{
+  common.model.RequestHeader header = 1;
+  double amount = 2;
+  string wallet_order_id = 3;
+  string auth_type = 4;
+}
+
+message RefundToWalletResponse{
+  string transaction_id = 1;
+  google.protobuf.Timestamp transaction_create_date = 3;
+}
+
+message RefundToCardRequest{
+  common.model.RequestHeader header = 1;
+  double amount = 2;
+}
+
+message RefundToCardResponse{
+  BalanceReverseResult balance_reverse_result = 1;
+  string transaction_id = 2;
+  string wallet_order_id = 3;
+  repeated RefundToCardDetail refund_to_card_detail = 4;
+}
+
+message GetAccountListRequest{
+  common.model.RequestHeader header = 1;
+}
+
+message GetAccountListResponse{
+  GetAccountDetailResponse account_detail = 1;
+  digital.GetDigitalAccountResponse digital_account_detail = 2;
+}
+
+message GenerateCodeRequest{
+  common.model.RequestHeader header = 1;
+  ContactlessCodeType code_type = 2;
+}
+
+message GenerateCodeResponse{
+  string qr_transaction_id = 1;
+  string qr_content = 2;
+  string quick_code = 3;
+  google.protobuf.Timestamp expire_date = 4;
+}
+
+
+//Request Response Types
+
+message RefundToCardDetail{
+  payments.PaymentChannel payment_channel = 1;  // Paymentchannel=1 (kredi kartı), =2 (para transferi)
+  oneof PaymentChannelInfo {
+    string iban = 2;      // will be set when Paymentchannel=2 (para transferi / Money Transfer)
+    string payment_id = 3; // will be set when Paymentchannel=1  (kredi kartı / Credit Card)
+  }
+  oneof TransferDetail{
+    string card_last_four_digit = 4;  // will be set when Paymentchannel=1  (kredi kartı / Credit Card)
+    string name_surname =5;  //mtUser= name-surname information of the user making the money transfer (para transferi yapan kullanıcınin ad-soyad bilgisi)
+    // name_surname will be set when Paymentchannel=2 (para transferi / Money Transfer)
+  }
+  double amount = 6;
+  common.enums.BalanceCode balance_code = 7;
+  string result_code = 8;
+  string description = 9;
+  google.protobuf.Timestamp transaction_date = 10;
+  string subject =11;
+}
+
+message CreateWalletOtp {
+  string validation_token = 2;
+  string otp_value = 3;
+}
+
+message WalletAccount {
+  WalletBalance wallet_balance = 1;
+  AccountType account_type = 3; // kycStatus false means PREMIUM , true means STANDARD
+}
+
+message WalletBalance {
+  TotalBalance total_balance = 1;
+}
+
+message TotalBalance {
+  double amount = 1;
+  common.enums.BalanceCode balance_code = 2 ;
+  string balance_desc = 3 ;
+  double remaining_amount = 4;
+  double transaction_limit_amount = 5;
+  double total_cashback_amount = 6;
+  double total_amount_without_cashback = 7;
+}
+
+message BankDetail {
+  string id = 1;
+  string name = 2;
+  string iban = 3;
+  string icon_url = 4;// getBankList'!den dönmüyor!!! Sorulması gerekli Wallet'a @Berrin.
+}
+
+// Types
+
+enum AccountType {
+  UNSPECIFIED_ACCOUNT_TYPE = 0;
+  STANDARD = 1;
+  PREMIUM = 2;
+}
+
+enum ContactlessCodeType {
+  CONTACTLESS_CODE_TYPE_UNSPECIFIED = 0;
+  QUICK_CODE = 1;
+  QR_CODE = 2;
+  QUICK_QR_CODE = 3;
+}
+
+enum TransactionHistoryPeriod {
+  UNSPECIFIED_TRANSACTION_HISTORY_PERIOD = 0;
+  TODAY = 1;
+  THREE_DAYS = 2;
+  LAST_WEEK = 3;
+  LAST_MONTH = 4;
+  OTHER_TRANSACTION_HISTORY_PERIOD = 5;
+}
+
+enum BalanceReverseResult {
+  UNSPECIFIED_BALANCE_REVERSE_RESULT =0;
+  COMPLETED =1;
+  HALF_COMPLETED =2;
+  FAILED =3;
+}
+
+enum WalletTransactionTypes{
+  UNSPECIFIED_WALLET_TRANSACTION_TYPE =0;
+  AUTH =1;
+  CORP_TOP_UP =2;
+}
+message GetTopUpBankListRequest{
+  common.model.RequestHeader header = 1;
+}
+
+message GetTopUpCommissionRequest{
+  common.model.RequestHeader header = 1;
+  double amount = 2;
+}
+
+message GetTopUpCommissionResponse{
+  double amount_topup = 1; // transactionAmount
+  double transaction_fee = 2; // commissionAmount
+  double total_amount = 3; // transactionAmount + commissionAmount
+}
+
+message TopUpWalletMoneyTransferRequest{
+  common.model.RequestHeader header = 1;
+  string acquirer_id = 2;
+  int32 currency_numeric_code = 3;
+  double amount = 4;
+  //  "acquirerId": "0",
+  //  "clientId": "104000261", // servisin arkaplanınca setlenecek servis parametresi olarak application properties
+  //  <=/span>"currency": "949= ",
+  //  "amount": "12",
+  //  "= softDescriptor": "Payment-5374525812", // servisin arkaplanında otomatik olusturulacak
+  //  "identNumber": "23005787158"=, // getUserınformation'dan gelen nat_id bilgisi setlenecek
+  //  "customerIdentifier": "90439b38-913c-406c-9f9a-d5cc333f1ff3", // BAseHeaderDan gelen getUserId bilgisi maplenecek
+  //  "mobilePhone": "537= 4525812", // getUserınformation'dan gelen phoneNumber bilgisi setlenecek
+  //  "sho= pUrl": "https://www.paycell.com.tr", // paycell manage this field not mandatory
+  //  "successUrl": "https://www.paycell.com.tr/success",// paycell manage this field not mandatory
+  //  "failUrl": "https:= //www.paycell.com.tr/fail"// paycell manage this field not mandatory
+}
+
+message TopUpWalletMoneyTransferResponse {
+  string session_id=1;
+  string order_id=2;
+  string access_token = 4;
+}
+
+message Bank {
+  string bank_name = 1;
+  string bank_logo = 2;
+  string acquirer_id = 3;
+}
+
+message TopUpBankDetail {
+  string acquirer_id = 1;
+  string name = 2;
+  string logo_url = 3;
+}
+
+message GetContactlessDetailRequest{
+  common.model.RequestHeader header = 1;
+  oneof qr_info {
+    string content = 2;
+    string transaction_id = 3;
+  }
+}
+
+message GetContactlessDetailResponse{
+  string qr_transaction_id = 1; // paycell service response qrTransactionId field
+  double amount  = 2; // paycell service response amount field
+  string merchant_name = 3; // paycell service response extraParameters.key == merchantName extraParameters.value  field will be mapped
+  string currency_code = 4; // paycell service response curency field will be mapped via using UtilityService/ListCurrency method --> currency.numeric_code will be the same as payycell response
+}
+
+message MakeContactlessPaymentRequest{
+  common.model.RequestHeader header = 1;
+  string reference_transaction_id = 2;
+}
+
+//Enumerations
+
+// NOTES:
+// Where we get these Clarification TExt and Personal Date Protection Low Templates, from API or static?
+//    Confirmationurl gibi bir bilgi dönülebilir mi getAccount'ta?
+
+//GetCardBinInformatiın --> ValidateCard
+// Expire olan card ile işllem yapıldığında --> ApproveEula --> UpdateCard
+

@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.notifications";
+option java_outer_classname = "NotificationsRegistrationProto";
+option objc_class_prefix = "TMA";
+
+package tr.com.togg.tdp.tma.ms.notifications.client;
+
+import "push_notification/notification_model.proto";
+
+service RegistrationService {
+  /**
+  * This method register new device token
+  */
+  rpc RegisterToken (DeviceToken) returns (RegistrationToken);
+  /**
+  * This method update device token in DB
+  */
+  rpc UpdateToken (UpdateTokenRequest) returns (RegistrationToken);
+  /**
+  * This method delete device token from DB
+  */
+  rpc DeleteToken (DeleteTokenRequest) returns (RegistrationToken);
+}

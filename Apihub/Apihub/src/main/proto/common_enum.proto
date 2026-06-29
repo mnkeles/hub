@@ -1,0 +1,114 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.common.enums";
+option java_outer_classname = "ToggMsCommonEnumProto";
+option objc_class_prefix = "TOGGMSCOMMON";
+
+package tr.com.togg.tdp.common.enums;
+
+/**
+ * This is User Language information and 4-99 area reserved for add new language
+ * This store with shortening
+ */
+enum UserLanguage {
+  USER_LANGUAGE_UNSPECIFIED = 0;
+  TR = 1;
+  EN = 2;
+  DE = 3;
+  reserved 4 to 99;
+  OTHER_LANGUAGE = 100;
+}
+
+/**
+ * This is User Country information and 4-99 area reserved for add new language
+ * This store with shortening
+ */
+enum UserCountry {
+  USER_COUNTRY_UNSPECIFIED = 0;
+  TUR = 1;
+  DEU = 2;
+  GBR = 3;
+  reserved 4 to 99;
+  OTHER_COUNTRY = 100;
+}
+
+/**
+ * Role information of token
+ */
+enum UserRole {
+  USER_ROLE_UNSPECIFIED = 0;
+  CSR_ROLE = 1; // CSR User
+  WSC_ROLE = 2; // FrontEnd Client
+  WFM_ROLE = 3; // Wfm, Cms
+}
+
+/**
+ * Channel is our client information
+ */
+enum Channel {
+  CHANNEL_UNSPECIFIED = 0;
+  MOBILE_APP = 1; // Mobile Client
+  CSR = 2; // FrontEnd Client
+  WSC = 3; // FrontEnd Client
+  MOBILE_APP_NAV = 4; // Mobile Navigation
+  INTERNAL_SERVER = 5; // used for server-server service call
+  APPOINTMENT = 6;
+  WFM = 7;
+  ECM = 8;
+  OAB = 9;
+}
+
+/**
+ * OrderFlow is a BSS Business Interaction types = BSN_INTER_SPEC definitions
+ */
+enum OrderInteractionTypes {
+  ORDER_INTER_UNSPECIFIED = 0;
+  PREORDER = 1;
+  INFLIGHT_CHANGE = 2;
+  INFLIGHT_CANCEL = 3;
+}
+
+/**
+ * OrderFlow is a BSS Order Flow types = BSN_FLOW_SPEC definitions
+ */
+enum OrderFlowTypes {
+  ORDER_FLOW_UNSPECIFIED = 0;
+  RESERVE_SEAT = 1;
+  RESERVE_SEAT_DEACTIVATION = 2;
+  INFLIGHT_PREORDER_CANCEL = 3;
+  INFLIGHT_CHANGE_PREORDER = 4;
+  INFLIGHT_PREORDER_CAMPAIGN_CHANGE = 5;
+  VEHICLE_PREORDER = 6;
+  VEHICLE_PREORDER_NFT = 7;
+  VEHICLE_PREORDER_NFT_RARE = 8;
+  INFLIGHT_CHANGE_CHAR_UPDATE = 9;
+  VEHICLE_LICENCING = 10;
+  SERVICE_ORDER_CORPORATE = 11;
+  SERVICE_ORDER_INDIVIDUAL = 12;
+  INFLIGHT_CHANGE_PAYMENT_UPDATE = 13;
+  DIGITAL_SALE = 14;
+  DIGITAL_PRODUCT_EXTEND = 15;
+  DIGITAL_PRODUCT_CHANGE = 16;
+  REAL_SALE = 17;
+  PREORDER_BULK = 18;
+  INFLIGHT_CHANGE_BUNDLE_PREORDER = 19;
+  HOME_DELIVERY = 20;
+  HOME_DELIVERY_PAYMENT = 21;
+  VEHICLE_PREORDER_STOCK=22;
+  PREORDER_DIGITAL_SALE = 23;
+}
+
+
+enum MediaType {
+  UNSPECIFIED = 0;
+  PICTURE = 1;
+  PICTURE_FOREGROUND = 2;
+  PICTURE_BACKGROUND = 3;
+  COLOR = 4;
+  PICTURE_OVERVIEW = 5;
+}
+
+enum BalanceCode {
+  UNSPECIFIED_BALANCE_CODE = 0;
+  TL = 1;
+}

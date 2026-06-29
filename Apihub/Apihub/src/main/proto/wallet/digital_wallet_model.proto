@@ -1,0 +1,319 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.wallet.digital";
+option java_outer_classname = "DigitalWalletModelProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.wallet.digital;
+
+import "common_model.proto";
+import "common_enum.proto";
+import "google/protobuf/timestamp.proto";
+import "protobuf_validations/validation.proto";
+import "google/protobuf/wrappers.proto";
+
+message GetDigitalAccountRequest{
+  common.model.RequestHeader header = 1;
+}
+
+message GetDigitalAccountResponse {
+  oneof account {
+    DigitalWalletAccount digital_wallet_account = 1;
+    DigitalWalletAccountStatus status = 2;
+  }
+}
+
+message CreateDigitalWalletResponse {
+  DigitalWalletAccountStatus status = 1;
+}
+
+message CreateDigitalWalletRequest {
+  common.model.RequestHeader header = 1;
+}
+
+message ListTransactionsRequest {
+  common.model.RequestHeader header = 1;
+  string last_transaction_id = 2; // transaction id for transaction rest api
+}
+
+message SendAssetRequest {
+  common.model.RequestHeader header = 1;
+  TransactionDetail asset_detail = 2;
+}
+
+message SendAssetResponse {
+  string transaction_id = 1;
+}
+
+message GetGasFeeRequest {
+  common.model.RequestHeader header = 1;
+  TransactionDetail transaction_detail = 2;
+}
+
+message GetNftGasFeeRequest {
+  common.model.RequestHeader header = 1;
+  NFTTransactionDetail nft_transaction_detail = 2;
+}
+
+message NFTTransactionDetail {
+  TransactionDetail transaction_detail = 1;
+  int64 ntf_id = 2;
+  string collection_address = 3;
+}
+
+message GetGasFeeResponse {
+  double gas_fee = 1;
+}
+
+message SendNftAssetRequest {
+  common.model.RequestHeader header = 1;
+  TransactionAccountInfo account_info = 2;
+  int64 ntf_id = 3; // is this the token_id or nft_id for send/nft API?
+  string collection_address = 4;
+}
+
+message SendNftAssetResponse {
+  string transaction_id = 1;
+}
+
+message ListUserNftsRequest {
+  common.model.RequestHeader header = 1;
+}
+
+message CheckUserAvailableForPreOrderRequest {
+  common.model.RequestHeader header = 1;
+}
+
+message NftDetail{
+  string associated_wallet = 1;
+  string token_uri = 2; // is this field returns the name??
+  string media_url = 3; // is this field returns the mediaFileUrl
+  int64 nft_id = 4; // collection_id , where do we get the collection name?
+  string creator = 5;
+  string description = 6;
+  google.protobuf.Timestamp create_date = 7; // bidEndDate
+  string address = 8; // collection_address
+  NftPrice price = 9;
+  string name = 10;
+  string thumbnail_media_url = 11; // is this field returns the thumbnailFileUrl
+  RarityType rarity = 12;
+  string qr_code_url = 13;
+  NftStatus status = 14;
+  NftType nft_type = 15;
+  google.protobuf.Timestamp owner_date = 16;
+  NftGenre nft_genre = 17;
+  NftMediaType nft_media_type = 18;
+  google.protobuf.BoolValue on_sale = 19;
+  google.protobuf.BoolValue transferable = 20;
+  google.protobuf.BoolValue collection_validated = 21;
+}
+
+message NftPrice {
+  double purchase = 1;// price
+  double gas_fee = 2; // fee
+  double total_price = 3; // purchase + gas fee
+  double royalty_fee = 4; // ((purchase * serviceResponse.royaltyFee) / 100) api return %
+  double initial_price = 5;// initial_price
+  double final_price = 6;  // initial_price
+}
+
+message TransactionDetail{ // farkli bir isim olabilir dusunelim!!
+  TransactionAccountInfo account_info = 1;
+  double amount = 2;
+  TokenType token_type = 3;
+}
+
+message TransactionAccountInfo{ // farkli bir isim olabilir dusunelim!!
+  string origin_account_id = 1 [(validations.optional) = true];
+  string destination_wallet_id = 2;
+}
+
+message DigitalWalletAccount{
+  string wallet_id = 1;
+  string account_id = 2;
+  KycVerificationLevel kyc_verification_level = 3;
+  DigitalWalletBalance balance = 4;
+}
+
+message DigitalWalletBalance{
+  BalanceInfo avax_balance = 1;
+  BalanceInfo toggen_balance = 2;
+}
+
+message BalanceInfo {
+  string total_amount = 1; // it can be float? decided later, service return us to string format we can change to float.
+  string reserved_amount = 2;
+  string quarantined_amount = 3;
+  string available_amount = 4;
+}
+
+message TransactionHistoryDetail {
+  TransactionOperationType transaction_operation_type = 1; // burada nasil anliyoruz sent from wallet
+  // ve received from wallet gösterimlerimlerini? enum yaptik ama arka planda apiden gelen yapiyi sormamiz lazm
+  TransactionDetail detail = 2;
+  google.protobuf.Timestamp transaction_date = 3; // create time  ve update time birlestirilip donulebilir!
+  TransactionStatus status = 4;
+  string transaction_hash = 5;
+  string transaction_id = 6;
+  double transaction_fees = 7;
+}
+
+message MintNftMagnetRequest {
+  common.model.RequestHeader header = 1;
+  string magnet_id = 2;
+}
+
+
+message GetNftMagnetGasFeeRequest {
+  common.model.RequestHeader header = 1;
+  string magnet_id = 2;
+}
+
+message GetNftMagnetGasFeeResponse {
+  double gas_fee = 1;
+}
+
+message ListTransactionsByFilterRequest{
+  common.model.RequestHeader header = 1;
+  repeated TransactionStatus status= 2; // transaction id for transaction rest api
+  TokenType token_type =3;
+  google.protobuf.Timestamp start_date = 4;
+  google.protobuf.Timestamp end_date = 5;
+  double min_amount = 6;
+  double max_amount = 7;
+  int32 page_number = 8;
+  int32 page_size = 9;
+  repeated TransactionOperationType transaction_operation_type = 10 ;
+}
+message ListUserTapsRequest{
+  common.model.RequestHeader header = 1;
+  ListUserTapsSortOrder sort_order = 2;
+  ListUserTapsSortParameter sort_parameter = 3;
+  int32 page = 4;
+  int32 page_size = 5;
+}
+
+message TapDetail{
+  string owner_wallet = 1;
+  string tap_id = 2;
+  string media_url = 3;
+  string address = 4;
+  string name = 5;
+  string description = 6;
+}
+
+message MintTapRequest{
+  common.model.RequestHeader header = 1;
+  string key = 2;
+}
+message GetTapMetadataRequest{
+  common.model.RequestHeader header = 1;
+  string key = 2;
+}
+
+message GetTapMetadataResponse{
+  string id = 1;
+  string nft_id = 2;
+  string name = 3;
+  string description = 4;
+  google.protobuf.Timestamp create_date = 5;
+  string image_url = 6;
+}
+
+enum TokenType {
+  TOKEN_TYPE_UNSPECIFIED =0;
+  AVAX = 1;
+  TGN = 2;
+  TGNFT = 3;
+  ERC20 = 4;
+  ERC721 = 5;
+  ERC1155 = 6;
+}
+
+enum TransactionStatus {
+  TRANSACTION_STATUS_UNSPECIFIED =0;
+  PENDING = 1;
+  PREPARING = 2;
+  RESERVED = 3;
+  PREPARED = 4;
+  BROADCASTING = 5;
+  COMPLETED = 6;
+  INTERRUPTED = 7;
+  FAILED = 8;
+  DETECTED = 9;
+  CONFIRMED = 10;
+  EXPIRED = 11;
+}
+
+enum TransactionOperationType {
+  TRANSACTION_OPERATION_TYPE_UNSPECIFIED =0;
+  SENT= 1;
+  RECEIVED = 2;
+}
+
+enum KycVerificationLevel{
+  KYC_VERIFICATION_TYPE_UNSPECIFIED =0; // UNSPECIFIED
+  LEVEL_0_ANONYMOUS =1;
+  LEVEL_1_NOT_VALIDATED =2;
+  LEVEL_2_VALIDATED =3;
+  LEVEL_3_CONTRACTED =4;
+//  UNRECOGNIZED =5;
+}
+
+enum DigitalWalletAccountStatus {
+  DIGITAL_WALLET_ACCOUNT_STATUS_UNSPECIFIED =0; // UNSPECIFIED
+  NOT_CREATED =1;
+  IN_PROGRESS =2;
+}
+
+enum RarityType {
+  RARITY_TYPE_UNSPECIFIED =0;
+  NORMAL =1;
+  RARE = 2;
+  SUPER_RARE = 3;
+  ULTRA_RARE = 4;
+}
+
+enum NftStatus {
+  NFT_STATUS_UNSPECIFIED =0;
+  CREATED = 1 ;
+  PROGRESS = 2; // IN_PROGRESS
+  PAYMENT_ERROR = 3;
+  RELEASED = 4;
+  ERROR = 5;
+  BEATEN = 6;
+  CANCELLED = 7;
+  WON = 8;
+}
+enum NftType {
+  NFT_TYPE_UNSPECIFIED = 0;
+  NFT_TYPE_ERC721 = 1;
+  NFT_TYPE_ERC1155 = 2;
+}
+
+enum NftMediaType {
+  NFT_MEDIA_TYPE_UNSPECIFIED = 0;
+  VIDEO = 1;
+  IMAGE = 2;
+  MEDIA_TYPE_EXTERNAL = 3;
+}
+
+enum NftGenre {
+  NFT_GENRE_UNSPECIFIED = 0;
+  INTERNAL = 1;
+  EXTERNAL = 2;
+  MAGNET = 3;
+  SPECIAL = 4;
+}
+
+enum ListUserTapsSortOrder {
+  SORT_TYPE_UNSPECIFIED = 0;
+  ASC = 1;
+  DESC = 2;
+}
+
+enum ListUserTapsSortParameter {
+  PARAMETER_TYPE_UNSPECIFIED = 0;
+  NAME = 1;
+  CREATION_DATE = 2;
+}

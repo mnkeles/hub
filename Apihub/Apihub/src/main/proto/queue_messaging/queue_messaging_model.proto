@@ -1,0 +1,53 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.queue.messaging";
+option java_outer_classname = "QueueMessagingModelProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.queue.messaging;
+
+import "common_model.proto";
+
+message PublishEventRequest{
+  common.model.RequestHeader header = 1;
+  string short_code = 2;
+  SourcePoint source = 3;
+  repeated EventParameter parameter_list = 4;
+}
+
+message EventParameter{
+  EventParameterName name = 1;
+  string value = 2;
+  string code = 3;
+}
+
+enum EventParameterName{
+  PARAMETER_NAME_UNSPECIFIED =0;
+  PROGRAM_TASK_ID = 1;
+  QUIZ_ANSWER =2;
+  QUIZ_ANSWER_TIME =3;
+  EARNED_POINT =4;
+  IS_CUSTOMER_PROFILE_COMPLETE = 5;
+  ADDITIONAL_PARAMETER = 6;
+}
+
+enum SourcePoint{
+  SOURCE_POINT_UNSPECIFIED =0;
+  MOBILE_APP = 1;
+  MOBILE_APP_NAV =2;
+  INTERNAL = 3; // for microservices
+  EXTERNAL = 4; // TIAM, Paycell , etc..
+  ACTIVATION = 5; //
+  CSR = 6;
+}
+
+enum EventCode{
+  EVENT_CODE_UNSPECIFIED =0;
+  NAVIGATION_USAGE_10 = 1;
+  WATCH_VIDEO = 2;
+  COMPLETE_QUIZ = 3;
+  COMPLETE_PROFILE = 4;
+  CREATE_WALLET = 5;
+}
+
+

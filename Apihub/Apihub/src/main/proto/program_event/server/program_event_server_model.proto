@@ -1,0 +1,55 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.program.events.server";
+option java_outer_classname = "ProgramEventsServerModelProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.program.events;
+
+import "common_model.proto";
+import "program_event/program_event_model.proto";
+import "google/protobuf/timestamp.proto";
+
+message ListEventTasksRequest{
+  common.model.RequestHeader header = 1;
+  string event_code = 2;
+  google.protobuf.Timestamp event_date = 3;
+}
+
+message GetProgramMemberRequest{
+  common.model.RequestHeader header = 1;
+  int64 program_spec_id = 2;
+}
+
+message GetProgramMemberResponse{
+  int64 program_member_id = 1;
+  google.protobuf.Timestamp register_date = 2;
+}
+
+message GetProgramMemberTaskIdRequest{
+  common.model.RequestHeader header = 1;
+  int64 program_member_id = 2;
+  int64 program_task_id = 3;
+}
+
+message UpdateProgramMemberTaskStatusRequest{
+  common.model.RequestHeader header = 1;
+  int64 program_member_task_id = 2;
+  TaskStatus task_status = 3;
+}
+
+message GetProgramDetailRequest{
+  common.model.RequestHeader header = 1;
+  int64 program_spec_id = 2;
+}
+
+message EventTaskDetail{
+  ProgramTask detail = 1;
+  ProgramTaskRule  rule = 2;
+  ProgramTaskData data = 3;
+}
+
+message ProgramTaskRule{
+    int32 max_occurrence = 1;
+    repeated ItemValue rules = 2;
+}

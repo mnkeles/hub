@@ -1,0 +1,16 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.offers.server";
+option java_outer_classname = "OfferServerServiceProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.offers.server;
+
+import "offer/server/offer_server_model.proto";
+import "offer/offer_model.proto";
+import "common_model.proto";
+
+service OfferingQualificationServerService {
+  rpc SearchOfferingQualificationOfferIds (SearchOfferingQualificationRequest) returns (SearchOfferingQualificationOfferIdsResponse);
+  rpc SearchOfferingQualificationOfferNames (SearchOfferingQualificationOfferNamesRequest) returns (stream common.model.GenericCodeType);
+}

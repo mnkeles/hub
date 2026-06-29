@@ -1,0 +1,208 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.product";
+option java_outer_classname = "ProductModelProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.product;
+
+import "common_model.proto";
+import "google/protobuf/timestamp.proto";
+import "address/address_model.proto";
+import "common_configuration_model.proto";
+import "protobuf_validations/validation.proto";
+
+
+message CustomerProductListRequest {
+  common.model.RequestHeader header = 1;
+  repeated common.model.GenericParameter search_parameters= 2;
+}
+
+message Product {
+  int64 id = 1;
+  string name = 2;
+  string configured_media_url = 3;
+  repeated Product components = 4;
+  ProductStatus status = 5;
+  Order order = 6;
+  ProductSpecification product_specification = 7;
+  google.protobuf.Timestamp cancellation_date = 8;
+  google.protobuf.Timestamp last_updated_date = 9;
+  repeated ProductCharacteristic product_chars =10; // key = short_code , value = value
+  repeated common.configuration.model.Media product_medias = 11;
+  repeated RelatedProductInfo related_product_infos= 12;
+  google.protobuf.Timestamp end_date = 13;
+}
+
+message Order {
+  int64 id = 1;
+  int64 order_date = 2;
+  double price = 3;
+  string currency = 4;
+}
+
+message ProductSpecification{
+  string prod_spec_code = 3; // new field Return Product specification shortcode using prod and prod_spec tables .
+  oneof specification{
+    string service_code = 1;
+    string resource_code = 2;
+  }
+}
+
+message GetCustomerVehicleProductByIdentNumberRequest {
+  common.model.RequestHeader header = 1;
+  string vin = 2;
+}
+
+message GetCustomerVehicleProductByIdentNumberResponse {
+  int64 id = 1;
+  string name = 2;
+  google.protobuf.Timestamp order_date = 3;
+  int64 order_id = 4;
+  string status_name = 5;
+  repeated ProductCharacteristic product_chars = 6;
+}
+
+message ListCustomerVehicleProductRequest {
+  common.model.RequestHeader header = 1;
+}
+
+message VehicleProduct {
+  int64 id = 1; //product_id
+  string name = 2; //offer_name
+  string registration_plate = 3;
+  ProductStatus status = 4;
+  repeated ProductCharacteristic product_chars = 5;
+}
+
+message ListCustomerVehicleDetailsRequest {
+  common.model.RequestHeader header = 1;
+  int64 product_id = 2; //product_id
+}
+
+message ListProductStockCountsRequest {
+  common.model.RequestHeader header = 1;
+  repeated VariantCountType variant_filters = 2;
+  string customer_pool = 3; // B2B or B2C related to ent_rec_type table
+}
+
+message ListStockProductSerialsRequest {
+  common.model.RequestHeader header = 1;
+  repeated VariantFetchType variant_filters = 2;
+  bool is_reserved_required = 3;
+  string customer_pool = 4; // B2B or B2C related to ent_rec_type table
+}
+
+message GetProductStockAvailabilityBySerialRequest {
+  common.model.RequestHeader header = 1;
+  string serial_number = 2;
+}
+
+message VariantFetchType{
+  string variant_code = 1;
+  int32 fetch_count = 2;
+  string delivery_point = 3 [(validations.optional) = true]; // only for mobile flow
+  string model_year = 4 [(validations.optional) = true];
+}
+
+message VariantCountType {
+  string variant_code = 1;
+  string delivery_point = 2 [(validations.optional) = true]; // only for mobile flow
+  string model_year = 3 [(validations.optional) = true];
+}
+
+message ProductStockVariantInfo{ // buradaki isim ile asagidaki count farklı anlasılıyor
+  string variant_code = 1;
+  repeated VariantDetail serial_numbers = 2;
+  int32 available_stock_count = 3;
+  string model_year = 4;
+  repeated DeliveryPointDetail delivery_points = 5 [(validations.optional) = true];
+}
+
+message VariantDetail{
+  string serial_numbers = 1 [(validations.optional) = true];
+  string sap_order_id = 2 [(validations.optional) = true];
+  string engine_no = 3 [(validations.optional) = true];
+  google.protobuf.Timestamp shipping_approval_date = 4 [(validations.optional) = true];
+}
+
+message VehicleProductDetails{
+  repeated VehicleDetail details = 1;
+}
+
+message VehicleDetail{
+  string key = 1;
+  string value = 2;
+}
+
+message DeliveryPointDetail{
+  string delivery_point = 1;
+  int32 count = 2;
+}
+
+enum ProductStatus {
+  UNSPECIFIED = 0;
+  QUOTE = 1;
+  SUSPEND = 2;
+  CANCELLED = 3;
+  DELETED = 4;
+  ACTIVE = 5;
+  PENDING = 6;
+}
+
+message DeactivateReserveSeatProductRequest {
+  common.model.RequestHeader header = 1;
+  int64 product_id = 2;
+  string reason = 3;
+}
+
+message DeactivateReserveSeatProductResponse {
+  int64 order_id = 1;
+}
+
+message ProductOwnershipDetailRequest  {
+  common.model.RequestHeader header = 1;
+  oneof filter_param{
+    int64 product_id = 2;
+    string vin = 3;
+  }
+}
+
+message ProductOwnershipDetailResponse  {
+  string first_name = 1;
+  string last_name = 2;
+  string phone_number = 3;
+  string email = 4;
+  string togg_id = 5;
+}
+
+message ListCustomerAccountProductsRequest {
+  common.model.RequestHeader header = 1;
+  repeated string product_spec_codes = 2;
+  oneof filter_param{
+    int64 product_id = 3;
+    string account_id = 4;
+  }
+}
+
+message GetProductDetailsRequest {
+  common.model.RequestHeader header = 1;
+  int64 product_id =2;
+}
+
+message ProductDetails{
+  Product product = 1;
+  repeated Product related_products = 2;
+  address.SelectedAddress address_detail = 3;
+  Order order = 4;
+}
+
+message ProductCharacteristic {
+  common.model.GenericCodeType characteristic = 1;
+  common.model.GenericInfoType characteristic_value = 2;
+}
+
+message RelatedProductInfo {
+  int64 id = 1;
+  string prod_spec_code = 2;
+}

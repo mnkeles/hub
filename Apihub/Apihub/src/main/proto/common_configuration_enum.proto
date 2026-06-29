@@ -1,0 +1,41 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.common.configuration.enums";
+option java_outer_classname = "ToggMsCommonConfigurationEnumProto";
+option objc_class_prefix = "TOGGMSCOMMONCONF";
+
+package tr.com.togg.tdp.common.configuration.enums;
+
+enum CharValueType {
+  CHAR_VALUE_TYPE_UNSPECIFIED = 0;
+  CHAR_VALUE_INTEGER = 1;
+  CHAR_VALUE_STRING = 2;
+  CHAR_VALUE_DATE = 3;
+  CHAR_VALUE_DOUBLE = 4;
+}
+
+enum CharType {
+  CHAR_TYPE_UNSPECIFIED = 0;
+  CONFIG = 1;
+  SPEC = 2;
+}
+
+enum CharDisplayType {
+  CHAR_DISPLAY_TYPE_UNSPECIFIED = 0;
+  CHAR_DISPLAY_STRING = 1;
+  CHAR_DISPLAY_DATE = 2;
+  CHAR_DISPLAY_INT = 3;
+  CHAR_DISPLAY_LIST = 4;
+  CHAR_DISPLAY_PASSWORD = 5;
+  CHAR_DISPLAY_STRING_AREA = 6;
+  CHAR_DISPLAY_BOOLEAN_VALUE = 7;
+  CHAR_DISPLAY_IMAGE_LIST = 8;
+  CHAR_DISPLAY_RADIO_GROUP = 9;
+  CHAR_DISPLAY_INTEGER_RANGE = 10;
+  CHAR_DISPLAY_CURRENCY = 11;
+  CHAR_DISPLAY_PERCENTAGE = 12;
+  CHAR_DISPLAY_DOUBLE = 13;
+  CHAR_DISPLAY_UP_DOWN_LIST = 14;
+  CHAR_DISPLAY_RADIO_GROUP_HOR = 15;
+  CHAR_DISPLAY_BOOLEAN_VALUE_ON_OFF = 16;
+}

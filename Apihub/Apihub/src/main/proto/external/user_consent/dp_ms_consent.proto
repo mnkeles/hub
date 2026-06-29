@@ -1,0 +1,99 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.dp.ms.consent";
+option java_outer_classname = "ConsentProto";
+option objc_class_prefix = "CONSENT";
+import "google/protobuf/timestamp.proto";
+
+package togg.tdp.dp.ms.consent;
+
+service UserConsentService {
+    rpc SubmitConsent (SubmitConsentRequest) returns (SubmitConsentResponse);
+    rpc GetConsents (GetConsentsRequest) returns (GetConsentsResponse);
+}
+
+message GetConsentsRequest {
+    string tenant_id = 1;
+    string user_id = 2;
+}
+
+message GetConsentsResponse {
+    string tenant_id = 1;
+    string user_id = 2;
+    repeated Consent consents = 3;
+}
+
+message SubmitConsentRequest {
+    string tenant_id = 1;
+    string user_id = 2;
+    repeated Consent consents = 3;
+    Source source = 4;
+}
+
+message SubmitConsentResponse {
+    string tenant_id = 1;
+    repeated Consent consents = 2;
+}
+
+message ConsentResponse {
+    string consent_type = 1;
+    string status = 2;
+}
+
+message Consent {
+    ConsentType consent_type = 1;
+    ConsentStatus status = 2;
+}
+
+enum ConsentType {
+    ARAMA = 0;
+    MESAJ = 1;
+    EPOSTA = 2;
+}
+
+enum ConsentStatus {
+    ONAY = 0;
+    RET = 1;
+}
+
+enum Source {
+    HS_FIZIKSEL_ORTAM = 0;
+    HS_ISLAK_IMZA = 1;
+    HS_WEB = 2;
+    HS_CAGRI_MERKEZI = 3;
+    HS_SOSYAL_MEDYA = 4;
+    HS_EPOSTA = 5;
+    HS_MESAJ = 6;
+    HS_MOBIL = 7;
+    HS_EORTAM = 8;
+    HS_ETKINLIK = 9;
+    HS_2015 = 10;
+    HS_ATM = 11;
+}
+
+message UserConsent {
+    UserConsentData data = 1;
+    MetaData meta_data = 2;
+}
+
+message UserConsentData {
+    string id = 1;
+    string user_id = 2;
+    string tenant_id = 3;
+    string recipient = 4;
+    string recipientType = 5;
+    ConsentType type = 6;
+    Source source = 7;
+    ConsentStatus status = 8;
+}
+
+message MetaData {
+    google.protobuf.Timestamp created_at = 1;
+    string created_by = 2;
+    google.protobuf.Timestamp updated_at = 3;
+    string updated_by = 4;
+    google.protobuf.Timestamp deleted_at = 5;
+    string deleted_by = 6;
+    bool is_deleted = 7;
+}

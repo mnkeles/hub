@@ -1,0 +1,16 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.document.v1";
+option java_outer_classname = "DocumentSpecificationServiceProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.document.specification.v1.client;
+
+import "document/document_specification_model.proto";
+import "document/document_model.proto";
+
+service DocumentSpecificationService{
+  rpc GetDocumentSpecification (document.v1.InquireDocumentRequest) returns (DocumentSpecification);
+  rpc ListDocumentSpecifications (ListDocumentSpecificationsRequest) returns (stream DocumentSpecification);
+  rpc CreateDocumentSpecifications (CreateDocumentSpecificationsRequest) returns (CreateDocumentSpecificationsResponse);
+}

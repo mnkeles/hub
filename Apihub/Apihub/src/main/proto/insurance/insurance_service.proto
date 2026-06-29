@@ -1,0 +1,19 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.insurance";
+option java_outer_classname = "InsuranceServiceProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.insurance.client;
+
+import "insurance/insurance_model.proto";
+import "common_configuration_model.proto";
+
+service OrderInsuranceService {
+  rpc CreateVehicleOrderInsuranceSession (CreateVehicleOrderInsuranceSessionRequest) returns (CreateVehicleOrderInsuranceSessionResponse);
+}
+
+service InsuranceCharService {
+  rpc ListEditableTrafficInsuranceCharDefinitions (ListEditableInsuranceCharDefinitionsRequest) returns (stream common.configuration.model.CharacteristicDefinition);
+  rpc ListEditableCarInsuranceCharDefinitions (ListEditableInsuranceCharDefinitionsRequest) returns (stream common.configuration.model.CharacteristicDefinition);
+}

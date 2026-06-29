@@ -1,0 +1,113 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.address.server";
+option java_outer_classname = "AddressServerServiceProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.address.server;
+
+import "address/server/address_server_model.proto";
+import "google/protobuf/wrappers.proto";
+import "address/address_model.proto";
+import "google/protobuf/empty.proto";
+
+
+/**
+ - The AddressServerService is used to manage address entities within the system.
+ - The service provides functionalities to create, list, update, delete addresses, and to retrieve the owner of a specific address.
+ - This service is closed to external access, only internal access is allowed.
+
+ Business Rules; As it closed to external access, there is no user Authentication or Authorization for this service.
+ Any internal service can access directly. The provided token will be used only for fetching user info.
+
+ Error Handling;
+  -Since this service will be used for internal access,
+ it is assumed that the token will exist and therefore the user information will be valid.
+ -INTERNAL_SERVER_ERROR(500): In unexpected situations, an error as INTERNAL(500) is returned.
+ -API specific errors will be explained in the API details.
+ */
+service AddressServerService {
+  /**
+   - Create a new address.
+
+   Request:
+   - CreateAddressRequest: The request message containing the address details.
+
+   Response:
+   - google.protobuf.Int64Value: The ID of the newly created address.
+
+   Business Rules;
+   - The city and country sent for the create address must be registered in the system.
+   - AddressType selection is required and should be valid.
+   - System allows to create address only with address type CUSTOMER or BILLING. Other enum values used for other operations.
+
+   Errors:
+   - INTERNAL_SERVER_ERROR(500): will be returned as GRPC error if address type other than CUSTOMER or BILLING. ADDRESS_TYPE_NOT_VALID error code
+   will be added to response header
+   - INTERNAL_SERVER_ERROR(500): will be returned as GRPC error if address type not found in the system. ADDRESS_TYPE_NOT_FOUND error code
+   will be added to response header
+   - INTERNAL_SERVER_ERROR(500): will be returned as GRPC error if address data type not found in the system configurations. ADDRESS_DATA_TYPE_NOT_FOUND error code
+   will be added to response header
+   - INTERNAL_SERVER_ERROR(500): In unexpected situations while creating address, an error as INTERNAL_SERVER_ERROR(500) is returned. ADDRESS_TYPE_NOT_FOUND
+   error code will be added to response header
+ */
+  rpc CreateAddress (CreateAddressRequest) returns (google.protobuf.Int64Value);
+
+  /**
+   - List all addresses according to the AddressType selection.
+
+   Business Rules;
+   - System returns customer address if address type selected CUSTOMER or CUST_CORPORATE. Otherwise returns cust account address.
+   - AddressType selection is optional. If selected, It should be valid in the system.
+
+   Errors:
+   - INTERNAL_SERVER_ERROR(500): will be returned as GRPC error if address type not found in the system. ADDRESS_TYPE_NOT_FOUND error code
+   will be added to response header
+   */
+  rpc ListAddress (ListAddressRequest) returns (stream ClientAddress);
+
+  /**
+   - Update an existing address according to the given address_id in the request.
+
+   Request:
+   - The request message containing the updated address details.
+
+   Response:
+   - An empty response indicating the update was successful.
+   - GRPC response status OK(200) will be sent to client.
+
+   Business Rules;
+   - AddressType cannot be updated
+   - address_id should be exist in the system
+   - Requested user should be registered to system domain as user.
+
+   Errors:
+   - INTERNAL_SERVER_ERROR(500): If the address_id or the requested user ID is not valid or does not exist,
+    the address update process fails and a GRPC error is returned. ADDRESS_NOT_UPDATED error code will be added to response header
+   */
+  rpc UpdateAddress (UpdateAddressRequest) returns (google.protobuf.Int64Value);
+
+  /**
+   - Delete an existing address according to the given address_id in the request.
+
+   Response:
+   - An empty response indicating the deletion was successful.
+   - GRPC response status OK(200) will be sent to client.
+
+   Business Rules;
+   - address_id should be exist in the system
+   */
+  rpc DeleteAddress (DeleteAddressRequest) returns (google.protobuf.Empty);
+
+  /**
+   - Retrieve the owner (BSS customer id) of the requested address id in the request.
+
+   Response:
+   - BSS CUST_ID of the address owner returns
+
+   Errors:
+   - NOT_FOUND : will be returned as GRPC error when the address not found.
+   */
+  rpc GetAddressOwner(GetAddressOwnerRequest) returns (google.protobuf.Int64Value);
+}
+

@@ -1,0 +1,103 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.order";
+option java_outer_classname = "OrderServiceProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.order.client;
+
+import "order/order_model.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+import "common_model.proto";
+import "google/protobuf/timestamp.proto";
+import "address/address_model.proto";
+
+service OrderService {
+  rpc InquirePrice (InquirePriceRequest) returns (InquirePriceResponse);
+  rpc InitializeOrder (InitializeOrderRequest) returns (InitializeOrderResponse); // deprecated
+  rpc ListCustomerOrders (ListCustomerOrderRequest) returns (stream OrderInfo);
+  rpc GetCustomerOrderDetail (GetCustomerOrderDetailRequest) returns (GetCustomerOrderDetailResponse);
+  rpc GetOrderPaymentDetail (GetOrderPaymentDetailRequest) returns (GetOrderPaymentDetailResponse);
+  rpc GetOrderPriceSummary (GetOrderPriceSummaryRequest) returns (OrderPriceSummary);
+  rpc GetReferenceOrderNumber (GetReferenceOrderNumberRequest) returns (google.protobuf.Int64Value);
+  rpc InitializeVehicleLicencingOrder (InitializeOrderRequest) returns (InitializeOrderResponse);
+  rpc GetOrderFlowInfo (GetOrderFlowInfoRequest) returns (GetOrderFlowInfoResponse);
+  rpc GetCustomerOrderItems (GetCustomerOrderItemsRequest) returns (GetCustomerOrderItemsResponse);
+  rpc GetCustomerOrderBillingAddress (GetCustomerOrderBillingAddressRequest) returns (address.ClientAddress);
+}
+
+service CancelOrderService {
+  rpc InitializeInflightCancelOrder (InitializeInflightCancelOrderRequest) returns (InitializeOrderResponse);
+}
+
+service NftOrderService {
+  rpc SubmitNftOrder (SubmitNftOrderRequest) returns (google.protobuf.Empty);
+  rpc ReserveNft (ReserveNftRequest) returns (google.protobuf.Empty);
+  rpc ListAvailableNftCodes (ListAvailableNftCodeRequest) returns (ListAvailableNftCodeResponse);
+}
+
+service BusinessInteractionService {
+  rpc ListPreOrderCancelReasons (ListPreOrderCancelReasonsRequest) returns (stream common.model.GenericCodeType);
+}
+
+service VehicleOrderService {
+  rpc ListCustomerVehicleOrders (ListCustomerOrderRequest) returns (stream OrderInfo);
+  rpc GetCustomerVehicleOrderDetail (GetCustomerOrderDetailRequest) returns (GetCustomerVehicleOrderDetailResponse);
+}
+
+service ChangeOrderService {
+  rpc InitializeInflightChangeOrder (InitializeInflightChangeOrderRequest) returns (InitializeInflightChangeOrderResponse);
+  rpc InitializePreOrderChange (InitializePreOrderChangeRequest) returns (InitializeOrderResponse);
+  rpc InitializePreOrderBundleChange (InitializePreOrderBundleChangeRequest) returns (InitializeOrderResponse);
+  rpc SubmitPreOrderChange(SubmitPreOrderChangeRequest) returns (google.protobuf.Empty);
+  rpc InitializePreOrderChangeToStockOrder (InitializePreOrderChangeToStockOrderRequest) returns (InitializeOrderResponse);
+  rpc InitializeBulkStockProductOrders (InitializeBulkStockProductOrdersRequest) returns (stream google.protobuf.StringValue);
+}
+
+service ChangeOrderCharService {
+  rpc UpdateOrderInvoiceType (UpdateOrderInvoiceTypeRequest) returns (UpdateOrderInvoiceTypeResponse);
+  rpc UpdateOrderFinanceMethod (UpdateOrderFinanceMethodRequest) returns (UpdateOrderFinanceMethodResponse);
+  rpc UpdateOrderDeliveryPoint (UpdateOrderDeliveryPointRequest) returns (google.protobuf.Int64Value);
+  rpc UpdateOrderInsuranceChars (UpdateOrderInsuranceCharsRequest) returns (google.protobuf.Int64Value);
+}
+
+service OrderCharService {
+  rpc ListCustomerOrderChars (ListCustomerOrderCharRequest) returns (stream GeneralCharacteristic);
+  rpc GetCustomerOrderChar (GetCustomerOrderCharRequest) returns (GeneralCharacteristic);
+  rpc ListOrderMainProductChars (ListOrderMainProductCharsRequest) returns (stream GeneralCharacteristic);
+}
+
+service OrderHistoryService {
+  rpc GetCustomerOrderStatusHistory (GetCustomerOrderStatusHistoryRequest) returns (stream OrderStatusHistory);
+  rpc GetCustomerOrderStatusCreateDate (GetCustomerOrderStatusCreateDateRequest) returns (google.protobuf.Timestamp);
+}
+
+service TransferProductOrderService {
+  rpc InitializeTransferProductOrder (InitializeTransferProductOrderRequest) returns (google.protobuf.Int64Value);
+  rpc SubmitTransferProductOrder (SubmitTransferProductOrderRequest) returns (google.protobuf.Empty);
+}
+
+service SaleOrderService {
+  rpc InitializeOrder (InitializeOrderRequest) returns (InitializeOrderResponse);
+  rpc InitializeVehicleLicencingOrder (InitializeOrderRequest) returns (InitializeOrderResponse);
+  rpc InitializeWallChargerOrder (InitializeOrderRequest) returns (InitializeOrderResponse);
+  rpc InitializeNftOrder (InitializeOrderRequest) returns (InitializeOrderResponse);
+  rpc InitializeDigitalServiceOrder(InitializeOrderRequest) returns (InitializeOrderResponse);
+  rpc InitializeDigitalServiceExtendOrder (InitializeOrderRequest) returns (InitializeOrderResponse);
+  rpc InitializeVehicleDeliveryOrder (InitializeOrderRequest) returns (InitializeOrderResponse);
+  rpc InitializeSaleOrder (InitializeOrderRequest) returns (InitializeOrderResponse);
+  rpc InitializeStockToProductOrder (InitializeStockToProductOrderRequest) returns (InitializeOrderResponse); //VEHICLE_PREORDER_STOCK
+}
+
+service StockProductOrderService {
+  rpc CreateStockProductOrderTemplate (CreateStockProductOrderTemplateRequest) returns (google.protobuf.StringValue); // return collection id
+  rpc ListStockProductOrderTemplates (ListStockProductOrderTemplatesRequest) returns (stream StockProductOrderTemplate); // neye gore siralayacagiz?? variant_code'a gore
+  rpc GetStockProductOrderTemplate (GetStockProductOrderTemplateRequest) returns (StockProductOrderTemplate);
+  rpc DeleteStockProductOrderTemplate (DeleteStockProductOrderTemplateRequest) returns (google.protobuf.Empty);
+  rpc ListStockTemplateRelatedOrders (ListStockTemplateRelatedOrdersRequest) returns (ListStockTemplateRelatedOrdersResponse); // variant ve modelYear ile birlikte order list donecek SAP service
+}
+
+service OrderDocumentService{
+  rpc SubmitOrderInvoicingDocumentsApproved (SubmitOrderInvoicingDocumentsApprovedRequest) returns (google.protobuf.Empty);
+}

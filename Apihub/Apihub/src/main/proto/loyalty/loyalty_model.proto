@@ -1,0 +1,27 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.loyalty";
+option java_outer_classname = "LoyaltyModelProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.loyalty;
+
+import "common_model.proto";
+import "google/protobuf/timestamp.proto";
+
+message ListLoyaltyHistoryRequest {
+  common.model.RequestHeader header = 1;
+}
+/**
+ * Request object for getting loyalty History data.
+ */
+message  LoyaltyHistoryDetail{
+  string title = 1;
+  string type = 2;
+  string name = 3;
+  string descr = 4 ;
+  google.protobuf.Timestamp  history_date = 5;
+  google.protobuf.Timestamp  expire_date = 6;
+}
+
+

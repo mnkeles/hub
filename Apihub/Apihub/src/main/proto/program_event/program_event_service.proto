@@ -1,0 +1,42 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.program.events";
+option java_outer_classname = "ProgramEventsServiceProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.program.events.client;
+
+import "program_event/program_event_model.proto";
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/empty.proto";
+
+service ProgramEventService {
+  rpc RegisterProgram (RegisterProgramRequest) returns (google.protobuf.Empty);
+  rpc ListPrograms (ListProgramRequest) returns (stream ProgramDetail);
+  rpc ListProgramUserTasks (ListProgramUserTasksRequest) returns (stream UserTaskDetail);
+  rpc GetProgramUserTaskDetail (GetProgramUserTaskDetailRequest) returns (ProgramUserTaskDetail);
+  rpc ActivateUserTask (ActivateUserTaskRequest) returns (google.protobuf.Empty);
+}
+
+service ProgramLeaderboardService {
+  rpc GetLeadershipBoard (GetLeaderboardRequest) returns (GetLeaderboardResponse);
+  rpc GetMemberProgramScore(GetMemberProgramScoreRequest) returns (LeaderboardMember);
+}
+
+service ProgramPointBurnService{
+  rpc BurnPoints (BurnPointsRequest) returns (google.protobuf.Empty);
+}
+
+service ProgramRewardService{
+  rpc ListRewards (ListRewardsRequest) returns (stream RewardDetail);
+  rpc GetRewardDetail (GetRewardDetailRequest) returns (RewardDetail);
+}
+
+service ProgramBalanceService{
+  rpc GetBalance (GetBalanceRequest) returns (google.protobuf.Int64Value); // Loyalty Balance
+}
+
+service ProgramAchievementHistory{
+  rpc ListEarnedHistory (ListEarnedHistoryRequest) returns (stream EarnedHistory);
+  rpc ListBurnedHistory (ListBurnedHistoryRequest) returns (stream BurnedHistory);
+}

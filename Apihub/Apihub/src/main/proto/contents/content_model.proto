@@ -1,0 +1,19 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.contents";
+option java_outer_classname = "ContentsModelProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.contents;
+
+import "common_model.proto";
+
+message GetSasAndCdnUrlsRequest {
+  common.model.RequestHeader header = 1;
+}
+
+message GetSasAndCdnUrlsResponse {
+  common.model.ResponseHeader header = 1;
+  string sas_url = 2;
+  string cdn_url = 3;
+}

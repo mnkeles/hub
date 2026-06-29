@@ -1,0 +1,36 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.customer.server";
+option java_outer_classname = "CustomerServerModelProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.customer.server;
+
+import "common_model.proto";
+
+message GetCustomerReferenceCountRequest {
+  //The value of header
+  common.model.RequestHeader header = 1;
+}
+
+message IsCustomerProfileCompletedRequest {
+  //The value of header
+  common.model.RequestHeader header = 1;
+}
+
+message GetCustomerIdByOpenIdRequest {
+  //The value of header
+  common.model.RequestHeader header = 1; // user_id = open_id
+}
+
+message GetOpenIdByCustomerIdRequest {
+  //The value of header
+  common.model.RequestHeader header = 1; // user_id = open_id
+  int64 cust_id = 2;
+}
+
+message CheckCustomerAccountOwnershipRequest {
+  //The value of header
+  common.model.RequestHeader header = 1; // user_id = open_id
+  int64 account_id = 2;
+}

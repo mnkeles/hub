@@ -1,0 +1,115 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.agreement";
+option java_outer_classname = "AgreementServiceProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.agreement.client;
+
+import "agreement/agreement_model.proto";
+
+/**
+ -The AgreementService is used to manage customer agreements within the system.
+ -The service provides functionalities to create, list, retrieve, show, and preview customer agreements.
+
+ Business Rules;
+ -Each request must be authenticated to ensure that the user has the necessary permissions to access.
+ -For each service, the token user will be used.
+ -If the token user has the "impersonator" role, requestHeader.userId will be used for all operations.
+
+ Error Handling;
+ -INTERNAL_SERVER_ERROR(500): In unexpected situations, an error as INTERNAL(500) is returned.
+ -PERMISSION_DENIED: In unauthorized access attempts, an error as PERMISSION_DENIED(rbac access denied) is returned.
+ -API specific errors will be explained in the API details.
+ */
+service AgreementService {
+  /**
+   - Retrieve a specific customer agreements based on agreement_id provided in the request.
+
+   Business Rules;
+   - agreement id cannot be and should be exist in the system.
+
+   Error Handling;
+   -INTERNAL_SERVER_ERROR : will be returned as GRPC error if request not valid. BAD_REQUEST code
+   will be added to response header
+   */
+  rpc GetCustomerAgreements (GetCustomerAgreementRequest) returns (GetCustomerAgreementResponse);
+
+  /**
+   - List all customer agreements.
+   - If order id exist in the request, agreements will be filtered by requested order_id
+
+   Business Rules;
+   - order_id optional
+   - customer info will be taken from token
+   */
+  rpc ListCustomerAgreements (InquireCustomerAgreementsRequest) returns (InquireCustomerAgreementsResponse);
+
+
+  /**
+   - This service is only used to save created customer agreement.
+    Client calls ShowCustomerAgreements or PreviewCustomerAgreements before using CreateCustomerAgreement and
+    generate CustomerAgreement type to use it in the CreateCustomerAgreement api request.
+
+   Business Rules;
+   - CustomerAgreementStatus required and its value should be SIGNED.
+
+   Error Handling;
+   -INTERNAL_SERVER_ERROR : will be returned as GRPC error if request not valid.
+      AGREEMENT_MUST_BE_SIGNED code will be added to response header
+  - INTERNAL_SERVER_ERROR: If agreement parameters invalid, process fails and a GRPC error is returned.
+   */
+  rpc CreateCustomerAgreement (CreateCustomerAgreementRequest) returns (CreateCustomerAgreementResponse);
+
+  /**
+  - This service is only used to render customer agreement according to the requested order and
+      bundle agreement specification id and view it, not to save it.
+  - Used for Vehicle products agreements
+
+   Business Rules;
+   - bundle agreement spec id used to find agreement specification definition.
+   - Order id used to retrieve vehicle order detail that required parameters to generate agreement.
+      So that order id should be valid and exist in the system.
+   - Two type of service category exist. Summary_Payment and Proforma
+      * this service category info defined in the agreement specification.
+      * to render Proforma, there should customer order history with the External Status PRODUCTION_QUALITY_CONTROL
+         in the system. That means customer order progress should be PRODUCTION_QUALITY_CONTROL step.
+
+   Errors:
+   - NOT_FOUND(404): If no agreements specification match with the given bundle agreement spec id,
+   process fails and a GRPC error is returned. AGREEMENT_NOT_FOUND error code will be added to response header
+   - NOT_FOUND(404): If no customer order found with the given order id,
+   process fails and a GRPC error is returned. CUSTOMER_ORDER_NOT_FOUND error code will be added to response header
+   - NOT_FOUND(404): If no customer order history in the system with external order status PRODUCTION_QUALITY_CONTROL,
+   process fails and a GRPC error is returned. CUSTOMER_ORDER_STATUS_HISTORY_NOT_FOUND error code will be added to response header
+   - NOT_FOUND(404): If no customer definition for the token user is found in the system,
+   process fails and a GRPC error is returned. CUSTOMER_NOT_FOUND error code will be added to response header
+ */
+  rpc ShowCustomerAgreements (ShowCustomerAgreementRequest) returns (ShowCustomerAgreementResponse);
+
+  /**
+- This service is only used to render customer agreement according to the requested order and
+    bundle agreement specification id and view it, not to save it
+- Used for accessory(other than vehicle) products agreements
+
+ Business Rules;
+ - bundle agreement spec id used to find agreement specification definition.
+ - parameter.ORDER_ID used to retrieve accessory order detail that required parameters to generate agreement.
+    So that order id should be valid and exist in the system.
+
+ Errors:
+ - INVALID_ARGUMENT(5): If no order id in the request,
+   process fails and a GRPC error is returned. MISSING_ORDER_ID_PARAMETER error code will be added to response header
+ - NOT_FOUND(404): If no agreements specification match with the given bundle agreement spec id,
+   process fails and a GRPC error is returned. AGREEMENT_NOT_FOUND error code will be added to response header
+ - NOT_FOUND(404): If no customer order found with the given order id,
+   process fails and a GRPC error is returned. CUSTOMER_ORDER_NOT_FOUND error code will be added to response header
+ - NOT_FOUND(404): If no customer definition for the token user is found in the system,
+   process fails and a GRPC error is returned. CUSTOMER_NOT_FOUND error code will be added to response header
+*/
+  rpc PreviewCustomerAgreements (PreviewCustomerAgreementRequest) returns (PreviewCustomerAgreementResponse);
+}
+
+service AgreementSpecificationService {
+  rpc CreateAgreementSpecification (CreateAgreementSpecificationRequest) returns (CreateAgreementSpecificationResponse);
+}

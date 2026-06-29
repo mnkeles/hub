@@ -1,0 +1,57 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.wallet";
+option java_outer_classname = "WalletServiceProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.wallet.client;
+
+import "wallet/wallet_model.proto";
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/empty.proto";
+
+service WalletService {
+  rpc GetAccountDetail (GetAccountDetailRequest) returns (GetAccountDetailResponse); // User Profile bilgileri address bilgileri donulecek api
+  rpc GetAccount (GetAccountRequest) returns (GetAccountResponse); // User Profile bilgileri address bilgileri donulecek api
+  rpc ClaimOtpTokenToCreateWallet (ClaimOtpTokenRequest) returns (ClaimOtpTokenResponse); // get otp validation token and send otp code to user for validation
+  rpc CreateWallet (CreateWalletRequest) returns (CreateWalletResponse); //create wallet with token and otp code
+  rpc VerifyCustomerCredibility (VerifyCustomerCredibilityRequest) returns (VerifyCustomerCredibilityResponse); //kartin müşteriye ait olup olmadığını doğrulayan, verify me
+  rpc GetBankList (GetBankListRequest) returns (GetBankListResponse); // odeme yontemi bank transfer seçildiğinde cagirilacak API -- Fiat Wallet banka resmi ve bilgilendirme , iban donulen servis , manuel transfer icin bilgilendirme servisi
+  rpc GetTopUpBankList (GetTopUpBankListRequest) returns (stream TopUpBankDetail);
+  rpc GetAccountKycStatus (GetAccountKycStatusRequest) returns (GetAccountKycStatusResponse);
+}
+
+service WalletAccountService {
+  rpc GetAccountList (GetAccountListRequest) returns (GetAccountListResponse); // Returns the all wallet accounts of customer
+}
+
+service WalletRefundService {
+  rpc RefundToWallet (RefundToWalletRequest) returns (RefundToWalletResponse); //refund
+  rpc RefundToCard (RefundToCardRequest) returns (RefundToCardResponse); //Balance Reverse // Kart'a Wallet'dan para iade için
+}
+
+service WalletTransactionService {
+  rpc CheckCustomerLimitForTopUp (CheckCustomerLimitForTopUpRequest) returns (CheckCustomerLimitForTopUpResponse); // invoke FS_PRE_AUTH (check customer limit)
+  rpc TopUpWallet (TopUpWalletRequest) returns (TopUpWalletResponse); // invoke FS_POST_AUTH (top-up wallet)
+  rpc GetTopUpCommission (GetTopUpCommissionRequest) returns (GetTopUpCommissionResponse); // invoke GET_COMMISSION (for top-up wallet process)
+  rpc TopUpWalletMoneyTransfer (TopUpWalletMoneyTransferRequest) returns (TopUpWalletMoneyTransferResponse); // invoke Compay Paycell Service
+  rpc ClaimOtpTokenToMakePayment (ClaimOtpTokenToMakePaymentRequest) returns (ClaimOtpTokenToMakePaymentResponse); // invoke PRE_AUTH (Customer 2FA) == get otp validation token and send otp code to user for validation
+  rpc MakePaymentWithOtpToken (MakePaymentWithOtpTokenRequest) returns (MakePaymentWithOtpTokenResponse); // invoke POST_AUTH (make payment) == make payment with otp and token
+
+  rpc MakePayment (MakePaymentRequest) returns (MakePaymentResponse); // invoke AUTH == (make payment)
+}
+
+service WalletTransactionHistoryService{
+  rpc GetWalletTransactionHistory (GetWalletTransactionHistoryRequest) returns (stream GetWalletTransactionHistoryResponse);  // RECONCILE
+  rpc GetWalletTransactionInfo (GetWalletTransactionInfoRequest) returns (GetWalletTransactionInfoResponse);  // FS_QUERY_TRANSACTION
+}
+
+service WalletBalanceService {
+  rpc IsCustomerHasBalance (GetWalletBalanceRequest) returns (google.protobuf.BoolValue); // Returns User Balance information
+}
+
+service WalletContactlessService {
+  rpc GetContactlessDetail (GetContactlessDetailRequest) returns (GetContactlessDetailResponse); // queryContactlessDetail
+  rpc MakeContactlessPayment (MakeContactlessPaymentRequest) returns (google.protobuf.Empty); // paymentContactlessTran
+  rpc GenerateCode (GenerateCodeRequest) returns (GenerateCodeResponse); // generateQuickCode and generateQrCode
+}

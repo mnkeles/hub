@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tn.ms.verification.phonenumber.service";
+option java_outer_classname = "VerificationServiceProto";
+option objc_class_prefix = "MS";
+
+package tr.com.togg.tdp.tn.ms.verification.phonenumber;
+
+import "profile/toggid_ms_profile.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+/**
+ * We used this in profile menu and 2 factor auth for verify customer phone number
+ */
+service PhoneNumberVerificationService {
+  /**
+   * When server trigger request code server send SMS with 6 digits to customer phone number
+   */
+  rpc RequestCode(RequestCodeRequest) returns (RequestCodeResponse);
+  /**
+   * When server trigger validate OTP value from the SMS and update customer phone number
+   */
+  rpc ConfirmCode(ConfirmCodeRequest) returns (google.protobuf.Empty);
+}
+
+message RequestCodeRequest {
+  string tenant_id = 1; // user toggid
+  string user_id = 2; // Togg ID unique ID.
+  string user_device_id = 3; // Client generate unique user device id
+  int32 country_code = 4; // ITU country code
+  uint64 national_number = 5;
+  .togg.toggid.ms.profile.Language language = 6;
+}
+
+message RequestCodeResponse {
+  string verification_code_id = 1; // Client will be used in confirm code request.
+  google.protobuf.Timestamp expires_at = 3; // When our code expired
+}
+
+message ConfirmCodeRequest {
+  string tenant_id = 1; // user toggid
+  string user_id = 2; // Togg ID unique ID.
+  string user_device_id = 3; // Client generate unique user device id
+  string verification_code_id = 4; // Client will be used from request code response.
+  string verification_code = 6; // Client will be used from SMS
+}
+
+//Next Steps:
+// - support multiple phone number
+// - care about the throttling
+// - purge non verified or expired requests

@@ -1,0 +1,18 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.offers.server";
+option java_outer_classname = "OfferServerModelProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.offers.server;
+
+import "common_model.proto";
+
+message SearchOfferingQualificationOfferIdsResponse{
+  repeated int64 offerIds = 1;
+}
+
+message SearchOfferingQualificationOfferNamesRequest{
+  common.model.RequestHeader header = 1;
+  repeated int64 offer_ids= 2;
+}

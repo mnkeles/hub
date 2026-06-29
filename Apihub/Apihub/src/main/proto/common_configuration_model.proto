@@ -1,0 +1,52 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.common.configuration.model";
+option java_outer_classname = "ToggMsCommonConfigurationProto";
+option objc_class_prefix = "TOGGMSCOMMONCONF";
+
+package tr.com.togg.tdp.common.configuration.model;
+
+import "common_enum.proto";
+import "google/protobuf/wrappers.proto";
+import "common_configuration_enum.proto";
+
+message CharacteristicDefinition{
+  int64 id= 1; //charId
+  string code= 2;
+  string name = 3;
+  string description= 4;
+  int64 display_order= 5;
+  repeated CharacteristicValueDefinition value_list = 6;
+  google.protobuf.BoolValue visible= 7; // sale_ord_char_config or prod_ofr_hier_char_use
+  google.protobuf.BoolValue editable= 8; //  sale_ord_char_config or prod_ofr_hier_char_use
+  google.protobuf.BoolValue optional= 9; // sale_ord_char_config or prod_ofr_hier_char_use
+  common.configuration.enums.CharValueType value_type= 10;
+  common.configuration.enums.CharDisplayType display_type= 11;
+  common.configuration.enums.CharType char_type= 12;
+}
+
+message CharacteristicValueDefinition{
+  string code = 1; // shortCode;
+  int64 id = 2; // charValueId;
+  string value = 3; // charValue;
+  string label = 4; // charValueLabel;
+  int64 display_order = 5; // scrOrd;
+  int64 min_value = 6; // minValue;
+  int64 max_value = 7; // maxValue;
+  google.protobuf.BoolValue is_default = 8; // _default;
+  string value_increment = 9; // valueIncrement;
+  google.protobuf.BoolValue is_visible = 10; // visible
+  google.protobuf.BoolValue is_disabled = 11;  // disabled
+}
+
+message Media {
+  string name = 1;
+  common.enums.MediaType media_type = 2;
+  int32 sorting_order = 3;
+  oneof attribute {
+    string media_url = 4;
+    string color_code = 5;
+    string media_path = 6;
+  }
+  string code = 7; // for TGA format naming creation
+}

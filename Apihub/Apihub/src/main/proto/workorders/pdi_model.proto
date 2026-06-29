@@ -1,0 +1,127 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.workorders.v1";
+option java_outer_classname = "WorkOrdersPDIModelProto";
+option objc_class_prefix = "PDI_WO";
+
+package tr.com.togg.tdp.tma.ms.workorders.v1;
+
+import "common_model.proto";
+import "common_enum.proto";
+import "workorders/tmforum_model.proto";
+import "workorders/workorders_model.proto";
+
+message CreatePDIWorkOrderRequest {
+  common.model.RequestHeader header = 1;
+  string vehicle_chassis_no = 2;
+  Place place = 3;
+}
+
+message CreatePDIWorkOrderListRequest {
+  common.model.RequestHeader header = 1;
+  repeated string vehicle_chassis_no_list = 2;
+  Place place = 3;
+  bool accept_notfound_vin = 4; // create pdi workorder for vehicles that are not found with product ms api / BSS
+}
+
+message CreatePDIWorkOrderResponse {
+  WorkOrder work_order = 1;
+}
+
+message CreatePDIWorkOrderListResponse {
+  repeated PDICreateSuccessInfo success_info = 1;
+  repeated PDICreateErrorInfo error_info = 2;
+  repeated string valid_notfound_vin_list = 3; // vehicle not found with product ms api / BSS, but vin has correct format
+}
+
+message PDICreateSuccessInfo {
+  string vehicle_chassis_no = 1;
+  string work_order_id = 2;
+}
+
+message PDICreateErrorInfo {
+  string vehicle_chassis_no = 1;
+  string error_message = 2;
+}
+
+message GetPDICheckListRequest{
+  common.model.RequestHeader header = 1;
+  string work_order_id = 2;
+}
+
+message GetPDICheckListResponse{
+  string work_order_id = 1;
+  CheckList check_list = 2;
+  string notes = 3;
+}
+
+message UpdatePDICheckListRequest{
+  common.model.RequestHeader header = 1;
+  string work_order_id = 2;
+  CheckList check_list = 3;
+  string notes = 4;
+}
+
+message AcceptPDIWorkOrderRequest{
+  common.model.RequestHeader header = 1;
+  string work_order_id = 2;
+  string technician_name = 3;
+  string technician_id = 4;
+}
+
+message UpdatePDIWorkOrderStatusRequest{
+  common.model.RequestHeader header = 1;
+  string work_order_id = 2;
+  string status = 3; // inProgress / waiting / cancelled
+}
+
+message CompletePDIRequest{
+  common.model.RequestHeader header = 1;
+  string work_order_id = 2;
+}
+
+message AcceptPDIWorkOrderToServiceRequest{
+  common.model.RequestHeader header = 1;
+  string work_order_id = 2;
+  UserInfo user_info = 3; // service advisor togg id and name
+}
+
+message PDIStatusActionResponse {
+  string new_pdi_state = 1;
+  string old_pdi_state = 2;
+  string new_work_order_state = 3;
+  string old_work_order_state = 4;
+}
+
+message CheckList {
+  repeated CheckListItem items = 1;
+}
+
+message CheckListItem {
+  string uuid = 1; //readonly
+  string spec_short_code = 2; //readonly
+  ItemStatus status = 3;
+  ItemCategory category = 4; //readonly
+  string name = 5; //readonly name of item
+  string notes = 6;
+  int32 ui_sort_no = 7; // UI sort number of item
+}
+
+enum ItemStatus{
+  ITEM_STATUS_UNSPECIFIED = 0;
+  NEW = 1;
+  COMPLETE = 2;
+  INCOMPLETE = 3;
+  OTHER_ITEM_STATUS = 100;
+}
+
+enum ItemCategory{
+  ITEM_CATEGORY_UNSPECIFIED = 0;
+  DIAGNOSTIC = 1;
+  INSIDE_THE_VEHICLE = 2;
+  HOOD_COMPARTMENT = 3;
+  OUTSIDE_THE_VEHICLE = 4;
+  UNDER_THE_VEHICLE = 5;
+  FINAL_CONTROL = 6;
+  OTHER_ITEM_CATEGORY = 100;
+}

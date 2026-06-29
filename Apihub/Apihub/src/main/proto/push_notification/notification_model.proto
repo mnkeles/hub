@@ -1,0 +1,176 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.notifications";
+option java_outer_classname = "NotificationsModelProto";
+option objc_class_prefix = "TMA";
+
+package tr.com.togg.tdp.tma.ms.notifications;
+
+import "google/protobuf/timestamp.proto";
+import "common_model.proto";
+
+/**
+ * This notification message for all registered mobile devices
+ */
+message SendMessageRequest {
+  common.model.RequestHeader header = 1;
+  string tenant_id = 2; // The TIAM user's tenant ID (to which TIAM user the message will be sent)
+  string user_id = 3; // The TIAM user's ID (to which TIAM user the message will be sent)
+  oneof device {
+    string device_token = 4; // The device token of the device of the user, if null then the message will be sent to all devices of the user
+    bool send_to_last_registered_device = 7; // the message will be sent only to the last registered device when true
+  }
+  Message message = 5; // Firebase Cloud Messaging (FCM) Message Object.
+  string sender = 6; //Which TIAM user is sending the notification
+  string image_url = 8; // The image links in the payload of a display notification,Images for notifications are limited to 1MB in size for Android, 300 KB in size for iOS
+}
+
+message ListUserNotificationRequest {
+  common.model.RequestHeader header = 1;
+}
+
+/**
+ * Message id
+ */
+message SendToUserResponse {
+  string message_id = 1;
+}
+
+/**
+ * Firebase Cloud Messaging (FCM) Message Object
+ */
+message Message {
+  MessageMetaData message_meta_data = 1; // The message metadata is configuration with additional information for notification type (priority, icon, category, etc.)
+  NotificationMessage notification = 2; // The notification message is payload data
+  DataMessage data = 3; // The data message in form of map, see below
+}
+
+/**
+ * Notification body
+ */
+message NotificationMessage {
+  string title = 1; // The title of the message
+  string body = 2; // The message body
+}
+
+message DataMessage {
+  map<string, string> key_value = 1; // The map of key-value pairs
+}
+
+/**
+ * Message meta data
+ */
+message MessageMetaData {
+  MessageCategory category = 1; // The message category, see below
+  string icon = 2; // The message icon url
+  Severity severity = 3; //The message severity, if null it will be `MEDIUM` by default, see below for other options
+  Appearance appearance = 4; // The message appearance, if null it will be `APPEARANCE_STATUSBAR` by default, see below for other options
+  google.protobuf.Timestamp  created_at = 5; // The message creation date, if null it will be now by default
+  google.protobuf.Timestamp  expires_at = 6; // The message expiration date, if null it will not expire
+}
+
+/**
+ * Type of message
+ */
+enum MessageType {
+  TYPE_UNSPECIFIED = 0;
+  NOTIFICATION = 1;
+  DATA = 2;
+}
+
+/**
+ * Category of message
+ */
+enum MessageCategory {
+  CATEGORY_UNSPECIFIED = 0;
+  LOYALTY = 1; //Indicates message with `LOYALTY` category - UI can list these messages in form of my loyalty messages
+  CATEGORY_DIRECT_MESSAGE = 2; //Indicates message directly sent to the user - UI can list these messages in form of my direct messages
+  CATEGORY_DISPOSABLE_MESSAGE = 3; //Indicates message shall not be listed in the UI, they will be seen by the user once and then they will be disposed
+  CATEGORY_CAMPAIGN = 4; //Indicates campaign messages - UI can list these messages in form of my campaign messages
+  reserved 5 to 99;
+  OTHER_CATEGORY = 100; // Indicates message with `OTHER` category
+}
+
+/**
+ * Severity of message
+ */
+enum Severity {
+  SEVERITY_UNSPECIFIED = 0;
+  CRITICAL = 1; // Indicates message with `CRITICAL` severity
+  HIGH = 2;  // Indicates message with `HIGH` severity`
+  MEDIUM = 3;  // Indicates message with `MEDIUM` severity
+  LOW = 4;  // Indicates message with `LOW` severity
+  reserved 5 to 99;
+  OTHER_SEVERITY = 100;  // Indicates message with `OTHER_SEVERITY` severity
+}
+
+//https://developer.android.com/guide/topics/ui/notifiers/notifications#appearances
+enum Appearance {
+  APPEARANCE_SEVERITY_UNSPECIFIED = 0;
+  APPEARANCE_STATUSBAR = 1; // Indicates message should show at the status bar
+  APPEARANCE_HEADSUP = 2; // Indicates message should show as heads-up notification
+  APPEARANCE_LOCKSCREEN = 3; // Indicates message can appear on the lock screen
+  APPEARANCE_APPICONBADGE = 4; // TOGG Super Appp icon should indicate new notifications with a colored "badge"
+  reserved 5 to 99;
+  OTHER_APPEARANCE = 100; // Indicates message appearance with `OTHER` type
+}
+
+
+/**
+ * The device token information
+ */
+message DeviceToken {
+  common.model.RequestHeader header = 1; // RequestHeader are the fields that our requests coming to the service receive in common
+  string tenant_id = 2; //The user's TOGG tenant ID
+  string user_id = 3; // The user's TOGG ID
+  UserDevice user_device = 4; // The user's mobile device info
+  string device_token = 5; // The mobile device token for FCM
+}
+
+/**
+ * If the device token is successfully updated for the request, then the following response returns:
+ */
+message RegistrationToken {
+  string registration_id = 1; // The ID of the updated registration
+  DeviceToken data = 2; // The device token information of the updated registration
+  MetaData meta_data = 3; // The metadata of the updated registration
+}
+
+/**
+ * This method updates the mobile device token of the user
+ */
+message UpdateTokenRequest {
+  common.model.RequestHeader header = 1;
+  string registration_id = 2; //The ID of the registration which will be updated
+  DeviceToken token = 3; // New device token information which will be used to update with
+}
+
+/**
+ *This method deletes the mobile device token of the user
+ */
+message DeleteTokenRequest {
+  common.model.RequestHeader header = 1;
+  string registration_id = 2; // The ID of the registration which will be deleted
+}
+
+/**
+ * Device info
+ */
+message UserDevice {
+  string device_type = 1;
+  string device_model = 2;
+  string device_id = 3;
+  string platform_name = 4;
+  string os_version = 5;
+}
+
+/**
+ * MetaData info
+ */
+message MetaData {
+  google.protobuf.Timestamp created_at = 1; // When created
+  string created_by = 2; // Who created
+  google.protobuf.Timestamp updated_at = 3; // When updated
+  string updated_by = 4; //  Who updated
+}

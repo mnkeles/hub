@@ -1,0 +1,29 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.document.admin.v1";
+option java_outer_classname = "DocumentServiceProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.document.admin.v1.client;
+
+import "document/document_admin_model.proto";
+import "document/document_model.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+service DocumentService{
+  rpc CreateDocument (CreateDocumentRequest) returns (CreateDocumentResponse);
+  rpc UpdateDocument (UpdateDocumentRequest) returns (google.protobuf.Empty);
+  rpc DeleteDocument(UpdateDocumentStatusRequest) returns (google.protobuf.BoolValue);
+  rpc ListDocuments (ListDocumentsRequest) returns (stream document.v1.Document);
+  rpc ApproveAttachment(UpdateDocumentAttachmentStatusRequest) returns (google.protobuf.Empty);
+  rpc ApproveDocument(UpdateDocumentStatusRequest) returns (google.protobuf.Empty);
+  rpc RejectAttachment(UpdateDocumentAttachmentStatusRequest) returns (google.protobuf.Empty);
+  rpc RejectDocument(UpdateDocumentStatusRequest) returns (google.protobuf.Empty);
+  rpc DeleteAttachment(UpdateDocumentAttachmentStatusRequest) returns (google.protobuf.Empty);
+}
+
+service DocumentStorageService{
+  rpc GetDocumentGetUrl(GetDocumentGetUrlRequest) returns (GetDocumentGetUrlResponse);
+  rpc GetDocumentPutUrl(GetDocumentPutUrlRequest) returns (GetDocumentPutUrlResponse);
+}

@@ -1,0 +1,119 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.agreement";
+option java_outer_classname = "AgreementModelProto";
+option objc_class_prefix = "TIAMAS";
+
+package tr.com.togg.tdp.tma.ms.agreement;
+
+import "common_model.proto";
+import "google/protobuf/timestamp.proto";
+
+message InquireCustomerAgreementsRequest {
+  common.model.RequestHeader header = 1;
+  int64 order_id = 2; //bss order id
+}
+
+message InquireCustomerAgreementsResponse {
+  repeated CustomerAgreement customer_agreement_list = 1;
+}
+
+message GetCustomerAgreementRequest {
+  tr.com.togg.tdp.common.model.RequestHeader header = 1;
+  string agreement_id = 2;
+}
+
+message GetCustomerAgreementResponse {
+  CustomerAgreement customer_agreement = 1;
+}
+
+message ShowCustomerAgreementResponse {
+  CustomerAgreement customer_agreement = 1;
+}
+
+message ShowCustomerAgreementRequest {
+  tr.com.togg.tdp.common.model.RequestHeader header = 1;
+  int64 order_id = 2; //bss order id
+  string bundle_agreement_spec_id = 3;
+}
+
+message CreateCustomerAgreementRequest {
+  tr.com.togg.tdp.common.model.RequestHeader header = 1;
+  CustomerAgreement customer_agreement = 2; //Agreement details
+  CustomerAgreementStatus customer_agreement_status = 3;
+  repeated AgreementParameter agreement_item = 4; // additional parameter for specific values
+}
+
+message CreateCustomerAgreementResponse {
+  string agreement_id = 1;
+}
+
+message CreateAgreementSpecificationRequest {
+
+  message AgreementSpecificationLang {
+    string description = 1;
+    string attachment_type = 2;
+    string url = 3;
+  }
+
+  message AgreementSpecificationCharacteristic {
+    string name = 1;
+    string value_type = 2;
+    string url = 3;
+    repeated AgreementSpecificationCharacteristicValue spec_characteristic_value = 4;
+  }
+
+  message AgreementSpecificationCharacteristicValue {
+    string value = 1;
+  }
+
+  tr.com.togg.tdp.common.model.RequestHeader header = 1;
+  string short_code = 2;
+  string description = 3;
+  string version = 4;
+  string start_date_time = 5;
+  string end_date_time = 6;
+  string service_category_name = 7;
+  repeated AgreementSpecificationLang agreement_specification_lang = 8;
+  repeated AgreementSpecificationCharacteristic specification_characteristic = 9;
+}
+
+message PreviewCustomerAgreementRequest{
+  tr.com.togg.tdp.common.model.RequestHeader header = 1;
+  string bundle_agreement_spec_id = 2;
+  repeated AgreementParameter parameters = 3; // additional parameter for specific values which is filled by client side
+}
+
+message PreviewCustomerAgreementResponse {
+  CustomerAgreement customer_agreement = 1;
+}
+
+message CreateAgreementSpecificationResponse {
+  string agreement_spec_id = 1;
+  string agreement_spec_short_code = 2;
+}
+
+message CustomerAgreement{
+  string agreement_id = 1;
+  string agreement_type = 2;
+  google.protobuf.Timestamp initial_date = 3;
+  string name = 4;
+  string version = 5;
+  string url = 6;
+  string agreement_spec_id = 7;
+  string bundle_agreement_spec_id = 8;
+  repeated AgreementParameter agreement_parameter_list = 9;
+  repeated AgreementParameter agreement_item = 10;
+}
+
+message AgreementParameter {
+  string key = 1;
+  string value = 2;
+  AgreementParameter group = 3;
+}
+
+enum CustomerAgreementStatus {
+  CUSTOMER_AGREEMENT_UNDEFINED = 0;
+  SIGNED = 1;
+  UNSIGNED = 2;
+}

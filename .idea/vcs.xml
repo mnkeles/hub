@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="$PROJECT_DIR$/Apihub" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Apihub/Apihub" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/apihub-fe" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/apihub-fe/apihub-fe" vcs="Git" />
+  </component>
+</project>

@@ -1,0 +1,89 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "tr.com.togg.tdp.tma.ms.payments";
+option java_outer_classname = "PaymentsServiceProto";
+option objc_class_prefix = "TMA";
+
+package tr.com.togg.tdp.tma.ms.payments.client;
+
+import "payment/payment_model.proto";
+import "google/protobuf/empty.proto";
+
+service PaymentCardService {
+  /**
+   * Method return user cards from Paycell
+   */
+  rpc GetCards (GetCardsRequest) returns (GetCardsResponse);
+  /**
+   * Method update user cards in Paycell data
+   */
+  rpc UpdateCard (UpdateCardRequest) returns (UpdateCardResponse);
+  /**
+   * Method delete user cards from Paycell
+   */
+  rpc DeleteCard (DeleteCardRequest) returns (DeleteCardResponse);
+  /**
+   * Method approve agreement
+   */
+  rpc ApproveEula (ApproveEulaRequest) returns (ApproveEulaResponse);
+  /**
+   * Method retrieve agreement document
+   */
+  rpc GetEulaContent (GetEulaRequest) returns (GetEulaResponse);
+  /**
+   * Method validate user cards from Paycell by bin number.
+   */
+  rpc ValidateCard (ValidateCardRequest) returns (ValidateCardResponse);
+  /**
+   * Method calculate hash data with date format yyyyMMddHHmmssSSS.
+   * Generates hash data for Paycell get card token API calls.
+   */
+  rpc CalculateHash (CalculateHashRequest) returns (CalculateHashResponse);
+  /**
+   * Method add user cards to Paycell
+   */
+  rpc RegisterCard (RegisterCardRequest) returns (RegisterCardResponse);
+  /**
+   * Method create Paycell ThreeDSession and return redirect URL
+   */
+  rpc CreateThreeDSession (CreateThreeDSessionRequest) returns (CreateThreeDSessionResponse);
+}
+
+service PaymentWalletService {
+  /**
+   * Charge money for some order
+   */
+  rpc MakePayment (PayRequest) returns (PayResponse);
+  /**
+   * Confirm make payment with OTP and token
+   */
+  rpc ConfirmPayment (ConfirmPaymentRequest) returns (google.protobuf.Empty);
+}
+
+service PaymentTransactionService {
+  /**
+   * Return all transaction history for all operations
+   */
+  rpc ListPaymentTransactionHistory(ListPaymentTransactionHistoryRequest) returns (stream PaymentTransactionHistory);
+  rpc ListOrderPaymentTransactionHistory(ListOrderPaymentTransactionHistoryRequest) returns (stream PaymentTransactionHistory);
+  rpc GetCreditCardCommission (GetCreditCardCommissionRequest) returns (GetCreditCardCommissionResponse); // invoke GET_COMMISSION just for Mobile
+}
+
+service PaymentRefundService {
+  /**
+  * Method refund payment
+  */
+  rpc ReverseRefund (ReverseRefundRequest) returns (google.protobuf.Empty);
+}
+
+service PaymentCreditService{ // Only CSR Or Admin User Authorized
+  rpc ConfirmSelfCredit (ConfirmSelfCreditRequest) returns (google.protobuf.Empty); // Used For Self Credit Flow Implementation to BSS
+  rpc UpdateSelfCreditHistory (UpdateSelfCreditHistoryRequest) returns (google.protobuf.Empty); // used for cust_acct_pymtn_hstry egmcode and issuer no update
+}
+
+
+service PaymentLinkService{
+  rpc GetPaymentLink (GetPaymentLinkRequest) returns (GetPaymentLinkResponse); // BFF : create if not exist
+  rpc CheckPaymentLinkStatus (CheckPaymentLinkStatusRequest) returns (CheckPaymentLinkStatusResponse); // if status success, submit payment
+}
+

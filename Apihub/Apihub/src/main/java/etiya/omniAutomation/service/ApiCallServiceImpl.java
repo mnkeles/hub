@@ -65,6 +65,7 @@ public class ApiCallServiceImpl {
     private final PerformanceRunRegistry performanceRunRegistry;
     private final PerformanceBaselineService performanceBaselineService;
     private final PerformanceValidationChecklistBuilder performanceValidationChecklistBuilder;
+    private final PerformanceReportSnapshotService performanceReportSnapshotService;
 
     private static final Logger log = LoggerFactory.getLogger(ApiCallServiceImpl.class);
 
@@ -806,6 +807,9 @@ public class ApiCallServiceImpl {
         PerfRsltEntity saved = performanceResultRepository.save(entity);
         PerfRsltEntity compared = performanceBaselineService.applyAutomaticBaselineComparison(saved);
         compared.setValidationChecklist(performanceValidationChecklistBuilder.build(compared, runningItem));
+        PerformanceReportSnapshotService.PerformanceReportSnapshot snapshot = performanceReportSnapshotService.build(compared, runningItem);
+        compared.setInsightReport(snapshot.insightReport());
+        compared.setAiManagementReport(snapshot.aiManagementReport());
         performanceResultRepository.save(compared);
     }
 

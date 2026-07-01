@@ -302,4 +302,26 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="2026-07-01-001-add-insight-report-to-perf-rslt" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="perf_rslt" columnName="insight_report"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="perf_rslt">
+            <column name="insight_report" type="jsonb"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="2026-07-01-002-add-ai-management-report-to-perf-rslt" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="perf_rslt" columnName="ai_management_report"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="perf_rslt">
+            <column name="ai_management_report" type="jsonb"/>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>

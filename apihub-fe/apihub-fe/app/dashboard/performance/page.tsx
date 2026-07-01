@@ -47,6 +47,7 @@ import { performanceService } from '@/services/performanceService';
 import { processFlowService } from '@/services/processFlowService';
 import { GeneralWebSystemDto, ProcessFlowDto } from '@/types/api';
 import {
+    PerformanceAiManagementReport,
     PerformanceComparisonResult,
     PerformanceDetailResponse,
     PerformanceExportPayload,
@@ -144,6 +145,8 @@ export default function PerformanceTestsPage() {
         baselineResultId: result.baselineResultId ?? null,
         baselineComparison: result.baselineComparison ?? null,
         validationChecklist: result.validationChecklist ?? null,
+        insightReport: result.insightReport ?? null,
+        aiManagementReport: result.aiManagementReport ?? null,
         performanceSummaries: result.performanceSummaries ?? [],
         createdAt: result.createdAt ?? result.runSummary?.startedAt ?? new Date().toISOString(),
     })), [results]);
@@ -404,6 +407,12 @@ export default function PerformanceTestsPage() {
         }
     };
 
+    const handleAiReportUpdated = (report: PerformanceAiManagementReport) => {
+        setAnalysisData((prev) => prev ? { ...prev, aiManagementReport: report } : prev);
+        setSelectedHistoryItem((prev) => prev ? { ...prev, aiManagementReport: report } : prev);
+        setSelectedResult((prev) => prev ? { ...prev, aiManagementReport: report } : prev);
+    };
+
     const detailTitleId = selectedHistoryItem?.performanceResultId ?? selectedResult?.performanceResultId;
     const detailSummaries = analysisData?.stepSummaries ?? selectedHistoryItem?.performanceSummaries ?? selectedResult?.performanceSummaries ?? [];
     const detailAnalysis = analysisData?.analysisSummary ?? selectedHistoryItem?.analysisSummary ?? selectedResult?.analysisSummary ?? null;
@@ -413,6 +422,14 @@ export default function PerformanceTestsPage() {
     const detailValidationChecklist = analysisData?.validationChecklist ?? selectedHistoryItem?.validationChecklist ?? selectedResult?.validationChecklist ?? null;
     const detailBaselineComparison = analysisData?.baselineComparison ?? selectedHistoryItem?.baselineComparison ?? selectedResult?.baselineComparison ?? null;
     const detailManagementReport = analysisData?.managementReport ?? null;
+    const detailInsightReport = analysisData?.insightReport
+        ?? selectedHistoryItem?.insightReport
+        ?? selectedResult?.insightReport
+        ?? null;
+    const detailAiManagementReport = analysisData?.aiManagementReport
+        ?? selectedHistoryItem?.aiManagementReport
+        ?? selectedResult?.aiManagementReport
+        ?? null;
 
     return (
         <DashboardLayout>
@@ -577,7 +594,16 @@ export default function PerformanceTestsPage() {
                                     <Tab label={t('export')} />
                                 </Tabs>
                                 {detailTab === 0 && (
-                                    <PerformanceManagementReportPanel report={detailManagementReport} />
+                                    <PerformanceManagementReportPanel
+                                        report={detailManagementReport}
+                                        insightReport={detailInsightReport}
+                                        aiReport={detailAiManagementReport}
+                                        baselineComparison={detailBaselineComparison}
+                                        performanceResultId={detailTitleId}
+                                        onAiReportUpdated={handleAiReportUpdated}
+                                        onSuccess={setSuccess}
+                                        onError={setError}
+                                    />
                                 )}
                                 {detailTab === 1 && (
                                     <PerformanceAnalysisPanel

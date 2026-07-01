@@ -1,6 +1,7 @@
 package etiya.omniAutomation.controller;
 
 import etiya.omniAutomation.business.dto.PerformanceComparisonResult;
+import etiya.omniAutomation.business.dto.PerformanceAiManagementReport;
 import etiya.omniAutomation.business.dto.PerformanceResultDto;
 import etiya.omniAutomation.business.dto.PerformanceExportPayload;
 import etiya.omniAutomation.business.dto.PerformanceLiveSnapshot;
@@ -92,6 +93,11 @@ public class PerformanceController {
     @PostMapping("/validation-note")
     public ResponseEntity<PerformanceValidationChecklist> updateValidationNote(@RequestBody PerformanceValidationNoteRequest request) {
         return ResponseEntity.ok(this.performanceService.updateValidationNote(request));
+    }
+
+    @PostMapping("/{performanceResultId}/ai-report/regenerate")
+    public ResponseEntity<PerformanceAiManagementReport> regenerateAiReport(@PathVariable Long performanceResultId) {
+        return ResponseEntity.ok(this.performanceService.regenerateAiReport(performanceResultId));
     }
 
     @GetMapping("/export")

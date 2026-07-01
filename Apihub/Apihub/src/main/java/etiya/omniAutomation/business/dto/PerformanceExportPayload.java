@@ -16,6 +16,8 @@ public record PerformanceExportPayload(
         PerformanceErrorAnalysis errorAnalysis,
         PerformanceEnvironmentMetrics environmentMetrics,
         PerformanceManagementReport managementReport,
+        PerformanceInsightReport insightReport,
+        PerformanceAiManagementReport aiManagementReport,
         List<PerformanceSummary> stepSummaries,
         PerformanceThreadGroup threadDetail
 ) {

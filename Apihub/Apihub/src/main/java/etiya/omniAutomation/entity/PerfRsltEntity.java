@@ -1,9 +1,11 @@
 package etiya.omniAutomation.entity;
 
 import etiya.omniAutomation.business.dto.PerformanceAnalysisSummary;
+import etiya.omniAutomation.business.dto.PerformanceAiManagementReport;
 import etiya.omniAutomation.business.dto.PerformanceEnvironmentMetrics;
 import etiya.omniAutomation.business.dto.PerformanceErrorAnalysis;
 import etiya.omniAutomation.business.dto.PerformanceComparisonResult;
+import etiya.omniAutomation.business.dto.PerformanceInsightReport;
 import etiya.omniAutomation.business.dto.PerformanceRunSummary;
 import etiya.omniAutomation.business.dto.PerformanceSummary;
 import etiya.omniAutomation.business.dto.PerformanceThresholdConfig;
@@ -126,6 +128,16 @@ public class PerfRsltEntity {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "environment_metrics", columnDefinition = "jsonb")
     private PerformanceEnvironmentMetrics environmentMetrics;
+
+    @Type(JsonBinaryType.class)
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "insight_report", columnDefinition = "jsonb")
+    private PerformanceInsightReport insightReport;
+
+    @Type(JsonBinaryType.class)
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "ai_management_report", columnDefinition = "jsonb")
+    private PerformanceAiManagementReport aiManagementReport;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "process_flow_id", insertable = false, updatable = false)

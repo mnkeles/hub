@@ -12,6 +12,14 @@ export type PerformanceThresholdPreset = 'SMOKE' | 'NORMAL' | 'STRESS' | 'STRICT
 
 export type PerformanceValidationStatus = 'PASSED' | 'FAILED' | 'WARNING' | 'NOT_APPLICABLE';
 
+export type PerformanceAnomalyLevel = 'NORMAL' | 'WATCH' | 'ANOMALOUS' | 'CRITICAL';
+
+export type PerformanceBottleneckType = 'NONE' | 'ERROR' | 'LATENCY' | 'THROUGHPUT' | 'INSTABILITY' | 'ENVIRONMENT' | 'MIXED';
+
+export type PerformanceReleaseReadiness = 'READY' | 'CONDITIONAL' | 'BLOCKED' | 'UNKNOWN';
+
+export type PerformanceInsightSeverity = 'INFO' | 'WARNING' | 'HIGH' | 'CRITICAL';
+
 export interface PerformanceRequest {
     environment: string;
     processFlowId: number;
@@ -184,6 +192,82 @@ export interface PerformanceManagementReport {
     detailExplanation?: string | null;
 }
 
+export interface PerformanceMetricInsight {
+    metric?: string | null;
+    severity?: PerformanceInsightSeverity | null;
+    actual?: string | null;
+    expected?: string | null;
+    explanation?: string | null;
+}
+
+export interface PerformanceRootCauseHint {
+    severity?: PerformanceInsightSeverity | null;
+    category?: string | null;
+    signal?: string | null;
+    explanation?: string | null;
+    recommendation?: string | null;
+}
+
+export interface PerformanceStepInsight {
+    stepName?: string | null;
+    severity?: PerformanceInsightSeverity | null;
+    bottleneckType?: PerformanceBottleneckType | null;
+    metric?: string | null;
+    actual?: string | null;
+    expected?: string | null;
+    explanation?: string | null;
+}
+
+export interface PerformanceInsightReport {
+    anomalyScore?: number | null;
+    anomalyLevel?: PerformanceAnomalyLevel | null;
+    regressionScore?: number | null;
+    regressionAvailable?: boolean | null;
+    apdexScore?: number | null;
+    apdexEstimated?: boolean | null;
+    sloCompliancePercent?: number | null;
+    bottleneckType?: PerformanceBottleneckType | null;
+    releaseReadiness?: PerformanceReleaseReadiness | null;
+    rootCauseHints?: PerformanceRootCauseHint[];
+    metricInsights?: PerformanceMetricInsight[];
+    stepInsights?: PerformanceStepInsight[];
+    schemaVersion?: number | null;
+    generatedByVersion?: string | null;
+}
+
+export interface PerformanceAiActionItem {
+    priority?: 'P0' | 'P1' | 'P2' | string | null;
+    title?: string | null;
+    description?: string | null;
+    relatedStepName?: string | null;
+    relatedMetric?: string | null;
+}
+
+export interface PerformanceAiManagementReport {
+    generated?: boolean | null;
+    generatedAt?: string | null;
+    model?: string | null;
+    executiveNarrative?: string | null;
+    technicalNarrative?: string | null;
+    rootCauseNarrative?: string | null;
+    recommendedActionPlan?: PerformanceAiActionItem[];
+    releaseReadinessNarrative?: string | null;
+    limitations?: string[];
+    errorMessage?: string | null;
+    schemaVersion?: number | null;
+    generatedByVersion?: string | null;
+    durationMs?: number | null;
+    attemptCount?: number | null;
+    failureReason?: string | null;
+    validationErrors?: string[];
+    promptHash?: string | null;
+    inputSummaryHash?: string | null;
+    responseSize?: number | null;
+    promptTokens?: number | null;
+    completionTokens?: number | null;
+    totalTokens?: number | null;
+}
+
 export interface PerformanceErrorTypeCount {
     errorType: string;
     count: number;
@@ -292,6 +376,8 @@ export interface PerformanceExportPayload {
     errorAnalysis?: PerformanceErrorAnalysis | null;
     environmentMetrics?: PerformanceEnvironmentMetrics | null;
     managementReport?: PerformanceManagementReport | null;
+    insightReport?: PerformanceInsightReport | null;
+    aiManagementReport?: PerformanceAiManagementReport | null;
     stepSummaries?: PerformanceStepSummary[] | null;
     threadDetail?: PerformanceThreadGroup | null;
 }
@@ -320,6 +406,8 @@ export interface PerformanceResultDto {
     baselineResultId?: number | null;
     baselineComparison?: PerformanceComparisonResult | null;
     validationChecklist?: PerformanceValidationChecklist | null;
+    insightReport?: PerformanceInsightReport | null;
+    aiManagementReport?: PerformanceAiManagementReport | null;
     durationSeconds?: number | null;
     loopCount?: number | null;
     thinkTimeMs?: number | null;
@@ -349,6 +437,8 @@ export interface PerformanceHistoryItem {
     baselineResultId?: number | null;
     baselineComparison?: PerformanceComparisonResult | null;
     validationChecklist?: PerformanceValidationChecklist | null;
+    insightReport?: PerformanceInsightReport | null;
+    aiManagementReport?: PerformanceAiManagementReport | null;
     performanceSummaries: PerformanceStepSummary[];
     createdAt: string;
 }

@@ -1,9 +1,11 @@
 package etiya.omniAutomation.results;
 
 import etiya.omniAutomation.business.dto.PerformanceAnalysisSummary;
+import etiya.omniAutomation.business.dto.PerformanceAiManagementReport;
 import etiya.omniAutomation.business.dto.PerformanceComparisonResult;
 import etiya.omniAutomation.business.dto.PerformanceEnvironmentMetrics;
 import etiya.omniAutomation.business.dto.PerformanceErrorAnalysis;
+import etiya.omniAutomation.business.dto.PerformanceInsightReport;
 import etiya.omniAutomation.business.dto.PerformanceRunSummary;
 import etiya.omniAutomation.business.dto.PerformanceSummary;
 import etiya.omniAutomation.business.dto.PerformanceThresholdConfig;
@@ -37,6 +39,8 @@ public record PerformanceSummaryResult(
         PerformanceAnalysisSummary analysisSummary,
         PerformanceErrorAnalysis errorAnalysis,
         PerformanceEnvironmentMetrics environmentMetrics,
+        PerformanceInsightReport insightReport,
+        PerformanceAiManagementReport aiManagementReport,
         List<PerformanceSummary> performanceSummaries,
         Date createdAt
 ) {
@@ -52,6 +56,6 @@ public record PerformanceSummaryResult(
     ) {
         this(performanceResultId, performanceStatus, threadCount, rampUpPeriod, null, null, null, null, null,
                 null, null, null, null, null, null, null,
-                runSummary, null, null, null, null, performanceSummaries, createdAt);
+                runSummary, null, null, null, null, null, null, performanceSummaries, createdAt);
     }
 }

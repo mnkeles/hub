@@ -52,6 +52,7 @@ public class PerformanceService {
     private final PerformanceThresholdPresetResolver performanceThresholdPresetResolver;
     private final PerformanceBaselineService performanceBaselineService;
     private final PerformanceValidationChecklistBuilder performanceValidationChecklistBuilder;
+    private final PerformanceAiReportRegenerationService performanceAiReportRegenerationService;
 
     @Transactional
     public PerformanceResultDto executePerformanceTest(PerformanceRequest request) {
@@ -269,6 +270,10 @@ public class PerformanceService {
         return this.performanceComparisonService.compare(base, target);
     }
 
+    public PerformanceAiManagementReport regenerateAiReport(Long performanceResultId) {
+        return performanceAiReportRegenerationService.regenerate(performanceResultId, loadThreadGroup(performanceResultId));
+    }
+
     @Transactional
     public PerformanceSummaryResult setBaseline(Long performanceResultId) {
         return toSummaryResult(this.performanceBaselineService.setBaseline(performanceResultId));
@@ -342,6 +347,8 @@ public class PerformanceService {
                 item.getAnalysisSummary(),
                 item.getErrorAnalysis(),
                 item.getEnvironmentMetrics(),
+                item.getInsightReport(),
+                item.getAiManagementReport(),
                 item.getSummary(),
                 item.getCreatedAt()
         );

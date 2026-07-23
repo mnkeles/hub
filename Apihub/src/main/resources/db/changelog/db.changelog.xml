@@ -7,6 +7,8 @@
 
     <!-- Her yeni migration için buraya yeni bir include satırı eklenmeli -->
     <include file="/db/changelog/changes/liquibase-migration-file.xml"/>
+    <include file="/db/changelog/changes/drop-redundant-columns.xml"/>
+    <include file="/db/changelog/changes/user-permission-refactor.xml"/>
 
     
 </databaseChangeLog>

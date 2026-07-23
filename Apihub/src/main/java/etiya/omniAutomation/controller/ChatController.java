@@ -3,6 +3,7 @@ package etiya.omniAutomation.controller;
 import etiya.omniAutomation.business.dto.ChatMessageDto;
 import etiya.omniAutomation.business.dto.ChatRequest;
 import etiya.omniAutomation.business.dto.ChatStreamEventDto;
+import etiya.omniAutomation.common.PermissionConstants;
 import etiya.omniAutomation.service.ChatHistoryService;
 import etiya.omniAutomation.service.ChatStructuredContextSessionService;
 import etiya.omniAutomation.service.OpenAiChatService;
@@ -11,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -38,6 +40,7 @@ public class ChatController {
     private final ChatStructuredContextSessionService chatStructuredContextSessionService;
 
     @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.AI_CHAT_USE + "')")
     public Flux<ChatStreamEventDto> streamMessage(@RequestBody ChatRequest request) {
         String userId = getCurrentUserId();
         ChatRequest effectiveRequest = chatStructuredContextSessionService.mergeWithStoredContext(userId, request);
@@ -84,6 +87,7 @@ public class ChatController {
     }
 
     @GetMapping("/history")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.AI_CHAT_HISTORY_VIEW + "')")
     public ResponseEntity<List<ChatMessageDto>> getChatHistory() {
         try {
             String userId = getCurrentUserId();
@@ -95,6 +99,7 @@ public class ChatController {
     }
 
     @GetMapping("/context/current")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.AI_CHAT_PROJECT_CONTEXT_USE + "')")
     public ResponseEntity<Map<String, Object>> getCurrentStructuredContext() {
         try {
             String userId = getCurrentUserId();
@@ -106,6 +111,7 @@ public class ChatController {
     }
 
     @DeleteMapping("/history")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.AI_CHAT_HISTORY_DELETE + "')")
     public ResponseEntity<Void> clearChatHistory() {
         try {
             String userId = getCurrentUserId();
@@ -119,6 +125,7 @@ public class ChatController {
     }
 
     @GetMapping("/health")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> health() {
         return ResponseEntity.ok("Chat service is running");
     }

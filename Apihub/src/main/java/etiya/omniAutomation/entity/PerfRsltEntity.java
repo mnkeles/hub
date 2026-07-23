@@ -1,12 +1,12 @@
 package etiya.omniAutomation.entity;
 
 import etiya.omniAutomation.business.dto.PerformanceAnalysisSummary;
-import etiya.omniAutomation.business.dto.PerformanceAiManagementReport;
+import etiya.omniAutomation.business.dto.PerformanceAiReport;
 import etiya.omniAutomation.business.dto.PerformanceEnvironmentMetrics;
 import etiya.omniAutomation.business.dto.PerformanceErrorAnalysis;
 import etiya.omniAutomation.business.dto.PerformanceComparisonResult;
-import etiya.omniAutomation.business.dto.PerformanceInsightReport;
 import etiya.omniAutomation.business.dto.PerformanceRunSummary;
+import etiya.omniAutomation.business.dto.PerformanceSloScore;
 import etiya.omniAutomation.business.dto.PerformanceSummary;
 import etiya.omniAutomation.business.dto.PerformanceThresholdConfig;
 import etiya.omniAutomation.business.dto.PerformanceThresholdPreset;
@@ -71,6 +71,9 @@ public class PerfRsltEntity {
     @Column(name = "environment_base_url")
     private String environmentBaseUrl;
 
+    @Column(name = "test_data_id")
+    private Long testDataId;
+
     @Column(name = "result_schema_version")
     private Integer resultSchemaVersion;
 
@@ -131,13 +134,13 @@ public class PerfRsltEntity {
 
     @Type(JsonBinaryType.class)
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "insight_report", columnDefinition = "jsonb")
-    private PerformanceInsightReport insightReport;
+    @Column(name = "ai_report", columnDefinition = "jsonb")
+    private PerformanceAiReport aiReport;
 
     @Type(JsonBinaryType.class)
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "ai_management_report", columnDefinition = "jsonb")
-    private PerformanceAiManagementReport aiManagementReport;
+    @Column(name = "slo_score", columnDefinition = "jsonb")
+    private PerformanceSloScore sloScore;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "process_flow_id", insertable = false, updatable = false)

@@ -1,9 +1,11 @@
 package etiya.omniAutomation.repository;
 
 import etiya.omniAutomation.entity.PerfRsltEntity;
+import etiya.omniAutomation.common.GeneralEnums;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,4 +21,6 @@ public interface PerformanceResultRepository extends JpaRepository<PerfRsltEntit
     Optional<PerfRsltEntity> findFirstByProjectIdAndProcessFlowIdAndBaselineTrue(Long projectId, Long processFlowId);
 
     List<PerfRsltEntity> findByProjectIdAndProcessFlowIdAndBaselineTrue(Long projectId, Long processFlowId);
+
+    boolean existsByPerfRsltIdAndPerfStatusIn(Long perfRsltId, Collection<GeneralEnums.PerformanceStatus> statuses);
 }

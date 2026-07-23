@@ -29,4 +29,27 @@
         </resources>
     </cache>
 
+    <cache alias="authUserDetails">
+        <key-type>java.lang.String</key-type>
+        <value-type>etiya.omniAutomation.config.security.AuthorizationUserDetails</value-type>
+        <expiry>
+            <ttl unit="minutes">5</ttl>
+        </expiry>
+        <resources>
+            <heap unit="entries">1000</heap>
+            <offheap unit="MB">10</offheap>
+        </resources>
+    </cache>
+
+    <cache alias="authCatalog">
+        <key-type>java.lang.String</key-type>
+        <expiry>
+            <ttl unit="minutes">10</ttl>
+        </expiry>
+        <resources>
+            <heap unit="entries">500</heap>
+            <offheap unit="MB">5</offheap>
+        </resources>
+    </cache>
+
 </config>

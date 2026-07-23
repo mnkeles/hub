@@ -15,6 +15,5 @@ public class UserCreateDto extends AbstractDto {
     private String lastName;
     private String email;
     private String password;
-    private Long projectId;
 
 }

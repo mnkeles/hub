@@ -35,6 +35,7 @@ public class OMNIAutomationApplication extends SpringBootServletInitializer {
 	// Removed CONFIG_HOME logic - always use embedded application.yml from JAR
 
 	public static void main(String[] args) {
+		System.setProperty("polyglot.engine.WarnInterpreterOnly", "false");
 		SpringApplication.run(OMNIAutomationApplication.class, args);
 	}
 

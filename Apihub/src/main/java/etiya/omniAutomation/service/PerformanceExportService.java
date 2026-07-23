@@ -1,14 +1,11 @@
 package etiya.omniAutomation.service;
 
-import etiya.omniAutomation.business.dto.PerformanceAiActionItem;
+import etiya.omniAutomation.business.dto.PerformanceAiReport;
 import etiya.omniAutomation.business.dto.PerformanceErrorTypeCount;
 import etiya.omniAutomation.business.dto.PerformanceExportPayload;
-import etiya.omniAutomation.business.dto.PerformanceAiManagementReport;
-import etiya.omniAutomation.business.dto.PerformanceInsightReport;
-import etiya.omniAutomation.business.dto.PerformanceManagementReport;
-import etiya.omniAutomation.business.dto.PerformanceMetricInsight;
-import etiya.omniAutomation.business.dto.PerformanceRootCauseHint;
 import etiya.omniAutomation.business.dto.PerformanceRunSummary;
+import etiya.omniAutomation.business.dto.PerformanceSloMetricScore;
+import etiya.omniAutomation.business.dto.PerformanceSloScore;
 import etiya.omniAutomation.business.dto.PerformanceStepErrorCount;
 import etiya.omniAutomation.business.dto.PerformanceSummary;
 import etiya.omniAutomation.business.dto.PerformanceThreadGroup;
@@ -22,42 +19,7 @@ import java.util.StringJoiner;
 @Service
 public class PerformanceExportService {
 
-    private final PerformanceManagementReportBuilder performanceManagementReportBuilder;
-    private final PerformanceInsightBuilder performanceInsightBuilder;
-
-    public PerformanceExportService(
-            PerformanceManagementReportBuilder performanceManagementReportBuilder,
-            PerformanceInsightBuilder performanceInsightBuilder
-    ) {
-        this.performanceManagementReportBuilder = performanceManagementReportBuilder;
-        this.performanceInsightBuilder = performanceInsightBuilder;
-    }
-
     public PerformanceExportPayload buildPayload(PerfRsltEntity result, PerformanceThreadGroup threadDetail) {
-        PerformanceManagementReport managementReport = performanceManagementReportBuilder.build(
-                result.getRunSummary(),
-                result.getThresholdResult(),
-                result.getAnalysisSummary(),
-                result.getErrorAnalysis(),
-                result.getEnvironmentMetrics(),
-                result.getBaselineComparison(),
-                result.getSummary()
-        );
-        PerformanceInsightReport insightReport = result.getInsightReport() != null
-                ? result.getInsightReport()
-                : performanceInsightBuilder.build(
-                result.getRunSummary(),
-                result.getThresholdResult(),
-                result.getAnalysisSummary(),
-                result.getErrorAnalysis(),
-                result.getEnvironmentMetrics(),
-                result.getBaselineComparison(),
-                result.getSummary(),
-                threadDetail
-        );
-        PerformanceAiManagementReport aiManagementReport = result.getAiManagementReport() != null
-                ? result.getAiManagementReport()
-                : PerformanceAiManagementReport.notGenerated("AI report is not available for this performance result.");
         return new PerformanceExportPayload(
                 result.getResultSchemaVersion(),
                 result.getThresholdPreset(),
@@ -71,9 +33,9 @@ public class PerformanceExportService {
                 result.getAnalysisSummary(),
                 result.getErrorAnalysis(),
                 result.getEnvironmentMetrics(),
-                managementReport,
-                insightReport,
-                aiManagementReport,
+                result.getAiReport(),
+                result.getTestDataId(),
+                result.getSloScore(),
                 result.getSummary(),
                 threadDetail
         );
@@ -82,16 +44,13 @@ public class PerformanceExportService {
     public String buildCsv(PerformanceExportPayload payload) {
         StringBuilder csv = new StringBuilder();
         appendReportMetadata(csv, payload);
+        appendSloScore(csv, payload == null ? null : payload.sloScore());
+        appendAiReport(csv, payload == null ? null : payload.aiReport());
         appendValidationChecklist(csv, payload);
         appendRunSummary(csv, payload == null ? null : payload.runSummary());
         appendThresholdResult(csv, payload == null ? null : payload.thresholdResult());
         appendStepSummary(csv, payload == null ? null : payload.stepSummaries());
         appendErrorSummary(csv, payload);
-        appendDecisionSummary(csv, payload);
-        appendMetricInsights(csv, payload);
-        appendRootCauseHints(csv, payload);
-        appendAiActionPlan(csv, payload);
-        appendAiObservability(csv, payload);
         return csv.toString();
     }
 
@@ -103,6 +62,51 @@ public class PerformanceExportService {
             row(csv, "Threshold Preset", payload.thresholdPreset());
             row(csv, "Baseline", payload.baseline());
             row(csv, "Baseline Result ID", payload.baselineResultId());
+            row(csv, "Test Data ID", payload.testDataId());
+        }
+        csv.append('\n');
+    }
+
+    private void appendSloScore(StringBuilder csv, PerformanceSloScore sloScore) {
+        csv.append("SLO Score\n");
+        csv.append("Field,Value\n");
+        if (sloScore != null) {
+            row(csv, "Score", sloScore.score());
+            row(csv, "Grade", sloScore.grade());
+            row(csv, "Status", sloScore.status());
+            row(csv, "Strengths", joinList(sloScore.strengths()));
+            row(csv, "Weaknesses", joinList(sloScore.weaknesses()));
+            row(csv, "Recommendations", joinList(sloScore.recommendations()));
+            csv.append("Metric,Score,Max Score,Actual,Target,Direction,Message\n");
+            if (sloScore.metricScores() != null) {
+                for (PerformanceSloMetricScore metric : sloScore.metricScores()) {
+                    row(csv,
+                            metric.metricName(),
+                            metric.score(),
+                            metric.maxScore(),
+                            metric.actualValue(),
+                            metric.targetValue(),
+                            metric.direction(),
+                            metric.message());
+                }
+            }
+        }
+        csv.append('\n');
+    }
+
+    private void appendAiReport(StringBuilder csv, PerformanceAiReport aiReport) {
+        csv.append("AI Report\n");
+        csv.append("Field,Value\n");
+        if (aiReport != null) {
+            row(csv, "Overall Status", aiReport.overallStatus());
+            row(csv, "Source", aiReport.source());
+            row(csv, "Executive Summary", aiReport.executiveSummary());
+            row(csv, "Business Impact", aiReport.businessImpact());
+            row(csv, "Good Points", joinList(aiReport.goodPoints()));
+            row(csv, "Bad Points", joinList(aiReport.badPoints()));
+            row(csv, "Risks", joinList(aiReport.risks()));
+            row(csv, "Recommended Actions", joinList(aiReport.recommendedActions()));
+            row(csv, "Technical Details", aiReport.technicalDetails());
         }
         csv.append('\n');
     }
@@ -183,85 +187,6 @@ public class PerformanceExportService {
                 row(csv, stepError.stepName(), stepError.count());
             }
         }
-        csv.append('\n');
-    }
-
-    private void appendDecisionSummary(StringBuilder csv, PerformanceExportPayload payload) {
-        PerformanceInsightReport insightReport = payload == null ? null : payload.insightReport();
-        PerformanceAiManagementReport aiReport = payload == null ? null : payload.aiManagementReport();
-        csv.append("Decision Summary\n");
-        csv.append("Metric,Value\n");
-        row(csv, "Release Readiness", insightReport == null ? null : insightReport.releaseReadiness());
-        row(csv, "Anomaly Score", insightReport == null ? null : insightReport.anomalyScore());
-        row(csv, "Anomaly Level", insightReport == null ? null : insightReport.anomalyLevel());
-        row(csv, "Apdex", insightReport == null ? null : insightReport.apdexScore());
-        row(csv, "SLO Compliance", insightReport == null ? null : insightReport.sloCompliancePercent());
-        row(csv, "Regression Score", insightReport == null ? null : insightReport.regressionScore());
-        row(csv, "Bottleneck Type", insightReport == null ? null : insightReport.bottleneckType());
-        row(csv, "AI Generated", aiReport == null ? null : aiReport.generated());
-        csv.append('\n');
-    }
-
-    private void appendMetricInsights(StringBuilder csv, PerformanceExportPayload payload) {
-        csv.append("Metric Insights\n");
-        csv.append("Metric,Severity,Actual,Expected,Explanation\n");
-        PerformanceInsightReport insightReport = payload == null ? null : payload.insightReport();
-        if (insightReport != null && insightReport.metricInsights() != null) {
-            for (PerformanceMetricInsight insight : insightReport.metricInsights()) {
-                if (insight != null) {
-                    row(csv, insight.metric(), insight.severity(), insight.actual(), insight.expected(), insight.explanation());
-                }
-            }
-        }
-        csv.append('\n');
-    }
-
-    private void appendRootCauseHints(StringBuilder csv, PerformanceExportPayload payload) {
-        csv.append("Root Cause Hints\n");
-        csv.append("Severity,Category,Signal,Explanation,Recommendation\n");
-        PerformanceInsightReport insightReport = payload == null ? null : payload.insightReport();
-        if (insightReport != null && insightReport.rootCauseHints() != null) {
-            for (PerformanceRootCauseHint hint : insightReport.rootCauseHints()) {
-                if (hint != null) {
-                    row(csv, hint.severity(), hint.category(), hint.signal(), hint.explanation(), hint.recommendation());
-                }
-            }
-        }
-        csv.append('\n');
-    }
-
-    private void appendAiActionPlan(StringBuilder csv, PerformanceExportPayload payload) {
-        csv.append("AI Action Plan\n");
-        csv.append("Priority,Title,Description,Related Step,Related Metric\n");
-        PerformanceAiManagementReport aiReport = payload == null ? null : payload.aiManagementReport();
-        if (aiReport != null && aiReport.recommendedActionPlan() != null) {
-            for (PerformanceAiActionItem actionItem : aiReport.recommendedActionPlan()) {
-                if (actionItem != null) {
-                    row(csv, actionItem.priority(), actionItem.title(), actionItem.description(), actionItem.relatedStepName(), actionItem.relatedMetric());
-                }
-            }
-        }
-        csv.append('\n');
-    }
-
-    private void appendAiObservability(StringBuilder csv, PerformanceExportPayload payload) {
-        csv.append("AI Observability\n");
-        csv.append("Metric,Value\n");
-        PerformanceAiManagementReport aiReport = payload == null ? null : payload.aiManagementReport();
-        row(csv, "Schema Version", aiReport == null ? null : aiReport.schemaVersion());
-        row(csv, "Generated By Version", aiReport == null ? null : aiReport.generatedByVersion());
-        row(csv, "Model", aiReport == null ? null : aiReport.model());
-        row(csv, "Duration Ms", aiReport == null ? null : aiReport.durationMs());
-        row(csv, "Attempt Count", aiReport == null ? null : aiReport.attemptCount());
-        row(csv, "Failure Reason", aiReport == null ? null : aiReport.failureReason());
-        row(csv, "Validation Errors", aiReport == null || aiReport.validationErrors() == null ? null : String.join("; ", aiReport.validationErrors()));
-        row(csv, "Prompt Hash", aiReport == null ? null : aiReport.promptHash());
-        row(csv, "Input Summary Hash", aiReport == null ? null : aiReport.inputSummaryHash());
-        row(csv, "Response Size", aiReport == null ? null : aiReport.responseSize());
-        row(csv, "Prompt Tokens", aiReport == null ? null : aiReport.promptTokens());
-        row(csv, "Completion Tokens", aiReport == null ? null : aiReport.completionTokens());
-        row(csv, "Total Tokens", aiReport == null ? null : aiReport.totalTokens());
-        csv.append('\n');
     }
 
     private void row(StringBuilder csv, Object... values) {
@@ -280,5 +205,12 @@ public class PerformanceExportService {
         boolean needsQuotes = text.contains(",") || text.contains("\"") || text.contains("\r") || text.contains("\n");
         String escaped = text.replace("\"", "\"\"");
         return needsQuotes ? "\"" + escaped + "\"" : escaped;
+    }
+
+    private String joinList(List<String> values) {
+        if (values == null || values.isEmpty()) {
+            return "";
+        }
+        return String.join(" | ", values);
     }
 }

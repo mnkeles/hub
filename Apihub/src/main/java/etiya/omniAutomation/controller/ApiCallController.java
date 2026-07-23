@@ -3,9 +3,11 @@ package etiya.omniAutomation.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import etiya.omniAutomation.business.dto.ParallelCallRequestDto;
 import etiya.omniAutomation.business.dto.ParameterRequestDto;
+import etiya.omniAutomation.common.PermissionConstants;
 import etiya.omniAutomation.service.ApiCallServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,16 +22,19 @@ public class ApiCallController {
     private final ApiCallServiceImpl apiCallService;
 
     @GetMapping("/callStep/{project}/{systemShortCode}/{stepShortCode}")
+    //@PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.API_CALL_EXECUTE + "')")
     public ResponseEntity<String> callXMLApi(@PathVariable String project, @PathVariable String systemShortCode, @PathVariable String stepShortCode) {
         return this.apiCallService.callXMLApi(project, systemShortCode, stepShortCode, false);
     }
 
     @GetMapping("/callProcess/{project}/{systemShortCode}/{processFlow}")
+    //@PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.API_CALL_EXECUTE + "')")
     public ResponseEntity<Map<String, Object>> callXmlProcessFlow(@PathVariable String project, @PathVariable String systemShortCode ,@PathVariable String processFlow) {
         return this.apiCallService.callXmlProcessFlow(project, systemShortCode, processFlow, false);
     }
 
     @PostMapping("/callProcess/{project}/{systemShortCode}/{processFlow}/v2")
+    //@PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.API_CALL_EXECUTE + "')")
     public ResponseEntity<Map<String, Object>> callXmlProcessFlowWithParams(@PathVariable String project,
                                                                             @PathVariable String systemShortCode,
                                                                             @PathVariable String processFlow,
@@ -41,6 +46,7 @@ public class ApiCallController {
     }
 
     @PostMapping("/callProcess/{project}/{systemShortCode}/{processFlow}/parallel")
+    //@PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.API_CALL_EXECUTE + "')")
     public ResponseEntity<Map<String, Object>> parallelCallXmlProcessFlowWithParams(@PathVariable String project,
                                                                                     @PathVariable String systemShortCode,
                                                                                     @PathVariable String processFlow,

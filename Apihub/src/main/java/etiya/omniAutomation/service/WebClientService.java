@@ -13,6 +13,7 @@ import java.lang.reflect.ParameterizedType;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Objects;
 
 @Service
@@ -22,6 +23,10 @@ public class WebClientService {
     private final WebClient webClient;
 
     public <T> ResponseEntity<T> exchange(String url, HttpEntity<?> httpEntity, HttpHeaders headers, HttpMethod httpMethod, ParameterizedTypeReference<T> typeReference) {
+        return exchange(url, httpEntity, headers, httpMethod, typeReference, null);
+    }
+
+    public <T> ResponseEntity<T> exchange(String url, HttpEntity<?> httpEntity, HttpHeaders headers, HttpMethod httpMethod, ParameterizedTypeReference<T> typeReference, ApiCallRequestOptions options) {
         WebClient.RequestBodySpec bodySpec = webClient.method(httpMethod)
                 .uri(URI.create(url))
                 .headers(httpHeaders -> httpHeaders.setAll(headers.toSingleValueMap()));
@@ -35,9 +40,12 @@ public class WebClientService {
                 bodySpec = (WebClient.RequestBodySpec) bodySpec.bodyValue(httpEntity.getBody());
             }
         }
-        return bodySpec.retrieve()
-                .toEntity(typeReference)
-                .block();
+        var responseSpec = bodySpec.retrieve()
+                .toEntity(typeReference);
+        if (options != null && options.hasTimeout()) {
+            return responseSpec.block(Duration.ofMillis(options.timeoutMs()));
+        }
+        return responseSpec.block();
     }
 
     private MultiValueMap<String, String> parseFormBody(String body) {

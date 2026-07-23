@@ -22,8 +22,7 @@ public interface PerformanceResultMapper {
     @Mapping(target = "analysisSummary", source = "analysisSummary")
     @Mapping(target = "errorAnalysis", source = "errorAnalysis")
     @Mapping(target = "environmentMetrics", source = "environmentMetrics")
-    @Mapping(target = "insightReport", source = "insightReport")
-    @Mapping(target = "aiManagementReport", source = "aiManagementReport")
+    @Mapping(target = "aiReport", source = "aiReport")
     @Mapping(target = "performanceSummaries", source = "summary")
     @Mapping(target = "resultSchemaVersion", source = "resultSchemaVersion")
     @Mapping(target = "thresholdPreset", source = "thresholdPreset")
@@ -32,6 +31,8 @@ public interface PerformanceResultMapper {
     @Mapping(target = "baselineResultId", source = "baselineResultId")
     @Mapping(target = "baselineComparison", source = "baselineComparison")
     @Mapping(target = "validationChecklist", source = "validationChecklist")
+    @Mapping(target = "testDataId", source = "testDataId")
+    @Mapping(target = "sloScore", source = "sloScore")
     @Named("toDto")
     PerformanceResultDto toDto(PerfRsltEntity entity);
 
@@ -44,8 +45,7 @@ public interface PerformanceResultMapper {
     @Mapping(target = "analysisSummary", source = "analysisSummary")
     @Mapping(target = "errorAnalysis", source = "errorAnalysis")
     @Mapping(target = "environmentMetrics", source = "environmentMetrics")
-    @Mapping(target = "insightReport", source = "insightReport")
-    @Mapping(target = "aiManagementReport", source = "aiManagementReport")
+    @Mapping(target = "aiReport", source = "aiReport")
     @Mapping(target = "summary", source = "performanceSummaries")
     @Mapping(target = "resultSchemaVersion", source = "resultSchemaVersion")
     @Mapping(target = "thresholdPreset", source = "thresholdPreset")
@@ -54,5 +54,7 @@ public interface PerformanceResultMapper {
     @Mapping(target = "baselineResultId", source = "baselineResultId")
     @Mapping(target = "baselineComparison", source = "baselineComparison")
     @Mapping(target = "validationChecklist", source = "validationChecklist")
+    @Mapping(target = "testDataId", source = "testDataId")
+    @Mapping(target = "sloScore", source = "sloScore")
     PerfRsltEntity toEntity(PerformanceResultDto dto);
 }

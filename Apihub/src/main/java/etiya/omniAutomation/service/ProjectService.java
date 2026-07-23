@@ -1,9 +1,7 @@
 package etiya.omniAutomation.service;
 
 import etiya.omniAutomation.business.dto.ProjectDto;
-import etiya.omniAutomation.entity.LdapUserEntity;
 import etiya.omniAutomation.entity.ProjectEntity;
-import etiya.omniAutomation.entity.UserEntity;
 import etiya.omniAutomation.mappers.ProjectMapper;
 import etiya.omniAutomation.repository.ProjectRepository;
 import etiya.omniAutomation.repository.UserProjectRelationRepository;
@@ -16,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,8 +22,6 @@ public class ProjectService {
 
     private final ProjectRepository projectRepository;
     private final UserProjectRelationRepository userProjectRelationRepository;
-    private final UserServiceImpl userService;
-    private final LdapUserService ldapUserService;
 
     @Cacheable(value = "project", key = "#shortCode", condition = "#shortCode != null")
     public ProjectDto getProject(String shortCode) {
@@ -54,34 +49,24 @@ public class ProjectService {
                 .collect(Collectors.toList());
     }
 
-    public List<ProjectDto> getProjectsForCurrentUser(String username, String authType) {
-        Long projectId = getCurrentUserProjectId(username, authType);
-        if (projectId == null) {
+    public List<ProjectDto> getProjectsForCurrentUser(Long userId) {
+        List<Long> projectIds = getCurrentUserProjectIds(userId);
+        if (projectIds.isEmpty()) {
             return getAllProjects();
         }
-        return this.projectRepository.findAllByProjectId(projectId)
+        return this.projectRepository.findAllByProjectIdIn(projectIds)
                 .stream()
                 .map(ProjectMapper.INSTANCE::toDto)
                 .collect(Collectors.toList());
     }
 
-    public boolean canCurrentUserAccessProject(String username, String authType, Long projectId) {
-        Long currentUserProjectId = getCurrentUserProjectId(username, authType);
-        return currentUserProjectId == null || currentUserProjectId.equals(projectId);
+    public boolean canCurrentUserAccessProject(Long userId, Long projectId) {
+        List<Long> currentUserProjectIds = getCurrentUserProjectIds(userId);
+        return currentUserProjectIds.isEmpty() || currentUserProjectIds.contains(projectId);
     }
 
-    private Long getCurrentUserProjectId(String username, String authType) {
-        if ("ldap".equalsIgnoreCase(authType)) {
-            LdapUserEntity ldapUser = ldapUserService.getActiveLdapUserOrThrow(username);
-            return ldapUser.getProjectId();
-        }
-
-        Optional<UserEntity> localUser = userService.getUserByAnyEmail(username);
-        if (localUser.isPresent()) {
-            return localUser.get().getProjectId();
-        }
-
-        return ldapUserService.getActiveLdapUserOrThrow(username).getProjectId();
+    private List<Long> getCurrentUserProjectIds(Long userId) {
+        return userProjectRelationRepository.findProjectIdsByEmail(userId);
     }
 
     public List<ProjectDto> getUserProjects(Long userId) {

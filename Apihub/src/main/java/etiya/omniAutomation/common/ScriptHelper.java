@@ -10,11 +10,20 @@ public class ScriptHelper {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public String process(Map<String, String> parameterContext, String responseBody, String script) {
-        ScriptEngine scriptEngine = new ScriptEngineManager().getEngineByName("graal.js");
-        if (scriptEngine == null) {
+    private static final ThreadLocal<ScriptEngine> ENGINE_CACHE = ThreadLocal.withInitial(() -> {
+        ScriptEngine engine = new ScriptEngineManager().getEngineByName("graal.js");
+        if (engine == null) {
             throw new IllegalStateException("JavaScript engine bulunamadı.");
         }
+        return engine;
+    });
+
+    private ScriptEngine getEngine() {
+        return ENGINE_CACHE.get();
+    }
+
+    public String process(Map<String, String> parameterContext, String responseBody, String script) {
+        ScriptEngine scriptEngine = getEngine();
         try {
             parameterContext.forEach((key, value) -> {
                 try {
@@ -77,10 +86,7 @@ public class ScriptHelper {
     }
 
     public String process( String script) {
-        ScriptEngine scriptEngine = new ScriptEngineManager().getEngineByName("graal.js");
-        if (scriptEngine == null) {
-            throw new IllegalStateException("JavaScript engine bulunamadı.");
-        }
+        ScriptEngine scriptEngine = getEngine();
         try {
             String jsonParseScript =
                     "var responseBody = null; " +

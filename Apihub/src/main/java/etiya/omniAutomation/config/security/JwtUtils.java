@@ -1,9 +1,11 @@
 package etiya.omniAutomation.config.security;
 
 import etiya.omniAutomation.business.dto.AuthResponse;
+import etiya.omniAutomation.business.dto.AuthUserResponse;
 import etiya.omniAutomation.entity.RefreshTokenEntity;
 import etiya.omniAutomation.entity.UserEntity;
 import etiya.omniAutomation.repository.RefreshTokenRepository;
+import etiya.omniAutomation.service.AuthorizationPermissionService;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
@@ -44,57 +46,51 @@ public class JwtUtils {
     }
 
     private final RefreshTokenRepository refreshTokenRepository;
-
-    public AuthResponse generateJwtTokenForLdapUser(String username) {
-        long now = System.currentTimeMillis();
-        String accessToken = Jwts.builder()
-                .signWith(secretKeySpec)
-                .expiration(new Date(now + expiration))
-                .issuedAt(new Date(now))
-                .subject(username)
-                .claim("authType", "ldap")
-                .issuer(issuer)
-                .audience()
-                .add(issuer + issuer)
-                .and()
-                .compact();
-        String refreshToken = Jwts.builder()
-                .signWith(secretKeySpec)
-                .subject(username)
-                .claim("authType", "ldap")
-                .issuer(issuer)
-                .audience()
-                .add(issuer + issuer)
-                .and()
-                .compact();
-        return new AuthResponse(accessToken, refreshToken);
-    }
+    private final AuthorizationPermissionService authorizationPermissionService;
 
     public AuthResponse generateJwtToken(UserEntity userEntity) {
+        AuthorizationUserDetails userDetails = authorizationPermissionService.loadUserDetails(userEntity.getEmail());
         long now = System.currentTimeMillis();
-        String accessToken = Jwts.builder()
-                .signWith(secretKeySpec)
-                .expiration(new Date(now + expiration))
-                .issuedAt(new Date(now))
-                .subject(userEntity.getEmail())
-                .claim("authType", "local")
-                .issuer(issuer)
-                .audience()
-                .add(issuer + issuer)
-                .and()
-                .compact();
+        String accessToken = buildToken(userDetails, now, expiration);
         Date refreshExp = new Date(now + refreshExpiration);
-        String refreshToken = Jwts.builder()
+        String refreshToken = buildRefreshToken(userDetails, now);
+        this.createRefreshToken(userEntity.getUserId(), refreshToken, refreshExp);
+        String authType = "LDAP_USER".equals(userDetails.principalType()) ? "ldap" : "local";
+        return new AuthResponse(accessToken, refreshToken, toAuthUserResponse(userDetails, authType));
+    }
+
+    private String buildToken(AuthorizationUserDetails userDetails, long now, long tokenExpiration) {
+        return Jwts.builder()
                 .signWith(secretKeySpec)
-                .subject(userEntity.getEmail())
-                .claim("authType", "local")
+                .expiration(new Date(now + tokenExpiration))
+                .issuedAt(new Date(now))
+                .subject(userDetails.getUsername())
+                .claim("userId", userDetails.principalId())
+                .claim("authType", "LDAP_USER".equals(userDetails.principalType()) ? "ldap" : "local")
+                .claim("principalType", userDetails.principalType())
+                .claim("permissions", userDetails.permissions())
+                .claim("projectIds", userDetails.projectIds())
+                .claim("superUser", userDetails.superUser())
                 .issuer(issuer)
                 .audience()
                 .add(issuer + issuer)
                 .and()
                 .compact();
-        this.createRefreshToken(userEntity.getUserId(), refreshToken, refreshExp);
-        return new AuthResponse(accessToken, refreshToken);
+    }
+
+    private String buildRefreshToken(AuthorizationUserDetails userDetails, long now) {
+        return Jwts.builder()
+                .signWith(secretKeySpec)
+                .issuedAt(new Date(now))
+                .subject(userDetails.getUsername())
+                .claim("userId", userDetails.principalId())
+                .claim("authType", "LDAP_USER".equals(userDetails.principalType()) ? "ldap" : "local")
+                .claim("principalType", userDetails.principalType())
+                .issuer(issuer)
+                .audience()
+                .add(issuer + issuer)
+                .and()
+                .compact();
     }
 
     public boolean validateJwtToken(String authToken, UserDetails userDetails) {
@@ -132,23 +128,38 @@ public class JwtUtils {
     }
 
     public String extractUsername(String token) {
+        return parseClaims(token).getSubject();
+    }
+
+    public String extractAuthType(String token) {
+        Object authType = parseClaims(token).get("authType");
+        return authType == null ? "local" : authType.toString();
+    }
+
+    public Long extractUserId(String token) {
+        Object userId = parseClaims(token).get("userId");
+        if (userId instanceof Number) {
+            return ((Number) userId).longValue();
+        }
+        return null;
+    }
+
+    public Claims parseClaims(String token) {
         return Jwts.parser().verifyWith(secretKeySpec)
                 .requireIssuer(issuer)
                 .requireAudience(issuer + issuer)
                 .build()
                 .parseSignedClaims(token)
-                .getPayload()
-                .getSubject();
+                .getPayload();
     }
 
-    public String extractAuthType(String token) {
-        Object authType = Jwts.parser().verifyWith(secretKeySpec)
-                .requireIssuer(issuer)
-                .requireAudience(issuer + issuer)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .get("authType");
-        return authType == null ? "local" : authType.toString();
+    private AuthUserResponse toAuthUserResponse(AuthorizationUserDetails userDetails, String authType) {
+        return new AuthUserResponse(
+                userDetails.principalId() == null ? null : userDetails.principalId().toString(),
+                userDetails.username(),
+                "local".equals(authType) ? userDetails.username() : null,
+                authType,
+                userDetails.permissions()
+        );
     }
 }

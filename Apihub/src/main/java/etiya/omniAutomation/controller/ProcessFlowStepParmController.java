@@ -1,11 +1,13 @@
 package etiya.omniAutomation.controller;
 
 import etiya.omniAutomation.business.dto.ProcessFlowStepParmDto;
+import etiya.omniAutomation.common.PermissionConstants;
 import etiya.omniAutomation.results.Result;
 import etiya.omniAutomation.service.ProcessFlowServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -17,6 +19,7 @@ public class ProcessFlowStepParmController {
     private final ProcessFlowServiceImpl processFlowService;
 
     @PutMapping("/update")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.PROCESS_FLOW_UPDATE + "')")
     public ResponseEntity<Result> updateParameter(@RequestBody ProcessFlowStepParmDto processFlowStepParmDto) {
         try {
             Result result = processFlowService.updateProcessFlowStepParameter(processFlowStepParmDto);
@@ -28,6 +31,7 @@ public class ProcessFlowStepParmController {
     }
 
     @GetMapping("/health")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> health() {
         return ResponseEntity.ok("Process Flow Step Parameter service is running");
     }

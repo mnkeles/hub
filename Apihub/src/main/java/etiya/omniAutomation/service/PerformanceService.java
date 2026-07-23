@@ -52,7 +52,7 @@ public class PerformanceService {
     private final PerformanceThresholdPresetResolver performanceThresholdPresetResolver;
     private final PerformanceBaselineService performanceBaselineService;
     private final PerformanceValidationChecklistBuilder performanceValidationChecklistBuilder;
-    private final PerformanceAiReportRegenerationService performanceAiReportRegenerationService;
+    private final PerformanceDatasetRuntimeService performanceDatasetRuntimeService;
 
     @Transactional
     public PerformanceResultDto executePerformanceTest(PerformanceRequest request) {
@@ -66,7 +66,12 @@ public class PerformanceService {
     }
 
     private PerformanceResultDto executeProcessFlowPerformance(PerformanceRequest request) {
-        PerfRsltEntity resultEntity = this.createRunningResult(request);
+        PerformanceDatasetRuntimeContext datasetRuntimeContext = this.performanceDatasetRuntimeService.resolve(
+                request.getProjectId(),
+                request.getTestDataId(),
+                request.getDatasetMapping()
+        );
+        PerfRsltEntity resultEntity = this.createRunningResult(request, datasetRuntimeContext);
         ProcessFlowDto processFlow = this.processFlowService.findByIdWithRelations(request.getProcessFlowId());
         processFlow.setProjectId(request.getProjectId());
         processFlow.setSystemShortCode(request.getEnvironment());
@@ -106,6 +111,7 @@ public class PerformanceService {
         result.setThinkTimeMs(request.getThinkTimeMs());
         result.setTimeoutMs(request.getTimeoutMs());
         result.setEnvironmentBaseUrl(request.getEnvironmentBaseUrl());
+        result.setTestDataId(request.getTestDataId());
         result.setRunSummary(new PerformanceRunSummary(
                 GeneralEnums.PerformanceStatus.RUNNING,
                 resultEntity.getCreatedAt(),
@@ -116,7 +122,7 @@ public class PerformanceService {
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                 null
         ));
-        CompletableFuture.runAsync(() -> this.apiCallService.executeFlowPerformanceTest(processFlow, result));
+        CompletableFuture.runAsync(() -> this.apiCallService.executeFlowPerformanceTest(processFlow, result, datasetRuntimeContext));
 
         return result;
     }
@@ -125,7 +131,7 @@ public class PerformanceService {
         throw new NotImplementedException("Performance test is not implemented");
     }
 
-    private PerfRsltEntity createRunningResult(PerformanceRequest request) {
+    private PerfRsltEntity createRunningResult(PerformanceRequest request, PerformanceDatasetRuntimeContext datasetRuntimeContext) {
         PerfRsltEntity resultEntity = new PerfRsltEntity();
         resultEntity.setThreadCount(request.getThreadCount());
         resultEntity.setRampUpPeriod(request.getRampUpPeriod());
@@ -134,6 +140,7 @@ public class PerformanceService {
         resultEntity.setThinkTimeMs(request.getThinkTimeMs());
         resultEntity.setTimeoutMs(request.getTimeoutMs());
         resultEntity.setEnvironmentBaseUrl(request.getEnvironmentBaseUrl());
+        resultEntity.setTestDataId(datasetRuntimeContext.enabled() ? datasetRuntimeContext.datasetId() : null);
         resultEntity.setResultSchemaVersion(1);
         resultEntity.setThresholdPreset(Optional.ofNullable(request.getThresholdPreset()).orElse(PerformanceThresholdPreset.NORMAL));
         resultEntity.setThresholdConfig(this.performanceThresholdPresetResolver.resolve(request));
@@ -226,7 +233,25 @@ public class PerformanceService {
     public PerformanceExportPayload getAnalysis(long performanceResultId) {
         PerfRsltEntity result = this.performanceResultRepository.findById(performanceResultId)
                 .orElseThrow(() -> new RuntimeException("Performance result not found: " + performanceResultId));
-        return this.performanceExportService.buildPayload(result, loadThreadGroup(performanceResultId));
+        return new PerformanceExportPayload(
+                result.getResultSchemaVersion(),
+                result.getThresholdPreset(),
+                result.getThresholdConfig(),
+                result.getBaseline(),
+                result.getBaselineResultId(),
+                result.getBaselineComparison(),
+                result.getValidationChecklist(),
+                result.getRunSummary(),
+                result.getThresholdResult(),
+                result.getAnalysisSummary(),
+                result.getErrorAnalysis(),
+                result.getEnvironmentMetrics(),
+                result.getAiReport(),
+                result.getTestDataId(),
+                result.getSloScore(),
+                result.getSummary(),
+                loadThreadGroup(performanceResultId)
+        );
     }
 
     public PerformanceLiveSnapshot getLiveSnapshot(long performanceResultId) {
@@ -268,10 +293,6 @@ public class PerformanceService {
         PerfRsltEntity target = this.performanceResultRepository.findById(targetResultId)
                 .orElseThrow(() -> new RuntimeException("Performance result not found: " + targetResultId));
         return this.performanceComparisonService.compare(base, target);
-    }
-
-    public PerformanceAiManagementReport regenerateAiReport(Long performanceResultId) {
-        return performanceAiReportRegenerationService.regenerate(performanceResultId, loadThreadGroup(performanceResultId));
     }
 
     @Transactional
@@ -347,9 +368,10 @@ public class PerformanceService {
                 item.getAnalysisSummary(),
                 item.getErrorAnalysis(),
                 item.getEnvironmentMetrics(),
-                item.getInsightReport(),
-                item.getAiManagementReport(),
+                item.getAiReport(),
                 item.getSummary(),
+                item.getTestDataId(),
+                item.getSloScore(),
                 item.getCreatedAt()
         );
     }

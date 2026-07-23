@@ -6,11 +6,13 @@ import {
     PerformanceAnalysisSummary,
     PerformanceEnvironmentMetrics,
     PerformanceErrorAnalysis,
+    PerformanceSloScore,
     PerformanceThresholdResult,
 } from '@/types/performance';
 import { dash, formatPercent } from './PerformanceMetricFormatters';
 import PerformanceEnvironmentMetricsPanel from './PerformanceEnvironmentMetricsPanel';
 import PerformanceFailureReasons from './PerformanceFailureReasons';
+import PerformanceSloScorePanel from './PerformanceSloScorePanel';
 import PerformanceThresholdStatusChip from './PerformanceThresholdStatusChip';
 
 interface PerformanceAnalysisPanelProps {
@@ -18,6 +20,7 @@ interface PerformanceAnalysisPanelProps {
     thresholdResult?: PerformanceThresholdResult | null;
     errorAnalysis?: PerformanceErrorAnalysis | null;
     environmentMetrics?: PerformanceEnvironmentMetrics | null;
+    sloScore?: PerformanceSloScore | null;
 }
 
 function Field({ label, value }: { label: string; value?: string | null }) {
@@ -29,16 +32,17 @@ function Field({ label, value }: { label: string; value?: string | null }) {
     );
 }
 
-export default function PerformanceAnalysisPanel({ analysis, thresholdResult, errorAnalysis, environmentMetrics }: PerformanceAnalysisPanelProps) {
+export default function PerformanceAnalysisPanel({ analysis, thresholdResult, errorAnalysis, environmentMetrics, sloScore }: PerformanceAnalysisPanelProps) {
     const t = useTranslations('performance');
     const effectiveThreshold = thresholdResult ?? analysis?.thresholdResult ?? null;
 
-    if (!analysis && !effectiveThreshold && !errorAnalysis && !environmentMetrics) {
+    if (!analysis && !effectiveThreshold && !errorAnalysis && !environmentMetrics && !sloScore) {
         return <Alert severity="info">{t('analysis')} -</Alert>;
     }
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <PerformanceSloScorePanel score={sloScore} />
             <Paper variant="outlined" sx={{ p: 2 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, mb: 2 }}>
                     <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>{t('analysis')}</Typography>

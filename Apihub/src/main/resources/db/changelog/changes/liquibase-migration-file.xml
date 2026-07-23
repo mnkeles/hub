@@ -7,16 +7,16 @@
 
     
     <!--
-        ÖNEMLİ:
-        Her changeset için benzersiz bir ID kullanın,aynı id çalışmaz
-        liquibase ile atılan kayıtlar id numarası ile bir tabloya yazılır (databasechangelog tablosu)
-        kullanılmış bir id ile tekrar kayıt atılmaya çalışırsa eğer o kayıt atılmaz.
-        Her id bir kere çalışır , bundan sonra proje yeniden çalıştırıldığında daha önce atılan kayıt
-        tekrar atılmaz.
+        Ã–NEMLÄ°:
+        Her changeset iÃ§in benzersiz bir ID kullanÄ±n,aynÄ± id Ã§alÄ±ÅŸmaz
+        liquibase ile atÄ±lan kayÄ±tlar id numarasÄ± ile bir tabloya yazÄ±lÄ±r (databasechangelog tablosu)
+        kullanÄ±lmÄ±ÅŸ bir id ile tekrar kayÄ±t atÄ±lmaya Ã§alÄ±ÅŸÄ±rsa eÄŸer o kayÄ±t atÄ±lmaz.
+        Her id bir kere Ã§alÄ±ÅŸÄ±r , bundan sonra proje yeniden Ã§alÄ±ÅŸtÄ±rÄ±ldÄ±ÄŸÄ±nda daha Ã¶nce atÄ±lan kayÄ±t
+        tekrar atÄ±lmaz.
         SELECT * FROM databasechangelog;
 
     <changeSet id="gnl_api_call_log_processFlow2" author="apihub">
-    <comment>Atılan kayıtı buraya yaz</comment>
+    <comment>AtÄ±lan kayÄ±tÄ± buraya yaz</comment>
         <addColumn tableName="gnl_api_call_log">
             <column name="process_flow2" type="VARCHAR(100)" defaultValue="ACTIVE">
             </column>
@@ -24,7 +24,7 @@
     </changeSet>
 
     <changeSet id="v1.0.0-001-create-sample-table" author="apihub">
-        <comment>Örnek tablo oluşturma - Bu changeset'i silebilirsiniz</comment>
+        <comment>Ã–rnek tablo oluÅŸturma - Bu changeset'i silebilirsiniz</comment>
         <createTable tableName="sample_table">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
@@ -38,7 +38,7 @@
     </changeSet>
 
     <changeSet id="v1.0.0-002-add-column-to-sample" author="apihub">
-        <comment>Mevcut tabloya yeni kolon ekleme örneği</comment>
+        <comment>Mevcut tabloya yeni kolon ekleme Ã¶rneÄŸi</comment>
         <addColumn tableName="sample_table">
             <column name="status" type="VARCHAR(50)" defaultValue="ACTIVE">
                 <constraints nullable="false"/>
@@ -47,14 +47,14 @@
     </changeSet>
 
     <changeSet id="v1.0.0-003-create-index" author="apihub">
-        <comment>Index oluşturma örneği</comment>
+        <comment>Index oluÅŸturma Ã¶rneÄŸi</comment>
         <createIndex indexName="idx_sample_name" tableName="sample_table">
             <column name="name"/>
         </createIndex>
     </changeSet>
 
     <changeSet id="v1.0.0-004-modify-column-type" author="apihub">
-        <comment>Kolon tipi değiştirme örneği</comment>
+        <comment>Kolon tipi deÄŸiÅŸtirme Ã¶rneÄŸi</comment>
         <modifyDataType tableName="sample_table" columnName="name" newDataType="VARCHAR(500)"/>
     </changeSet>
 
@@ -75,28 +75,72 @@
 
     -->
 
+    <changeSet id="2026-06-17-000-create-ldap-user-table" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="ldap_user"/></not>
+        </preConditions>
+        <createTable tableName="ldap_user">
+            <column name="ldap_user_id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="username" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="first_name" type="VARCHAR(255)"/>
+            <column name="last_name" type="VARCHAR(255)"/>
+            <column name="enabled" type="INTEGER"/>
+            <column name="project_id" type="BIGINT"/>
+            <column name="cdate" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="udate" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
     <changeSet id="2026-06-17-001-add-project-id-to-users-and-ldap-user" author="apihub">
-        <comment>users ve ldap_user tablolarına nullable project_id alanı eklenir. Boş ise kullanıcı tüm projeleri görebilir.</comment>
+        <validCheckSum>9:294549b604fdd6315ba7f659b417d763</validCheckSum>
+        <preConditions onFail="MARK_RAN">
+            <not><columnExists tableName="users" columnName="project_id"/></not>
+        </preConditions>
+        <comment>users tablosuna nullable project_id alanÄ± eklenir.</comment>
         <addColumn tableName="users">
             <column name="project_id" type="BIGINT"/>
         </addColumn>
+    </changeSet>
+
+    <changeSet id="2026-06-17-001b-add-project-id-to-ldap-user" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <not><columnExists tableName="ldap_user" columnName="project_id"/></not>
+        </preConditions>
         <addColumn tableName="ldap_user">
             <column name="project_id" type="BIGINT"/>
         </addColumn>
     </changeSet>
 
     <changeSet id="2026-06-17-002-add-project-id-indexes" author="apihub">
-        <comment>Kullanıcı proje filtreleri için index eklenir.</comment>
+        <validCheckSum>9:5314f82147f7d438b715a2ba0121c58e</validCheckSum>
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists indexName="idx_users_project_id"/></not>
+        </preConditions>
+        <comment>KullanÄ±cÄ± proje filtreleri iÃ§in index eklenir.</comment>
         <createIndex indexName="idx_users_project_id" tableName="users">
             <column name="project_id"/>
         </createIndex>
+    </changeSet>
+
+    <changeSet id="2026-06-17-002b-add-ldap-user-project-id-index" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists indexName="idx_ldap_user_project_id"/></not>
+        </preConditions>
         <createIndex indexName="idx_ldap_user_project_id" tableName="ldap_user">
             <column name="project_id"/>
         </createIndex>
     </changeSet>
 
     <changeSet id="2026-06-17-003-add-project-id-foreign-keys" author="apihub">
-        <comment>users.project_id ve ldap_user.project_id project.project_id alanına bağlanır.</comment>
+        <validCheckSum>9:cb61b4e530508ddda785d1b22bd5c1e0</validCheckSum>
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_users_project"/></not>
+        </preConditions>
+        <comment>users.project_id project.project_id alanÄ±na baÄŸlanÄ±r.</comment>
         <addForeignKeyConstraint
                 baseTableName="users"
                 baseColumnNames="project_id"
@@ -104,6 +148,12 @@
                 referencedTableName="project"
                 referencedColumnNames="project_id"
                 onDelete="SET NULL"/>
+    </changeSet>
+
+    <changeSet id="2026-06-17-003b-add-ldap-user-project-fk" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyName="fk_ldap_user_project"/></not>
+        </preConditions>
         <addForeignKeyConstraint
                 baseTableName="ldap_user"
                 baseColumnNames="project_id"
@@ -161,6 +211,17 @@
         </preConditions>
         <addColumn tableName="perf_rslt">
             <column name="environment_metrics" type="jsonb"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="2026-07-23-001-add-ai-report-to-perf-rslt" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="perf_rslt" columnName="ai_report"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="perf_rslt">
+            <column name="ai_report" type="jsonb"/>
         </addColumn>
     </changeSet>
 
@@ -301,26 +362,460 @@
             <column name="validation_checklist" type="jsonb"/>
         </addColumn>
     </changeSet>
-
-    <changeSet id="2026-07-01-001-add-insight-report-to-perf-rslt" author="apihub">
+    <changeSet id="2026-07-12-001-create-roles-table-if-missing" author="apihub">
         <preConditions onFail="MARK_RAN">
-            <not>
-                <columnExists tableName="perf_rslt" columnName="insight_report"/>
-            </not>
+            <not><tableExists tableName="roles"/></not>
         </preConditions>
-        <addColumn tableName="perf_rslt">
-            <column name="insight_report" type="jsonb"/>
+        <createTable tableName="roles">
+            <column name="role_id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="short_code" type="VARCHAR(80)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="name" type="VARCHAR(120)"/>
+            <column name="description" type="VARCHAR(500)"/>
+            <column name="system_role" type="BOOLEAN" defaultValueBoolean="false"/>
+            <column name="enabled" type="INTEGER" defaultValueNumeric="1"/>
+            <column name="cdate" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="udate" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="2026-07-12-002-add-role-metadata-columns" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="roles"/>
+                <not><columnExists tableName="roles" columnName="name"/></not>
+            </and>
+        </preConditions>
+        <addColumn tableName="roles">
+            <column name="name" type="VARCHAR(120)"/>
+            <column name="description" type="VARCHAR(500)"/>
+            <column name="system_role" type="BOOLEAN" defaultValueBoolean="false"/>
+            <column name="enabled" type="INTEGER" defaultValueNumeric="1"/>
+            <column name="udate" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
         </addColumn>
     </changeSet>
 
-    <changeSet id="2026-07-01-002-add-ai-management-report-to-perf-rslt" author="apihub">
+
+    <changeSet id="2026-07-12-002b-add-roles-short-code-unique" author="apihub">
         <preConditions onFail="MARK_RAN">
-            <not>
-                <columnExists tableName="perf_rslt" columnName="ai_management_report"/>
-            </not>
+            <and>
+                <tableExists tableName="roles"/>
+                <not><uniqueConstraintExists tableName="roles" constraintName="uk_roles_short_code"/></not>
+            </and>
+        </preConditions>
+        <addUniqueConstraint tableName="roles" columnNames="short_code" constraintName="uk_roles_short_code"/>
+    </changeSet>
+
+    <changeSet id="2026-07-12-003-create-permissions-table" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="permissions"/></not>
+        </preConditions>
+        <createTable tableName="permissions">
+            <column name="permission_id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="permission_key" type="VARCHAR(120)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="name" type="VARCHAR(150)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(500)"/>
+            <column name="category" type="VARCHAR(80)"/>
+            <column name="ui_visible" type="BOOLEAN" defaultValueBoolean="true"/>
+            <column name="service_assignable" type="BOOLEAN" defaultValueBoolean="false"/>
+            <column name="enabled" type="INTEGER" defaultValueNumeric="1"/>
+            <column name="cdate" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="udate" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="2026-07-12-004-create-role-permissions-table" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="role_permissions"/></not>
+        </preConditions>
+        <createTable tableName="role_permissions">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="role_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="permission_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="cdate" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+        <addUniqueConstraint tableName="role_permissions" columnNames="role_id, permission_id" constraintName="uk_role_permissions_role_permission"/>
+        <addForeignKeyConstraint baseTableName="role_permissions" baseColumnNames="role_id" constraintName="fk_role_permissions_role" referencedTableName="roles" referencedColumnNames="role_id" onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="role_permissions" baseColumnNames="permission_id" constraintName="fk_role_permissions_permission" referencedTableName="permissions" referencedColumnNames="permission_id" onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="2026-07-12-005-add-project-id-to-user-role" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="user_role"/>
+                <not><columnExists tableName="user_role" columnName="project_id"/></not>
+            </and>
+        </preConditions>
+        <addColumn tableName="user_role">
+            <column name="project_id" type="BIGINT"/>
+        </addColumn>
+        <addForeignKeyConstraint baseTableName="user_role" baseColumnNames="project_id" constraintName="fk_user_role_project" referencedTableName="project" referencedColumnNames="project_id" onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="2026-07-12-006-create-ldap-user-role-table" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="ldap_user_role"/></not>
+        </preConditions>
+        <createTable tableName="ldap_user_role">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="ldap_user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="role_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="project_id" type="BIGINT"/>
+            <column name="cdate" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="ldap_user_role" baseColumnNames="ldap_user_id" constraintName="fk_ldap_user_role_ldap_user" referencedTableName="ldap_user" referencedColumnNames="ldap_user_id" onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="ldap_user_role" baseColumnNames="role_id" constraintName="fk_ldap_user_role_role" referencedTableName="roles" referencedColumnNames="role_id" onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="ldap_user_role" baseColumnNames="project_id" constraintName="fk_ldap_user_role_project" referencedTableName="project" referencedColumnNames="project_id" onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="2026-07-12-007-create-service-accounts" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="service_accounts"/></not>
+        </preConditions>
+        <createTable tableName="service_accounts">
+            <column name="service_account_id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="service_code" type="VARCHAR(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="name" type="VARCHAR(150)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(500)"/>
+            <column name="owner" type="VARCHAR(150)"/>
+            <column name="enabled" type="INTEGER" defaultValueNumeric="1"/>
+            <column name="cdate" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="udate" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="2026-07-12-008-create-service-account-role" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="service_account_role"/></not>
+        </preConditions>
+        <createTable tableName="service_account_role">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="service_account_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="role_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="project_id" type="BIGINT"/>
+            <column name="cdate" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="service_account_role" baseColumnNames="service_account_id" constraintName="fk_service_account_role_service_account" referencedTableName="service_accounts" referencedColumnNames="service_account_id" onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="service_account_role" baseColumnNames="role_id" constraintName="fk_service_account_role_role" referencedTableName="roles" referencedColumnNames="role_id" onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="service_account_role" baseColumnNames="project_id" constraintName="fk_service_account_role_project" referencedTableName="project" referencedColumnNames="project_id" onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="2026-07-12-009-create-service-tokens" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="service_tokens"/></not>
+        </preConditions>
+        <createTable tableName="service_tokens">
+            <column name="service_token_id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="service_account_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="token_name" type="VARCHAR(150)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="token_hash" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="token_prefix" type="VARCHAR(30)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="expires_at" type="TIMESTAMP"/>
+            <column name="last_used_at" type="TIMESTAMP"/>
+            <column name="revoked_at" type="TIMESTAMP"/>
+            <column name="created_by" type="VARCHAR(150)"/>
+            <column name="cdate" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="service_tokens" baseColumnNames="service_account_id" constraintName="fk_service_tokens_service_account" referencedTableName="service_accounts" referencedColumnNames="service_account_id" onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="2026-07-12-010-create-authorization-audit-log" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="authorization_audit_log"/></not>
+        </preConditions>
+        <createTable tableName="authorization_audit_log">
+            <column name="audit_log_id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="actor_type" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="actor_id" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="action" type="VARCHAR(120)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="target_type" type="VARCHAR(80)"/>
+            <column name="target_id" type="VARCHAR(100)"/>
+            <column name="details" type="TEXT"/>
+            <column name="cdate" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="2026-07-12-011-seed-system-roles-and-permissions" author="apihub">
+        <sql>
+            INSERT INTO roles (short_code, name, description, system_role, enabled)
+            VALUES
+                ('ROLE_SUPER_USER', 'Super User', 'Bypasses all authorization checks', true, 1),
+                ('ROLE_ADMIN', 'Admin', 'Administrative human user role', true, 1),
+                ('ROLE_USER', 'User', 'Standard human user role', true, 1),
+                ('ROLE_SERVICE', 'Service', 'Base service account role', true, 1)
+            ON CONFLICT (short_code) DO NOTHING;
+
+            INSERT INTO permissions (permission_key, name, description, category, ui_visible, service_assignable, enabled)
+            VALUES
+                ('MENU.DASHBOARD.VIEW', 'View Dashboard Menu', 'Show Dashboard menu', 'Menu', true, false, 1),
+                ('MENU.API_INFORMATION.VIEW', 'View API Information Menu', 'Show API Information menu', 'Menu', true, false, 1),
+                ('MENU.PROCESS_FLOWS.VIEW', 'View Process Flows Menu', 'Show Process Flows menu', 'Menu', true, false, 1),
+                ('MENU.SYSTEMS.VIEW', 'View Systems Menu', 'Show Systems menu', 'Menu', true, false, 1),
+                ('MENU.DATA_CONNECTIONS.VIEW', 'View Data Connections Menu', 'Show Data Connections menu', 'Menu', true, false, 1),
+                ('MENU.PERFORMANCE.VIEW', 'View Performance Menu', 'Show Performance menu', 'Menu', true, false, 1),
+                ('MENU.API_EXECUTOR.VIEW', 'View API Executor Menu', 'Show API Executor menu', 'Menu', true, false, 1),
+                ('MENU.DOCUMENTS.VIEW', 'View Documents Menu', 'Show Documents menu', 'Menu', true, false, 1),
+                ('MENU.USER.VIEW', 'View User Menu', 'Show User/Profile menu', 'Menu', true, false, 1),
+                ('MENU.SETTINGS.VIEW', 'View Settings Menu', 'Show Settings menu', 'Menu', true, false, 1),
+                ('MENU.AUTHORIZATION.VIEW', 'View Authorization Menu', 'Show Authorization admin menu', 'Menu', true, false, 1),
+                ('MENU.AI_CHAT.VIEW', 'View AI Chat', 'Show AI Chat UI', 'AI Chat', true, false, 1),
+                ('PROJECT.VIEW', 'View Projects', 'View projects', 'Project', true, true, 1),
+                ('PROJECT.CREATE', 'Create Projects', 'Create projects', 'Project', true, false, 1),
+                ('PROJECT.UPDATE', 'Update Projects', 'Update projects', 'Project', true, false, 1),
+                ('PROJECT.DELETE', 'Delete Projects', 'Delete projects', 'Project', true, false, 1),
+                ('API_INFORMATION.VIEW', 'View API Information', 'View API definitions', 'API Information', true, false, 1),
+                ('API_INFORMATION.CREATE', 'Create API Information', 'Create API definitions', 'API Information', true, false, 1),
+                ('API_INFORMATION.UPDATE', 'Update API Information', 'Update API definitions', 'API Information', true, false, 1),
+                ('API_INFORMATION.DELETE', 'Delete API Information', 'Delete API definitions', 'API Information', true, false, 1),
+                ('PROCESS_FLOW.VIEW', 'View Process Flows', 'View process flows', 'Process Flow', true, true, 1),
+                ('PROCESS_FLOW.CREATE', 'Create Process Flows', 'Create process flows', 'Process Flow', true, false, 1),
+                ('PROCESS_FLOW.UPDATE', 'Update Process Flows', 'Update process flows', 'Process Flow', true, false, 1),
+                ('PROCESS_FLOW.DELETE', 'Delete Process Flows', 'Delete process flows', 'Process Flow', true, false, 1),
+                ('PROCESS_FLOW.COPY', 'Copy Process Flows', 'Copy process flows', 'Process Flow', true, false, 1),
+                ('API_CALL.EXECUTE', 'Execute API Calls', 'Execute API/process calls', 'Execution', true, true, 1),
+                ('PERFORMANCE.HISTORY.VIEW', 'View Performance History', 'View performance history', 'Performance', true, true, 1),
+                ('PERFORMANCE.TEST.RUN', 'Run Performance Tests', 'Run performance tests', 'Performance', true, true, 1),
+                ('DATABASE_CONFIG.VIEW', 'View Database Configs', 'View database configs', 'Database Config', true, false, 1),
+                ('DATABASE_CONFIG.CREATE', 'Create Database Configs', 'Create database configs', 'Database Config', true, false, 1),
+                ('DATABASE_CONFIG.UPDATE', 'Update Database Configs', 'Update database configs', 'Database Config', true, false, 1),
+                ('DATABASE_CONFIG.DELETE', 'Delete Database Configs', 'Delete database configs', 'Database Config', true, false, 1),
+                ('CACHE.CLEAR', 'Clear Cache', 'Clear caches', 'System', true, false, 1),
+                ('USER.MANAGE', 'Manage Users', 'Manage local/LDAP user role assignments', 'Authorization', true, false, 1),
+                ('ROLE.MANAGE', 'Manage Roles', 'Create/update/disable roles', 'Authorization', true, false, 1),
+                ('PERMISSION.MANAGE', 'Manage Permissions', 'Assign permissions to roles', 'Authorization', true, false, 1),
+                ('SERVICE_ACCOUNT.MANAGE', 'Manage Service Accounts', 'Manage service accounts and service tokens', 'Authorization', true, false, 1),
+                ('AUDIT_LOG.VIEW', 'View Audit Logs', 'View authorization audit logs', 'Authorization', true, false, 1),
+                ('AI_CHAT.USE', 'Use AI Chat', 'Send AI chat messages', 'AI Chat', true, false, 1),
+                ('AI_CHAT.PROJECT_CONTEXT.USE', 'Use AI Chat Project Context', 'Allow AI chat to use selected project context', 'AI Chat', true, false, 1),
+                ('AI_CHAT.HISTORY.VIEW', 'View AI Chat History', 'View AI chat history', 'AI Chat', true, false, 1),
+                ('AI_CHAT.HISTORY.DELETE', 'Delete AI Chat History', 'Delete AI chat history', 'AI Chat', true, false, 1),
+                ('AI_CHAT.ADMIN', 'Administer AI Chat', 'Configure AI chat model/provider/settings/prompts/limits', 'AI Chat', true, false, 1)
+            ON CONFLICT (permission_key) DO NOTHING;
+        </sql>
+    </changeSet>
+
+    <changeSet id="2026-07-12-012-seed-default-role-permissions" author="apihub">
+        <sql>
+            INSERT INTO role_permissions (role_id, permission_id)
+            SELECT r.role_id, p.permission_id
+            FROM roles r
+            CROSS JOIN permissions p
+            WHERE r.short_code = 'ROLE_ADMIN'
+            ON CONFLICT (role_id, permission_id) DO NOTHING;
+
+            INSERT INTO role_permissions (role_id, permission_id)
+            SELECT r.role_id, p.permission_id
+            FROM roles r
+            JOIN permissions p ON p.permission_key IN (
+                'MENU.DASHBOARD.VIEW',
+                'MENU.API_INFORMATION.VIEW',
+                'MENU.PROCESS_FLOWS.VIEW',
+                'MENU.API_EXECUTOR.VIEW',
+                'MENU.DOCUMENTS.VIEW',
+                'MENU.USER.VIEW',
+                'MENU.AI_CHAT.VIEW',
+                'PROJECT.VIEW',
+                'API_INFORMATION.VIEW',
+                'PROCESS_FLOW.VIEW',
+                'API_CALL.EXECUTE',
+                'PERFORMANCE.HISTORY.VIEW',
+                'AI_CHAT.USE',
+                'AI_CHAT.HISTORY.VIEW'
+            )
+            WHERE r.short_code = 'ROLE_USER'
+            ON CONFLICT (role_id, permission_id) DO NOTHING;
+
+            INSERT INTO role_permissions (role_id, permission_id)
+            SELECT r.role_id, p.permission_id
+            FROM roles r
+            JOIN permissions p ON p.permission_key IN (
+                'PROJECT.VIEW',
+                'PROCESS_FLOW.VIEW',
+                'API_CALL.EXECUTE'
+            )
+            WHERE r.short_code = 'ROLE_SERVICE'
+            ON CONFLICT (role_id, permission_id) DO NOTHING;
+        </sql>
+    </changeSet>
+
+    <changeSet id="2026-07-23-010-create-perf-dataset" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="perf_dataset"/></not>
+        </preConditions>
+        <createTable tableName="perf_dataset">
+            <column name="dataset_id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="project_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(160)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(1000)"/>
+            <column name="source_type" type="VARCHAR(32)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="column_schema" type="jsonb"/>
+            <column name="default_mapping" type="jsonb"/>
+            <column name="row_count" type="INT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+        <createIndex indexName="idx_perf_dataset_project_active" tableName="perf_dataset">
+            <column name="project_id"/>
+            <column name="active"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="2026-07-23-011-create-perf-dataset-row" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="perf_dataset_row"/></not>
+        </preConditions>
+        <createTable tableName="perf_dataset_row">
+            <column name="row_id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="dataset_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="row_index" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="data" type="jsonb"/>
+            <column name="active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="perf_dataset_row" columnNames="dataset_id, row_index" constraintName="uk_perf_dataset_row_dataset_index"/>
+        <createIndex indexName="idx_perf_dataset_row_dataset_active" tableName="perf_dataset_row">
+            <column name="dataset_id"/>
+            <column name="active"/>
+        </createIndex>
+        <addForeignKeyConstraint
+                baseTableName="perf_dataset_row"
+                baseColumnNames="dataset_id"
+                constraintName="fk_perf_dataset_row_dataset"
+                referencedTableName="perf_dataset"
+                referencedColumnNames="dataset_id"
+                onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="2026-07-23-012-create-perf-schedule" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="perf_schedule"/></not>
+        </preConditions>
+        <createTable tableName="perf_schedule">
+            <column name="schedule_id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="project_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="process_flow_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(160)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="cron_expression" type="VARCHAR(120)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="timezone" type="VARCHAR(80)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="enabled" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="request_snapshot" type="jsonb"/>
+            <column name="last_run_at" type="TIMESTAMP"/>
+            <column name="next_run_at" type="TIMESTAMP"/>
+            <column name="last_result_id" type="BIGINT"/>
+            <column name="last_status" type="VARCHAR(40)"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+        <createIndex indexName="idx_perf_schedule_due" tableName="perf_schedule">
+            <column name="enabled"/>
+            <column name="next_run_at"/>
+        </createIndex>
+        <createIndex indexName="idx_perf_schedule_project_flow" tableName="perf_schedule">
+            <column name="project_id"/>
+            <column name="process_flow_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="2026-07-23-013-add-test-data-id-to-perf-rslt" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <not><columnExists tableName="perf_rslt" columnName="test_data_id"/></not>
         </preConditions>
         <addColumn tableName="perf_rslt">
-            <column name="ai_management_report" type="jsonb"/>
+            <column name="test_data_id" type="BIGINT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="2026-07-23-014-add-slo-score-to-perf-rslt" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <not><columnExists tableName="perf_rslt" columnName="slo_score"/></not>
+        </preConditions>
+        <addColumn tableName="perf_rslt">
+            <column name="slo_score" type="jsonb"/>
         </addColumn>
     </changeSet>
 

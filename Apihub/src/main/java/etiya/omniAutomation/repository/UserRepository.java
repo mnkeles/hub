@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.List;
 import java.util.Optional;
 
-public interface UserRepository extends JpaRepository<UserEntity,Integer> {
+public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
     @Query(value = "SELECT ue.password FROM UserEntity ue WHERE ue.email = :email")
     String getUserPasswordByEmail(String email);
@@ -19,7 +19,7 @@ public interface UserRepository extends JpaRepository<UserEntity,Integer> {
 
     UserEntity findByEmail(String email);
 
-    @Query("SELECT ue.id FROM UserEntity ue WHERE ue.email = :email")
+    @Query("SELECT ue.userId FROM UserEntity ue WHERE ue.email = :email")
     long findUserIdWithEmail(String email);
 
     UserEntity findByEmailAndPasswordAndEnabled(String email, String password, int enabled);

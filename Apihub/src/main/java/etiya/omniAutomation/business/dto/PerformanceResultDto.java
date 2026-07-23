@@ -31,8 +31,7 @@ public class PerformanceResultDto extends AbstractDto {
     private PerformanceAnalysisSummary analysisSummary;
     private PerformanceErrorAnalysis errorAnalysis;
     private PerformanceEnvironmentMetrics environmentMetrics;
-    private PerformanceInsightReport insightReport;
-    private PerformanceAiManagementReport aiManagementReport;
+    private PerformanceAiReport aiReport;
     private Integer resultSchemaVersion;
     private PerformanceThresholdPreset thresholdPreset;
     private PerformanceThresholdConfig thresholdConfig;
@@ -45,6 +44,8 @@ public class PerformanceResultDto extends AbstractDto {
     private Integer thinkTimeMs;
     private Integer timeoutMs;
     private String environmentBaseUrl;
+    private Long testDataId;
+    private PerformanceSloScore sloScore;
     private Date createdAt;
 
 }

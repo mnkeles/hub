@@ -61,7 +61,6 @@ public class LdapConfig {
             contextSource.setUrl(ldapUrl.replace("ldaps://", "ldap://"));
         }
 
-        contextSource.afterPropertiesSet();
         logger.info("LDAP Context Source configured: url={}, base={}, ssl={}", ldapUrl, ldapBase, sslEnabled);
         return contextSource;
     }

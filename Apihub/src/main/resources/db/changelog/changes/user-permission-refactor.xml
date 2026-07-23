@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Insert SUPER_USER permission if not exists -->
+    <changeSet id="2026-07-12-user-perm-000-insert-super-user-permission" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM permissions WHERE permission_key = 'SUPER_USER'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            INSERT INTO permissions (permission_key, name, description, category, ui_visible, service_assignable, enabled, cdate, udate)
+            VALUES ('SUPER_USER', 'Super User', 'Bypasses all permission checks', 'SYSTEM', false, false, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+        </sql>
+    </changeSet>
+
+    <!-- Create user_permission table -->
+    <changeSet id="2026-07-12-user-perm-001-create-user-permission-table" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="user_permission"/></not>
+        </preConditions>
+        <createTable tableName="user_permission">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="permission_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="cdate" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+        <addUniqueConstraint tableName="user_permission" columnNames="user_id, permission_id" constraintName="uk_user_permission_user_permission"/>
+        <addForeignKeyConstraint baseTableName="user_permission" baseColumnNames="user_id" constraintName="fk_user_permission_user" referencedTableName="users" referencedColumnNames="user_id" onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="user_permission" baseColumnNames="permission_id" constraintName="fk_user_permission_permission" referencedTableName="permissions" referencedColumnNames="permission_id" onDelete="CASCADE"/>
+    </changeSet>
+
+    <!-- Migrate data from user_role + role_permissions to user_permission -->
+    <changeSet id="2026-07-12-user-perm-002-migrate-role-permissions-to-user-permission" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="user_role"/>
+                <tableExists tableName="role_permissions"/>
+                <tableExists tableName="user_permission"/>
+            </and>
+        </preConditions>
+        <sql>
+            INSERT INTO user_permission (user_id, permission_id, cdate)
+            SELECT DISTINCT ur.user_id, rp.permission_id, CURRENT_TIMESTAMP
+            FROM user_role ur
+            JOIN role_permissions rp ON ur.role_id = rp.role_id
+            WHERE NOT EXISTS (
+                SELECT 1 FROM user_permission up
+                WHERE up.user_id = ur.user_id AND up.permission_id = rp.permission_id
+            );
+        </sql>
+    </changeSet>
+
+    <!-- Migrate ROLE_SUPER_USER users to get SUPER_USER permission -->
+    <changeSet id="2026-07-12-user-perm-002b-migrate-super-user-role" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="user_role"/>
+                <tableExists tableName="roles"/>
+                <tableExists tableName="user_permission"/>
+            </and>
+        </preConditions>
+        <sql>
+            INSERT INTO user_permission (user_id, permission_id, cdate)
+            SELECT DISTINCT ur.user_id, p.permission_id, CURRENT_TIMESTAMP
+            FROM user_role ur
+            JOIN roles r ON ur.role_id = r.role_id
+            CROSS JOIN permissions p
+            WHERE r.short_code = 'ROLE_SUPER_USER'
+            AND p.permission_key = 'SUPER_USER'
+            AND NOT EXISTS (
+                SELECT 1 FROM user_permission up
+                WHERE up.user_id = ur.user_id AND up.permission_id = p.permission_id
+            );
+        </sql>
+    </changeSet>
+
+    <!-- Fallback: if no user has SUPER_USER, grant it to the first user as bootstrap admin -->
+    <changeSet id="2026-07-12-user-perm-002c-bootstrap-super-user" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="user_permission"/>
+                <tableExists tableName="permissions"/>
+                <tableExists tableName="users"/>
+            </and>
+        </preConditions>
+        <sql>
+            INSERT INTO user_permission (user_id, permission_id, cdate)
+            SELECT u.user_id, p.permission_id, CURRENT_TIMESTAMP
+            FROM users u
+            CROSS JOIN permissions p
+            WHERE p.permission_key = 'SUPER_USER'
+            AND u.user_id = (SELECT MIN(user_id) FROM users)
+            AND NOT EXISTS (
+                SELECT 1 FROM user_permission up
+                WHERE up.permission_id = p.permission_id
+            );
+        </sql>
+    </changeSet>
+
+    <!-- Create service_account_permission table -->
+    <changeSet id="2026-07-12-user-perm-003-create-service-account-permission-table" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="service_account_permission"/></not>
+        </preConditions>
+        <createTable tableName="service_account_permission">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="service_account_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="permission_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="project_id" type="BIGINT"/>
+            <column name="cdate" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="service_account_permission" baseColumnNames="service_account_id" constraintName="fk_service_account_permission_sa" referencedTableName="service_accounts" referencedColumnNames="service_account_id" onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="service_account_permission" baseColumnNames="permission_id" constraintName="fk_service_account_permission_permission" referencedTableName="permissions" referencedColumnNames="permission_id" onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="service_account_permission" baseColumnNames="project_id" constraintName="fk_service_account_permission_project" referencedTableName="project" referencedColumnNames="project_id" onDelete="CASCADE"/>
+    </changeSet>
+
+    <!-- Migrate data from service_account_role + role_permissions to service_account_permission -->
+    <changeSet id="2026-07-12-user-perm-004-migrate-sa-role-to-permission" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="service_account_role"/>
+                <tableExists tableName="role_permissions"/>
+                <tableExists tableName="service_account_permission"/>
+            </and>
+        </preConditions>
+        <sql>
+            INSERT INTO service_account_permission (service_account_id, permission_id, project_id, cdate)
+            SELECT DISTINCT sar.service_account_id, rp.permission_id, sar.project_id, CURRENT_TIMESTAMP
+            FROM service_account_role sar
+            JOIN role_permissions rp ON sar.role_id = rp.role_id;
+        </sql>
+    </changeSet>
+
+    <!-- Drop role-related tables individually with existence checks -->
+    <changeSet id="2026-07-12-user-perm-005a-drop-ldap-user-role" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="ldap_user_role"/>
+        </preConditions>
+        <dropTable tableName="ldap_user_role" cascadeConstraints="true"/>
+    </changeSet>
+
+    <changeSet id="2026-07-12-user-perm-005b-drop-user-role" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="user_role"/>
+        </preConditions>
+        <dropTable tableName="user_role" cascadeConstraints="true"/>
+    </changeSet>
+
+    <changeSet id="2026-07-12-user-perm-005c-drop-service-account-role" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="service_account_role"/>
+        </preConditions>
+        <dropTable tableName="service_account_role" cascadeConstraints="true"/>
+    </changeSet>
+
+    <changeSet id="2026-07-12-user-perm-005d-drop-role-permissions" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="role_permissions"/>
+        </preConditions>
+        <dropTable tableName="role_permissions" cascadeConstraints="true"/>
+    </changeSet>
+
+    <changeSet id="2026-07-12-user-perm-005e-drop-roles" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="roles"/>
+        </preConditions>
+        <dropTable tableName="roles" cascadeConstraints="true"/>
+    </changeSet>
+
+</databaseChangeLog>

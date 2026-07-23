@@ -8,15 +8,13 @@ import etiya.omniAutomation.repository.UserProjectRelationRepository;
 import etiya.omniAutomation.repository.UserRepository;
 import etiya.omniAutomation.results.*;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -28,6 +26,7 @@ public class UserServiceImpl implements UserDetailsService, UserDetailsManager {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserProjectRelationRepository userProjectRelationRepository;
+    private final AuthorizationPermissionService authorizationPermissionService;
 
     public List<UserEntity> getAll() {
         return this.userRepository.findAll();
@@ -89,9 +88,7 @@ public class UserServiceImpl implements UserDetailsService, UserDetailsManager {
         if (Objects.isNull(byEmail)) {
             throw new UsernameNotFoundException("Böyle bir kullanıcı bulunamadı");
         }
-
-        List<SimpleGrantedAuthority> roleUser = List.of(new SimpleGrantedAuthority("ROLE_USER"));
-        return new User(username, byEmail.getPassword(), roleUser);
+        return authorizationPermissionService.loadUserDetails(username);
     }
 
     @Override
@@ -126,9 +123,4 @@ public class UserServiceImpl implements UserDetailsService, UserDetailsManager {
         List<ProjectEntity> userProjects = this.userProjectRelationRepository.findUserProjects(userId);
         return ProjectMapper.INSTANCE.toDtoList(userProjects);
     }
-
-//    public Long getLoggedInUserId() {
-//        String authenticatedUser = this.securityService.getAuthenticatedUser();
-//        return this.userRepository.findUserIdWithEmail(authenticatedUser);
-//    }
 }

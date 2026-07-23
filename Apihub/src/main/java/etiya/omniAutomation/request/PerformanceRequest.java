@@ -7,6 +7,9 @@ import etiya.omniAutomation.business.dto.PerformanceThresholdPreset;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 @Getter
 @Setter
 public class PerformanceRequest {
@@ -25,6 +28,7 @@ public class PerformanceRequest {
     private Integer thinkTimeMs;
     private Integer timeoutMs;
     private Long testDataId;
+    private Map<String, String> datasetMapping = new LinkedHashMap<>();
     private String environmentBaseUrl;
     private PerformanceThresholdPreset thresholdPreset = PerformanceThresholdPreset.NORMAL;
     private Double maxErrorRatePercent;

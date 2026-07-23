@@ -36,11 +36,11 @@ public class UserEntity implements UserDetails {
     @Column(name = "password")
     private String password;
 
+    @Column(name = "auth_type", nullable = false)
+    private String authType = "LOCAL";
+
     @Column(name = "enabled")
     private int enabled = 1;
-
-    @Column(name = "project_id")
-    private Long projectId;
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "cdate")
@@ -49,10 +49,6 @@ public class UserEntity implements UserDetails {
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "udate")
     private Date udate = new Date();
-
-    @OneToMany(mappedBy = "userEntity")
-    @ToString.Exclude()
-    private List<UserRoleEntity> userRoles;
 
     @Override
     @Transient

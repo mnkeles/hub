@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="v1.0.0-drop-project-id-from-users-and-ldap-user" author="apihub">
+        <comment>Remove redundant project_id column from users and ldap_user tables</comment>
+        <dropColumn tableName="users" columnName="project_id"/>
+        <dropColumn tableName="ldap_user" columnName="project_id"/>
+    </changeSet>
+
+    <changeSet id="v1.0.0-drop-proc-flow-id-from-user-role" author="apihub">
+        <comment>Remove unused proc_flow_id column from user_role table</comment>
+        <dropColumn tableName="user_role" columnName="proc_flow_id"/>
+    </changeSet>
+
+    <changeSet id="v1.0.0-drop-project-id-from-user-role-and-ldap-user-role" author="apihub">
+        <comment>Remove project_id from user_role and ldap_user_role tables</comment>
+        <dropColumn tableName="user_role" columnName="project_id"/>
+        <dropColumn tableName="ldap_user_role" columnName="project_id"/>
+    </changeSet>
+
+    <changeSet id="v1.0.0-add-auth-type-to-users" author="apihub">
+        <comment>Add auth_type column to users table to distinguish LOCAL and LDAP users</comment>
+        <addColumn tableName="users">
+            <column name="auth_type" type="VARCHAR(10)" defaultValue="LOCAL">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="v1.0.0-drop-password-not-null" author="apihub">
+        <comment>Drop NOT NULL constraint on users.password to allow LDAP users with no password</comment>
+        <dropNotNullConstraint tableName="users" columnName="password" columnDataType="VARCHAR(255)"/>
+    </changeSet>
+
+    <changeSet id="v1.0.0-migrate-ldap-users-to-users" author="apihub">
+        <comment>Migrate ldap_user records into users table with auth_type=LDAP</comment>
+        <sql>
+            INSERT INTO users (first_name, last_name, email, password, auth_type, enabled, cdate, udate)
+            SELECT first_name, last_name, username, NULL, 'LDAP', enabled, cdate, udate
+            FROM ldap_user
+            WHERE NOT EXISTS (SELECT 1 FROM users u WHERE u.email = ldap_user.username)
+        </sql>
+    </changeSet>
+
+    <changeSet id="v1.0.0-migrate-ldap-user-roles-to-user-role" author="apihub">
+        <comment>Migrate ldap_user_role records into user_role table</comment>
+        <sql>
+            INSERT INTO user_role (user_id, role_id, cdate)
+            SELECT u.user_id, lur.role_id, lur.cdate
+            FROM ldap_user_role lur
+            JOIN ldap_user lu ON lu.ldap_user_id = lur.ldap_user_id
+            JOIN users u ON u.email = lu.username
+            WHERE NOT EXISTS (
+                SELECT 1 FROM user_role ur
+                WHERE ur.user_id = u.user_id AND ur.role_id = lur.role_id
+            )
+        </sql>
+    </changeSet>
+
+    <changeSet id="v1.0.0-migrate-ldap-user-project-rel-to-user-project-rel" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="ldap_user_project_rel"/>
+        </preConditions>
+        <comment>Migrate ldap_user_project_rel records into user_project_rel table (if ldap_user_project_rel exists)</comment>
+        <sql>
+            INSERT INTO user_project_rel (user_id, project_id, is_actv)
+            SELECT u.user_id, lupr.project_id, lupr.is_actv
+            FROM ldap_user_project_rel lupr
+            JOIN ldap_user lu ON lu.ldap_user_id = lupr.ldap_user_id
+            JOIN users u ON u.email = lu.username
+            WHERE NOT EXISTS (
+                SELECT 1 FROM user_project_rel upr
+                WHERE upr.user_id = u.user_id AND upr.project_id = lupr.project_id
+            )
+        </sql>
+    </changeSet>
+
+    <changeSet id="v1.0.0-drop-ldap-tables" author="apihub">
+        <comment>Drop LDAP-specific tables after data migration to unified users table</comment>
+        <dropTable tableName="ldap_user_role"/>
+        <dropTable tableName="ldap_user"/>
+    </changeSet>
+
+    <changeSet id="v1.0.0-drop-ldap-user-project-rel-if-exists" author="apihub">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="ldap_user_project_rel"/>
+        </preConditions>
+        <comment>Drop ldap_user_project_rel table if it exists</comment>
+        <dropTable tableName="ldap_user_project_rel"/>
+    </changeSet>
+
+</databaseChangeLog>

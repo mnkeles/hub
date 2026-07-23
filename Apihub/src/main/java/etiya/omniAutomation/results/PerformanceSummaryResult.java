@@ -1,12 +1,12 @@
 package etiya.omniAutomation.results;
 
 import etiya.omniAutomation.business.dto.PerformanceAnalysisSummary;
-import etiya.omniAutomation.business.dto.PerformanceAiManagementReport;
+import etiya.omniAutomation.business.dto.PerformanceAiReport;
 import etiya.omniAutomation.business.dto.PerformanceComparisonResult;
 import etiya.omniAutomation.business.dto.PerformanceEnvironmentMetrics;
 import etiya.omniAutomation.business.dto.PerformanceErrorAnalysis;
-import etiya.omniAutomation.business.dto.PerformanceInsightReport;
 import etiya.omniAutomation.business.dto.PerformanceRunSummary;
+import etiya.omniAutomation.business.dto.PerformanceSloScore;
 import etiya.omniAutomation.business.dto.PerformanceSummary;
 import etiya.omniAutomation.business.dto.PerformanceThresholdConfig;
 import etiya.omniAutomation.business.dto.PerformanceThresholdPreset;
@@ -39,9 +39,10 @@ public record PerformanceSummaryResult(
         PerformanceAnalysisSummary analysisSummary,
         PerformanceErrorAnalysis errorAnalysis,
         PerformanceEnvironmentMetrics environmentMetrics,
-        PerformanceInsightReport insightReport,
-        PerformanceAiManagementReport aiManagementReport,
+        PerformanceAiReport aiReport,
         List<PerformanceSummary> performanceSummaries,
+        Long testDataId,
+        PerformanceSloScore sloScore,
         Date createdAt
 ) {
 
@@ -56,6 +57,6 @@ public record PerformanceSummaryResult(
     ) {
         this(performanceResultId, performanceStatus, threadCount, rampUpPeriod, null, null, null, null, null,
                 null, null, null, null, null, null, null,
-                runSummary, null, null, null, null, null, null, performanceSummaries, createdAt);
+                runSummary, null, null, null, null, null, performanceSummaries, null, null, createdAt);
     }
 }

@@ -1,6 +1,7 @@
 package etiya.omniAutomation.controller;
 
 import etiya.omniAutomation.business.dto.HarAnalysisResultDto;
+import etiya.omniAutomation.common.PermissionConstants;
 import etiya.omniAutomation.request.HarAnalysisRequest;
 import etiya.omniAutomation.service.HarAnalysisService;
 import etiya.omniAutomation.service.HarAnalysisSessionService;
@@ -8,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -34,6 +36,7 @@ public class HarAnalysisController {
     private final HarAnalysisSessionService harAnalysisSessionService;
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.AI_CHAT_USE + "')")
     public ResponseEntity<?> upload(
             @RequestParam("file") MultipartFile file,
             @RequestParam("projectShortCode") String projectShortCode,
@@ -58,6 +61,7 @@ public class HarAnalysisController {
     }
 
     @PostMapping(value = "/analyze", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.AI_CHAT_USE + "')")
     public ResponseEntity<?> analyze(@RequestBody HarAnalysisRequest request) {
         try {
             validateAnalyzeRequest(request);
@@ -81,6 +85,7 @@ public class HarAnalysisController {
     }
 
     @GetMapping("/health")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> health() {
         return ResponseEntity.ok("HAR analysis service is running");
     }

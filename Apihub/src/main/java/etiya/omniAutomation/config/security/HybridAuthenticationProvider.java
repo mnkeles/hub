@@ -1,6 +1,5 @@
 package etiya.omniAutomation.config.security;
 
-import etiya.omniAutomation.service.LdapUserService;
 import etiya.omniAutomation.service.UserServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,10 +40,6 @@ public class HybridAuthenticationProvider implements AuthenticationProvider {
     @Lazy
     @Autowired
     private LoginAttemptService loginAttemptService;
-
-    @Lazy
-    @Autowired
-    private LdapUserService ldapUserService;
 
     private final PasswordEncoder passwordEncoder;
 
@@ -162,10 +157,9 @@ public class HybridAuthenticationProvider implements AuthenticationProvider {
     private Authentication authenticateLdap(String username, String password) {
         try {
             UserDetails ldapUser = authenticateWithLdap(username, password);
-            ldapUserService.getActiveLdapUserOrThrow(ldapUser.getUsername());
-            ldapUserService.updateLoginUpdateDate(ldapUser.getUsername());
-            logger.info("LDAP authentication successful and ldap_user record found for user: {}", ldapUser.getUsername());
-            return new UsernamePasswordAuthenticationToken(ldapUser, "", ldapUser.getAuthorities());
+            UserDetails dbUser = userDetailsService.loadUserByUsername(ldapUser.getUsername());
+            logger.info("LDAP authentication successful and user record found for user: {}", ldapUser.getUsername());
+            return new UsernamePasswordAuthenticationToken(dbUser, "", dbUser.getAuthorities());
         } catch (BadCredentialsException e) {
             throw e;
         } catch (Exception e) {
@@ -178,7 +172,7 @@ public class HybridAuthenticationProvider implements AuthenticationProvider {
         validateUsername(username);
 
         String sanitizedUsername = sanitizeLdapInput(username);
-        String samAccountName = ldapUserService.normalizeUsername(sanitizedUsername);
+        String samAccountName = normalizeLdapUsername(sanitizedUsername);
 
         AndFilter filter = new AndFilter();
         filter.and(new EqualsFilter("sAMAccountName", samAccountName));
@@ -203,6 +197,18 @@ public class HybridAuthenticationProvider implements AuthenticationProvider {
         if (username.length() > MAX_USERNAME_LENGTH) {
             throw new IllegalArgumentException("Username exceeds maximum length");
         }
+    }
+
+    private String normalizeLdapUsername(String input) {
+        if (input == null) {
+            return null;
+        }
+        String normalized = input.trim();
+        int atIndex = normalized.indexOf('@');
+        if (atIndex > 0) {
+            return normalized.substring(0, atIndex);
+        }
+        return normalized;
     }
 
     private String sanitizeLdapInput(String input) {

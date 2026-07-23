@@ -15,9 +15,9 @@ public record PerformanceExportPayload(
         PerformanceAnalysisSummary analysisSummary,
         PerformanceErrorAnalysis errorAnalysis,
         PerformanceEnvironmentMetrics environmentMetrics,
-        PerformanceManagementReport managementReport,
-        PerformanceInsightReport insightReport,
-        PerformanceAiManagementReport aiManagementReport,
+        PerformanceAiReport aiReport,
+        Long testDataId,
+        PerformanceSloScore sloScore,
         List<PerformanceSummary> stepSummaries,
         PerformanceThreadGroup threadDetail
 ) {

@@ -9,4 +9,6 @@ public interface ProjectRepository extends JpaRepository<ProjectEntity, Long> {
     ProjectEntity findByShortCode(String shortCode);
 
     List<ProjectEntity> findAllByProjectId(Long projectId);
+
+    List<ProjectEntity> findAllByProjectIdIn(List<Long> projectIds);
 }

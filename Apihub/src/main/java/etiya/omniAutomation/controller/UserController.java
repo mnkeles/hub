@@ -2,86 +2,64 @@ package etiya.omniAutomation.controller;
 
 import etiya.omniAutomation.business.dto.CurrentUserResponse;
 import etiya.omniAutomation.business.dto.UserCreateDto;
-import etiya.omniAutomation.config.security.JwtUtils;
-import etiya.omniAutomation.entity.LdapUserEntity;
+import etiya.omniAutomation.common.PermissionConstants;
+import etiya.omniAutomation.config.security.AuthorizationUserDetails;
 import etiya.omniAutomation.entity.UserEntity;
-import etiya.omniAutomation.service.LdapUserService;
 import etiya.omniAutomation.service.UserServiceImpl;
-import jakarta.annotation.security.RolesAllowed;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/user")
-@RolesAllowed("ROLE_USER")
 @RequiredArgsConstructor
 public class UserController {
     private final UserServiceImpl userService;
-    private final LdapUserService ldapUserService;
-    private final JwtUtils jwtUtils;
 
     @GetMapping("/current")
-    public ResponseEntity<CurrentUserResponse> getCurrentUser(HttpServletRequest request) {
-        String token = extractBearerToken(request);
-        String username = jwtUtils.extractUsername(token);
-        String authType = jwtUtils.extractAuthType(token);
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<CurrentUserResponse> getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof AuthorizationUserDetails currentUser) {
+            if ("SERVICE_ACCOUNT".equals(currentUser.principalType())) {
+                return ResponseEntity.ok(new CurrentUserResponse(
+                        currentUser.username(),
+                        "service",
+                        currentUser.username(),
+                        null,
+                        currentUser.enabled() ? 1 : 0,
+                        currentUser.permissions()
+                ));
+            }
 
-        if ("ldap".equalsIgnoreCase(authType)) {
-            LdapUserEntity ldapUser = ldapUserService.getActiveLdapUserOrThrow(username);
-            return ResponseEntity.ok(new CurrentUserResponse(
-                    ldapUser.getUsername(),
-                    "ldap",
-                    ldapUser.getFirstName(),
-                    ldapUser.getLastName(),
-                    ldapUser.getEnabled(),
-                    ldapUser.getProjectId()
-            ));
+            return userService.getUserByAnyEmail(currentUser.username())
+                    .map(user -> ResponseEntity.ok(new CurrentUserResponse(
+                            user.getEmail(),
+                            "LDAP".equals(user.getAuthType()) ? "ldap" : "local",
+                            user.getFirstName(),
+                            user.getLastName(),
+                            user.getEnabled(),
+                            currentUser.permissions()
+                    )))
+                    .orElseGet(() -> ResponseEntity.status(404).build());
         }
-
-        return userService.getUserByAnyEmail(username)
-                .map(user -> ResponseEntity.ok(new CurrentUserResponse(
-                        user.getEmail(),
-                        "local",
-                        user.getFirstName(),
-                        user.getLastName(),
-                        user.getEnabled(),
-                        user.getProjectId()
-                )))
-                .orElseGet(() -> {
-                    LdapUserEntity ldapUser = ldapUserService.getActiveLdapUserOrThrow(username);
-                    return ResponseEntity.ok(new CurrentUserResponse(
-                            ldapUser.getUsername(),
-                            "ldap",
-                            ldapUser.getFirstName(),
-                            ldapUser.getLastName(),
-                            ldapUser.getEnabled(),
-                            ldapUser.getProjectId()
-                    ));
-                });
+        return ResponseEntity.status(401).build();
     }
 
     @GetMapping("/create")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.USER_MANAGE + "')")
     public ResponseEntity<Void> createUser(UserCreateDto userCreateDto) {
         UserEntity userEntity = new UserEntity();
         userEntity.setFirstName(userCreateDto.getFirstName());
         userEntity.setLastName(userCreateDto.getLastName());
         userEntity.setEmail(userCreateDto.getEmail());
         userEntity.setPassword(userCreateDto.getPassword());
-        userEntity.setProjectId(userCreateDto.getProjectId());
         userService.save(userEntity);
         return ResponseEntity.ok().build();
-    }
-
-    private String extractBearerToken(HttpServletRequest request) {
-        String authHeader = request.getHeader("Authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            throw new BadCredentialsException("Authorization token is required");
-        }
-        return authHeader.substring(7);
     }
 }

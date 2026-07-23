@@ -1,12 +1,14 @@
 package etiya.omniAutomation.controller;
 
 import etiya.omniAutomation.business.dto.GeneralWebSystemDto;
+import etiya.omniAutomation.common.PermissionConstants;
 import etiya.omniAutomation.request.GeneralPageRequest;
 import etiya.omniAutomation.results.Result;
 import etiya.omniAutomation.service.GeneralWebSystemServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -22,6 +24,7 @@ public class GeneralWebSystemController {
     private final GeneralWebSystemServiceImpl generalWebSystemService;
 
     @PostMapping("/list")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.MENU_SYSTEMS_VIEW + "')")
     public ResponseEntity<Map<String, Object>> getAll(@RequestBody(required = false) GeneralPageRequest pageRequest) {
         try {
             // Eğer pageRequest null ise, default değerler ile oluştur
@@ -47,6 +50,7 @@ public class GeneralWebSystemController {
     }
     
     @GetMapping("/all")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.MENU_SYSTEMS_VIEW + "')")
     public ResponseEntity<List<GeneralWebSystemDto>> getAllSimple() {
         try {
             GeneralPageRequest pageRequest = new GeneralPageRequest(0, 1000);
@@ -60,6 +64,7 @@ public class GeneralWebSystemController {
     }
 
     @PostMapping("/save")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.MENU_SYSTEMS_VIEW + "')")
     public ResponseEntity<Result> save(@RequestBody GeneralWebSystemDto generalWebSystemDto) {
         try {
             Result result = generalWebSystemService.save(generalWebSystemDto);
@@ -76,6 +81,7 @@ public class GeneralWebSystemController {
      * @return Success or error result
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.MENU_SYSTEMS_VIEW + "')")
     public ResponseEntity<Result> delete(@PathVariable Long id) {
         try {
             Result result = generalWebSystemService.delete(id);
@@ -88,6 +94,7 @@ public class GeneralWebSystemController {
     }
 
     @GetMapping("/health")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> health() {
         return ResponseEntity.ok("General Web System service is running");
     }

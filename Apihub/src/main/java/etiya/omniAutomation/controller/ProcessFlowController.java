@@ -1,12 +1,14 @@
 package etiya.omniAutomation.controller;
 
 import etiya.omniAutomation.business.dto.ProcessFlowDto;
+import etiya.omniAutomation.common.PermissionConstants;
 import etiya.omniAutomation.request.GeneralPageRequest;
 import etiya.omniAutomation.results.Result;
 import etiya.omniAutomation.service.ProcessFlowServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -22,6 +24,7 @@ public class ProcessFlowController {
     private final ProcessFlowServiceImpl processFlowService;
 
     @PostMapping("/list")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.PROCESS_FLOW_VIEW + "')")
     public ResponseEntity<Map<String, Object>> getAll(@RequestBody(required = false) GeneralPageRequest pageRequest) {
         try {
             if (pageRequest == null) {
@@ -45,6 +48,7 @@ public class ProcessFlowController {
     }
 
     @GetMapping("/{processFlowId}")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.PROCESS_FLOW_VIEW + "')")
     public ResponseEntity<ProcessFlowDto> getById(@PathVariable Long processFlowId) {
         try {
             ProcessFlowDto processFlow = processFlowService.getByProcessFlowId(processFlowId);
@@ -56,6 +60,7 @@ public class ProcessFlowController {
     }
 
     @GetMapping("/{processFlowId}/with-relations")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.PROCESS_FLOW_VIEW + "')")
     public ResponseEntity<ProcessFlowDto> getByIdWithRelations(@PathVariable Long processFlowId) {
         try {
             ProcessFlowDto processFlow = processFlowService.findByIdWithRelations(processFlowId);
@@ -67,6 +72,7 @@ public class ProcessFlowController {
     }
 
     @GetMapping("/all")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.PROCESS_FLOW_VIEW + "')")
     public ResponseEntity<List<ProcessFlowDto>> getAllSimple() {
         try {
             GeneralPageRequest pageRequest = new GeneralPageRequest(0, 1000);
@@ -80,6 +86,7 @@ public class ProcessFlowController {
     }
 
     @GetMapping("/project/{projectId}")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.PROCESS_FLOW_VIEW + "')")
     public ResponseEntity<List<ProcessFlowDto>> getByProjectId(@PathVariable Long projectId) {
         try {
             List<ProcessFlowDto> processFlows = processFlowService.getFlowsByProject(projectId);
@@ -91,6 +98,7 @@ public class ProcessFlowController {
     }
 
     @PostMapping("/save")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.PROCESS_FLOW_CREATE + "')")
     public ResponseEntity<Result> save(@RequestBody ProcessFlowDto processFlowDto) {
         try {
             Result result = processFlowService.save(processFlowDto);
@@ -102,6 +110,7 @@ public class ProcessFlowController {
     }
 
     @PutMapping("/update")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.PROCESS_FLOW_UPDATE + "')")
     public ResponseEntity<Result> update(@RequestBody ProcessFlowDto processFlowDto) {
         try {
             Result result = processFlowService.update(processFlowDto);
@@ -113,6 +122,7 @@ public class ProcessFlowController {
     }
 
     @DeleteMapping("/{processFlowId}")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.PROCESS_FLOW_DELETE + "')")
     public ResponseEntity<Result> delete(@PathVariable Long processFlowId) {
         try {
             Result result = processFlowService.deleteProcessFlow(processFlowId);
@@ -124,6 +134,7 @@ public class ProcessFlowController {
     }
 
     @PostMapping("/copy/{processFlowId}")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.PROCESS_FLOW_COPY + "')")
     public ResponseEntity<Result> copyProcessFlow(@PathVariable Long processFlowId) {
         try {
             log.info("Copying process flow with id: {}", processFlowId);
@@ -141,6 +152,7 @@ public class ProcessFlowController {
     }
 
     @GetMapping("/health")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> health() {
         return ResponseEntity.ok("Process Flow service is running");
     }

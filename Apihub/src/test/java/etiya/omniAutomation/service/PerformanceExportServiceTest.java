@@ -1,18 +1,15 @@
 package etiya.omniAutomation.service;
 
+import etiya.omniAutomation.business.dto.PerformanceAiReport;
+import etiya.omniAutomation.business.dto.PerformanceAiReportSource;
 import etiya.omniAutomation.business.dto.PerformanceErrorAnalysis;
 import etiya.omniAutomation.business.dto.PerformanceErrorTypeCount;
 import etiya.omniAutomation.business.dto.PerformanceExportPayload;
-import etiya.omniAutomation.business.dto.PerformanceAiActionItem;
-import etiya.omniAutomation.business.dto.PerformanceAiManagementReport;
-import etiya.omniAutomation.business.dto.PerformanceAnomalyLevel;
-import etiya.omniAutomation.business.dto.PerformanceBottleneckType;
-import etiya.omniAutomation.business.dto.PerformanceInsightReport;
-import etiya.omniAutomation.business.dto.PerformanceInsightSeverity;
-import etiya.omniAutomation.business.dto.PerformanceMetricInsight;
-import etiya.omniAutomation.business.dto.PerformanceReleaseReadiness;
-import etiya.omniAutomation.business.dto.PerformanceRootCauseHint;
 import etiya.omniAutomation.business.dto.PerformanceRunSummary;
+import etiya.omniAutomation.business.dto.PerformanceSloGrade;
+import etiya.omniAutomation.business.dto.PerformanceSloMetricScore;
+import etiya.omniAutomation.business.dto.PerformanceSloScore;
+import etiya.omniAutomation.business.dto.PerformanceSloStatus;
 import etiya.omniAutomation.business.dto.PerformanceStepErrorCount;
 import etiya.omniAutomation.business.dto.PerformanceSummary;
 import etiya.omniAutomation.business.dto.PerformanceThreadGroup;
@@ -30,17 +27,11 @@ import java.util.Date;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PerformanceExportServiceTest {
 
-    private final PerformanceExportService service = new PerformanceExportService(
-            new PerformanceManagementReportBuilder(),
-            new PerformanceInsightBuilder()
-    );
+    private final PerformanceExportService service = new PerformanceExportService();
 
     @Test
     void buildsJsonPayloadFromEntityAndThreadDetail() {
@@ -51,26 +42,8 @@ class PerformanceExportServiceTest {
 
         assertEquals(entity.getRunSummary(), payload.runSummary());
         assertEquals(entity.getThresholdResult(), payload.thresholdResult());
-        assertNotNull(payload.managementReport());
-        assertEquals(entity.getInsightReport(), payload.insightReport());
-        assertSame(entity.getInsightReport(), payload.insightReport());
-        assertEquals(entity.getAiManagementReport(), payload.aiManagementReport());
+        assertEquals(entity.getAiReport(), payload.aiReport());
         assertEquals(detail, payload.threadDetail());
-    }
-
-    @Test
-    void buildsInsightAndAiFallbackForLegacyEntity() {
-        PerfRsltEntity entity = entity();
-        entity.setInsightReport(null);
-        entity.setAiManagementReport(null);
-
-        PerformanceExportPayload payload = service.buildPayload(entity, new PerformanceThreadGroup(List.of()));
-
-        assertNotNull(payload.managementReport());
-        assertNotNull(payload.insightReport());
-        assertNotNull(payload.aiManagementReport());
-        assertFalse(payload.aiManagementReport().generated());
-        assertEquals("AI report is not available for this performance result.", payload.aiManagementReport().errorMessage());
     }
 
     @Test
@@ -79,44 +52,17 @@ class PerformanceExportServiceTest {
 
         assertTrue(csv.contains("Run Summary"));
         assertTrue(csv.contains("Report Metadata"));
+        assertTrue(csv.contains("AI Report"));
+        assertTrue(csv.contains("SLO Score"));
+        assertTrue(csv.contains("Grade"));
+        assertTrue(csv.contains("p95ElapsedTime"));
+        assertTrue(csv.contains("Executive report summary"));
         assertTrue(csv.contains("Validation Checklist"));
         assertTrue(csv.contains("run_completed"));
         assertTrue(csv.contains("Threshold Result"));
         assertTrue(csv.contains("Step Summary"));
         assertTrue(csv.contains("Error Summary"));
         assertTrue(csv.contains("P95"));
-        assertTrue(csv.contains("Decision Summary"));
-        assertTrue(csv.contains("Metric Insights"));
-        assertTrue(csv.contains("Root Cause Hints"));
-        assertTrue(csv.contains("AI Action Plan"));
-        assertTrue(csv.contains("AI Observability"));
-        assertTrue(csv.contains("P95 yuksek"));
-        assertTrue(csv.contains("Slow SQL"));
-        assertTrue(csv.contains("P95 incele"));
-    }
-
-    @Test
-    void buildsCsvWhenInsightAndAiMetadataAreMissing() {
-        PerfRsltEntity entity = entity();
-        entity.setInsightReport(null);
-        entity.setAiManagementReport(null);
-
-        String csv = service.buildCsv(service.buildPayload(entity, new PerformanceThreadGroup(List.of())));
-
-        assertTrue(csv.contains("Decision Summary"));
-        assertTrue(csv.contains("AI Observability"));
-    }
-
-    @Test
-    void csvIncludesAiObservabilityWhenFallback() {
-        PerfRsltEntity entity = entity();
-        entity.setAiManagementReport(PerformanceAiManagementReport.notGenerated("not generated"));
-
-        String csv = service.buildCsv(service.buildPayload(entity, new PerformanceThreadGroup(List.of())));
-
-        assertTrue(csv.contains("AI Observability"));
-        assertTrue(csv.contains("not generated"));
-        assertTrue(csv.contains("performance-ai-report-v2"));
     }
 
     @Test
@@ -139,66 +85,37 @@ class PerformanceExportServiceTest {
         entity.setThresholdConfig(PerformanceThresholdConfig.defaults());
         entity.setBaseline(false);
         entity.setThresholdResult(new PerformanceThresholdResult(false, "COMPLETED - FAILED", List.of("reason"), PerformanceThresholdConfig.defaults()));
+        entity.setAiReport(new PerformanceAiReport(
+                "Executive report summary",
+                "FAILED",
+                "Business impact",
+                List.of("good"),
+                List.of("bad"),
+                List.of("risk"),
+                List.of("action"),
+                "Technical detail",
+                PerformanceAiReportSource.FALLBACK,
+                new Date(1000)
+        ));
         entity.setValidationChecklist(new PerformanceValidationChecklist(
                 List.of(new PerformanceValidationChecklistItem("run_completed", "Run completed", PerformanceValidationStatus.PASSED, "done")),
                 null,
                 null
         ));
+        entity.setTestDataId(99L);
+        entity.setSloScore(new PerformanceSloScore(
+                82,
+                PerformanceSloGrade.B,
+                PerformanceSloStatus.GOOD,
+                List.of(new PerformanceSloMetricScore("p95ElapsedTime", 20, 25, 900.0, 1000.0, "LOWER_BETTER", "P95 OK")),
+                List.of("strong"),
+                List.of("weak"),
+                List.of("action"),
+                new Date(1000)
+        ));
         entity.setSummary(List.of(new PerformanceSummary("step", 500, 10, 100, 10, 9, 1, 10, 20, 50, 90, 95, 99, 5, "last", null)));
         entity.setErrorAnalysis(new PerformanceErrorAnalysis(1, 10, List.of(new PerformanceErrorTypeCount("HTTP 5xx", 1)),
                 List.of(new PerformanceStepErrorCount("step", 1)), "last", List.of()));
-        entity.setInsightReport(new PerformanceInsightReport(
-                0,
-                PerformanceAnomalyLevel.NORMAL,
-                null,
-                false,
-                null,
-                false,
-                0,
-                PerformanceBottleneckType.NONE,
-                PerformanceReleaseReadiness.UNKNOWN,
-                List.of(new PerformanceRootCauseHint(
-                        PerformanceInsightSeverity.WARNING,
-                        "DATABASE",
-                        "Slow SQL",
-                        "Slow query sinyali var.",
-                        "Sorgulari inceleyin."
-                )),
-                List.of(new PerformanceMetricInsight(
-                        "P95",
-                        PerformanceInsightSeverity.HIGH,
-                        "4000 ms",
-                        "<= 3000 ms",
-                        "P95 yuksek"
-                )),
-                List.of(),
-                PerformanceReportVersions.INSIGHT_SCHEMA_VERSION,
-                PerformanceReportVersions.INSIGHT_GENERATOR_VERSION
-        ));
-        entity.setAiManagementReport(new PerformanceAiManagementReport(
-                true,
-                new Date(),
-                "fake-model",
-                "Executive",
-                "Technical",
-                "Root cause",
-                List.of(new PerformanceAiActionItem("P1", "P95 incele", "Yavas step incelenmeli.", "step", "P95")),
-                "Readiness",
-                List.of(),
-                null,
-                PerformanceReportVersions.AI_REPORT_SCHEMA_VERSION,
-                PerformanceReportVersions.AI_REPORT_GENERATOR_VERSION,
-                12L,
-                1,
-                null,
-                List.of(),
-                "promptHash",
-                "inputHash",
-                100,
-                null,
-                null,
-                null
-        ));
         return entity;
     }
 }

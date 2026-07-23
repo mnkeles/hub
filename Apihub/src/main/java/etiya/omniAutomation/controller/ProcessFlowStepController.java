@@ -2,12 +2,14 @@ package etiya.omniAutomation.controller;
 
 import etiya.omniAutomation.business.dto.ProcessFlowStepDto;
 import etiya.omniAutomation.business.dto.ProcessFlowStepRelationDto;
+import etiya.omniAutomation.common.PermissionConstants;
 import etiya.omniAutomation.request.GeneralPageRequest;
 import etiya.omniAutomation.results.Result;
 import etiya.omniAutomation.service.ProcessFlowStepService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -23,6 +25,7 @@ public class ProcessFlowStepController {
     private final ProcessFlowStepService processFlowStepService;
 
     @PostMapping("/list")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.PROCESS_FLOW_VIEW + "')")
     public ResponseEntity<Map<String, Object>> getAll(@RequestBody(required = false) GeneralPageRequest pageRequest) {
         try {
             if (pageRequest == null) {
@@ -46,6 +49,7 @@ public class ProcessFlowStepController {
     }
 
     @GetMapping("/all")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.PROCESS_FLOW_VIEW + "')")
     public ResponseEntity<List<ProcessFlowStepDto>> getAllSimple() {
         try {
             GeneralPageRequest pageRequest = new GeneralPageRequest(0, 1000);
@@ -59,6 +63,7 @@ public class ProcessFlowStepController {
     }
 
     @GetMapping("/relations/{processFlowStepId}/{projectId}")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.PROCESS_FLOW_VIEW + "')")
     public ResponseEntity<List<ProcessFlowStepRelationDto>> getRelations(
             @PathVariable Long processFlowStepId,
             @PathVariable Long projectId) {
@@ -73,6 +78,7 @@ public class ProcessFlowStepController {
     }
 
     @PostMapping("/save")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.PROCESS_FLOW_CREATE + "')")
     public ResponseEntity<Result> save(@RequestBody ProcessFlowStepDto processFlowStepDto) {
         try {
             Result result = processFlowStepService.save(processFlowStepDto);
@@ -84,6 +90,7 @@ public class ProcessFlowStepController {
     }
 
     @PutMapping("/update")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.PROCESS_FLOW_UPDATE + "')")
     public ResponseEntity<Result> update(@RequestBody ProcessFlowStepDto processFlowStepDto) {
         try {
             Result result = processFlowStepService.update(processFlowStepDto);
@@ -95,6 +102,7 @@ public class ProcessFlowStepController {
     }
 
     @DeleteMapping("/{processFlowStepId}")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.PROCESS_FLOW_DELETE + "')")
     public ResponseEntity<Void> delete(@PathVariable Long processFlowStepId) {
         try {
             processFlowStepService.delete(processFlowStepId);
@@ -106,6 +114,7 @@ public class ProcessFlowStepController {
     }
 
     @DeleteMapping("/parameter/{relationId}")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.PROCESS_FLOW_DELETE + "')")
     public ResponseEntity<Void> deleteParameter(@PathVariable Long relationId) {
         try {
             processFlowStepService.deleteProcessFlowStepParameter(relationId);
@@ -117,6 +126,7 @@ public class ProcessFlowStepController {
     }
 
     @PostMapping("/create-step")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.PROCESS_FLOW_CREATE + "')")
     public ResponseEntity<Void> createNewProcessStep(@RequestBody ProcessFlowStepRelationDto relationDto) {
         try {
             processFlowStepService.createNewProcessStep(relationDto);
@@ -128,6 +138,7 @@ public class ProcessFlowStepController {
     }
 
     @PostMapping("/update-orders")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.PROCESS_FLOW_UPDATE + "')")
     public ResponseEntity<Result> updateStepOrders(@RequestBody List<ProcessFlowStepDto> steps) {
         try {
             Result result = processFlowStepService.updateStepOrders(steps);
@@ -140,6 +151,7 @@ public class ProcessFlowStepController {
     }
 
     @GetMapping("/health")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> health() {
         return ResponseEntity.ok("Process Flow Step service is running");
     }

@@ -1,12 +1,14 @@
 package etiya.omniAutomation.controller;
 
 import etiya.omniAutomation.business.dto.ApiInformationDto;
+import etiya.omniAutomation.common.PermissionConstants;
 import etiya.omniAutomation.request.GeneralPageRequest;
 import etiya.omniAutomation.results.Result;
 import etiya.omniAutomation.service.ApiInformationServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -22,6 +24,7 @@ public class ApiInformationController {
     private final ApiInformationServiceImpl apiInformationService;
 
     @PostMapping("/list")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.API_INFORMATION_VIEW + "')")
     public ResponseEntity<Map<String, Object>> getAll(@RequestBody(required = false) GeneralPageRequest pageRequest) {
         try {
             if (pageRequest == null) {
@@ -48,6 +51,7 @@ public class ApiInformationController {
     }
 
     @GetMapping("/all")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.API_INFORMATION_VIEW + "')")
     public ResponseEntity<List<ApiInformationDto>> getAllSimple() {
         try {
             GeneralPageRequest pageRequest = new GeneralPageRequest(0, 1000);
@@ -61,6 +65,7 @@ public class ApiInformationController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.API_INFORMATION_VIEW + "')")
     public ResponseEntity<ApiInformationDto> getById(@PathVariable Long id) {
         try {
             GeneralPageRequest pageRequest = new GeneralPageRequest(0, 1000);
@@ -84,6 +89,7 @@ public class ApiInformationController {
     }
 
     @GetMapping("/short-code/{shortCode}")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.API_INFORMATION_VIEW + "')")
     public ResponseEntity<ApiInformationDto> getByShortCode(@PathVariable String shortCode) {
         try {
             GeneralPageRequest pageRequest = new GeneralPageRequest(0, 1000);
@@ -107,6 +113,7 @@ public class ApiInformationController {
     }
 
     @GetMapping("/project/{projectShortCode}")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.API_INFORMATION_VIEW + "')")
     public ResponseEntity<List<ApiInformationDto>> getByProject(@PathVariable String projectShortCode) {
         try {
             List<ApiInformationDto> apiInfoList = apiInformationService.findAllByProjectShortCode(projectShortCode);
@@ -119,6 +126,7 @@ public class ApiInformationController {
     }
 
     @PostMapping("/save")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.API_INFORMATION_CREATE + "')")
     public ResponseEntity<Result> save(@RequestBody ApiInformationDto apiInformationDto) {
         try {
             Result result = apiInformationService.save(apiInformationDto);
@@ -132,6 +140,7 @@ public class ApiInformationController {
 
 
     @PutMapping("/update")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.API_INFORMATION_UPDATE + "')")
     public ResponseEntity<Result> update(@RequestBody ApiInformationDto apiInformationDto) {
         try {
             Result result = apiInformationService.save(apiInformationDto);
@@ -144,6 +153,7 @@ public class ApiInformationController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.API_INFORMATION_DELETE + "')")
     public ResponseEntity<Result> delete(@PathVariable Long id) {
         try {
             Result result = apiInformationService.deleteApiInformation(id);
@@ -156,6 +166,7 @@ public class ApiInformationController {
     }
 
     @GetMapping("/health")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> health() {
         return ResponseEntity.ok("API Information service is running");
     }

@@ -2,6 +2,7 @@ package etiya.omniAutomation.controller;
 
 import etiya.omniAutomation.business.dto.DatabaseConfigDto;
 import etiya.omniAutomation.common.GeneralEnums;
+import etiya.omniAutomation.common.PermissionConstants;
 import etiya.omniAutomation.request.GeneralFilter;
 import etiya.omniAutomation.request.GeneralPageRequest;
 import etiya.omniAutomation.results.Result;
@@ -9,6 +10,7 @@ import etiya.omniAutomation.service.DatabaseConfigServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -29,6 +31,7 @@ public class DatabaseConfigController {
      * @return Paginated database config list with metadata
      */
     @PostMapping("/list")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.DATABASE_CONFIG_VIEW + "')")
     public ResponseEntity<Map<String, Object>> getAll(@RequestBody(required = false) GeneralPageRequest pageRequest) {
         try {
             if (pageRequest == null) {
@@ -59,6 +62,7 @@ public class DatabaseConfigController {
      * @return List of all database configurations
      */
     @GetMapping("/all")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.DATABASE_CONFIG_VIEW + "')")
     public ResponseEntity<List<DatabaseConfigDto>> getAllSimple() {
         try {
             GeneralPageRequest pageRequest = new GeneralPageRequest(0, 1000);
@@ -77,6 +81,7 @@ public class DatabaseConfigController {
      * @return Database configuration details
      */
     @GetMapping("/{id}")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.DATABASE_CONFIG_VIEW + "')")
     public ResponseEntity<DatabaseConfigDto> getById(@PathVariable Long id) {
         try {
             GeneralPageRequest pageRequest = new GeneralPageRequest(0, 1000);
@@ -105,6 +110,7 @@ public class DatabaseConfigController {
      * @return Database configuration details
      */
     @GetMapping("/short-code/{shortCode}")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.DATABASE_CONFIG_VIEW + "')")
     public ResponseEntity<DatabaseConfigDto> getByShortCode(@PathVariable String shortCode) {
         try {
             GeneralPageRequest pageRequest = new GeneralPageRequest(0, 1000);
@@ -133,6 +139,7 @@ public class DatabaseConfigController {
      * @return List of database configurations for the project
      */
     @GetMapping("/project/{projectShortCode}")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.DATABASE_CONFIG_VIEW + "')")
     public ResponseEntity<List<DatabaseConfigDto>> getByProject(@PathVariable String projectShortCode) {
         try {
             GeneralPageRequest pageRequest = new GeneralPageRequest(0, 1000);
@@ -156,6 +163,7 @@ public class DatabaseConfigController {
      * @return List of active database configurations
      */
     @GetMapping("/project/{projectShortCode}/active")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.DATABASE_CONFIG_VIEW + "')")
     public ResponseEntity<List<DatabaseConfigDto>> getActiveByProject(@PathVariable String projectShortCode) {
         try {
             GeneralPageRequest pageRequest = new GeneralPageRequest(0, 1000);
@@ -183,6 +191,7 @@ public class DatabaseConfigController {
      * @return Success or error result
      */
     @PostMapping("/save")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.DATABASE_CONFIG_CREATE + "')")
     public ResponseEntity<Result> save(@RequestBody DatabaseConfigDto databaseConfigDto) {
         try {
             Result result = databaseConfigService.save(databaseConfigDto);
@@ -200,6 +209,7 @@ public class DatabaseConfigController {
      * @return Success or error result
      */
     @PutMapping("/update")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.DATABASE_CONFIG_UPDATE + "')")
     public ResponseEntity<Result> update(@RequestBody DatabaseConfigDto databaseConfigDto) {
         try {
             Result result = databaseConfigService.save(databaseConfigDto);
@@ -217,6 +227,7 @@ public class DatabaseConfigController {
      * @return Success or error result
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.DATABASE_CONFIG_DELETE + "')")
     public ResponseEntity<Result> delete(@PathVariable Long id) {
         try {
             Result result = databaseConfigService.delete(id);
@@ -233,6 +244,7 @@ public class DatabaseConfigController {
      * @return Service status
      */
     @GetMapping("/health")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> health() {
         return ResponseEntity.ok("Database Config service is running");
     }

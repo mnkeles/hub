@@ -65,7 +65,9 @@ public class ApiCallServiceImpl {
     private final PerformanceRunRegistry performanceRunRegistry;
     private final PerformanceBaselineService performanceBaselineService;
     private final PerformanceValidationChecklistBuilder performanceValidationChecklistBuilder;
-    private final PerformanceReportSnapshotService performanceReportSnapshotService;
+    private final PerformanceAiReportService performanceAiReportService;
+    private final PerformanceDatasetRuntimeService performanceDatasetRuntimeService;
+    private final PerformanceSloScoreService performanceSloScoreService;
 
     private static final Logger log = LoggerFactory.getLogger(ApiCallServiceImpl.class);
 
@@ -127,11 +129,11 @@ public class ApiCallServiceImpl {
                     processFlow.processHeaders(result, step.getHeaderExtractor());
                 }
                 processFlow.processParameters(result, step.getParameterExtractor());
-                if (!apiInformation.isSqlQuery()) {
+                /*if (!apiInformation.isSqlQuery()) {
                     logApiCall(project.getName(), result.getStatusCode().value(),
                             this.systemEndpoint.find(apiInformation.getShortCode() + "_" + project.getProjectId()) + apiInformation.getSrvcName(),
                             apiInformation.getPlIn(), result.getBody());
-                }
+                }*/
                 resultMap.put(step.getStepShortCode(), StringUtils.deleteWhitespace(result.getBody()));
             } else {
                 resultMap.put(step.getStepShortCode(), StringUtils.deleteWhitespace(result.getBody()));
@@ -156,32 +158,9 @@ public class ApiCallServiceImpl {
         ProjectDto project = this.projectService.getProject(projectShortCode);
         ProcessFlowEntity processFlowEntity = this.processFlowRepository.getByShortCodeAndProjectId(processFlowShortCode, project.getProjectId());
         ProcessFlowDto processFlow = ProcessFlowMapper.INSTANCE.toDto(processFlowEntity);
-        if (Objects.isNull(parameterRequest) || Objects.isNull(parameterRequest.getParameterContext()) || parameterRequest.getParameterContext().isEmpty()) {
-            DefaultRequestEntity defaultRequest = defaultRequestRepository.findDefaultRequest(projectShortCode, systemShortCode, processFlowShortCode);
-            parameterRequest = new ParameterRequestDto();
-            if (!Objects.isNull(defaultRequest)) {
-                if (defaultRequest.getParameterContext() != null && !defaultRequest.getParameterContext().trim().isEmpty()) {
-                    Map<String, Object> parameterContext = objectMapper.readValue(defaultRequest.getParameterContext(), Map.class);
-                    parameterRequest.setParameterContext(parameterContext);
-                }
-                if (defaultRequest.getGlobalHeaders() != null && !defaultRequest.getGlobalHeaders().trim().isEmpty()) {
-                    Map<String, Object> globalHeaders = objectMapper.readValue(defaultRequest.getGlobalHeaders(), Map.class);
-                    parameterRequest.setGlobalHeaders(globalHeaders);
-                }
-            }
-        }
-
-        Optional.ofNullable(parameterRequest.getParameterContext())
-                .ifPresent(parameterContext -> parameterContext.forEach((key, value) -> {
-                    String stringValue = value != null ? value.toString() : null;
-                    processFlow.getParameterContext().put(key, stringValue);
-                }));
-        Optional.ofNullable(parameterRequest.getGlobalHeaders())
-                .ifPresent(globalHeaders -> globalHeaders.forEach((key, value) -> {
-                    String stringValue = value != null ? value.toString() : null;
-                    processFlow.getGlobalHeaders().put(key, stringValue);
-                }));
-
+        DefaultRequestEntity defaultRequest = defaultRequestRepository.findDefaultRequest(projectShortCode, systemShortCode, processFlowShortCode);
+        ParameterRequestDto preparedRequest = prepareParameterRequest(parameterRequest, defaultRequest);
+        applyParameterRequest(processFlow, preparedRequest);
         return callXmlProcessFlowCallApi2(project, systemShortCode, processFlow, fromTest, continueOnError);
     }
 
@@ -444,6 +423,10 @@ public class ApiCallServiceImpl {
     }
 
     public ResponseEntity<String> sendApiInformationXML(ApiInformationDto apiInformation, ProcessFlowStepDto processFlowStep, boolean fromTest, Long projectId, Map<String, String> parameterContext) {
+        return sendApiInformationXML(apiInformation, processFlowStep, fromTest, projectId, parameterContext, null);
+    }
+
+    public ResponseEntity<String> sendApiInformationXML(ApiInformationDto apiInformation, ProcessFlowStepDto processFlowStep, boolean fromTest, Long projectId, Map<String, String> parameterContext, ApiCallRequestOptions options) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.parseMediaType(apiInformation.getMediaType()));
         headers.setAcceptCharset(List.of(StandardCharsets.UTF_8));
@@ -469,7 +452,7 @@ public class ApiCallServiceImpl {
         String url = this.systemEndpoint.find(apiInformation.getShortCode() + "_" + projectId);
 
         if (apiInformation.isGrpc()) {
-            return this.sendApiInformationGRPC(url, apiInformation);
+            return this.sendApiInformationGRPC(url, apiInformation, options);
         }
         url += apiInformation.getSrvcName();
 
@@ -491,9 +474,15 @@ public class ApiCallServiceImpl {
         Allure.addAttachment("Request: " + processFlowStep.getStepShortCode(), apiInformation.getPlIn() + "\nURL: " + url);
         ResponseEntity<String> response;
         try{
-            response = this.webClientService.exchange(url, httpEntity, headers, httpMethod, new ParameterizedTypeReference<String>() {});
+            response = this.webClientService.exchange(url, httpEntity, headers, httpMethod, new ParameterizedTypeReference<String>() {}, options);
         } catch (WebClientResponseException e) {
             response = ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
+        } catch (IllegalStateException e) {
+            if (isTimeoutException(e, options)) {
+                response = timeoutResponse(options);
+            } else {
+                throw e;
+            }
         }
          return response;
     }
@@ -530,6 +519,28 @@ public class ApiCallServiceImpl {
         }
     }
 
+    private ResponseEntity<String> sendApiInformationGRPC(String url, ApiInformationDto apiInformation, ApiCallRequestOptions options) {
+        if (options == null || !options.hasTimeout()) {
+            return this.sendApiInformationGRPC(url, apiInformation);
+        }
+        CompletableFuture<ResponseEntity<String>> future = CompletableFuture.supplyAsync(
+                () -> this.sendApiInformationGRPC(url, apiInformation),
+                this.virtualThreadExecutor
+        );
+        try {
+            return future.get(options.timeoutMs(), TimeUnit.MILLISECONDS);
+        } catch (TimeoutException e) {
+            future.cancel(true);
+            return timeoutResponse(options);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            future.cancel(true);
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        } catch (ExecutionException e) {
+            return ResponseEntity.internalServerError().body(e.getCause() == null ? e.getMessage() : e.getCause().getMessage());
+        }
+    }
+
     private ProcessFlowDto copyProcessFlowForThread(ProcessFlowDto source) {
         return objectMapper.convertValue(source, ProcessFlowDto.class);
     }
@@ -546,7 +557,8 @@ public class ApiCallServiceImpl {
                                         int threadNumber,
                                         int threadCount,
                                         int rampUpPeriodSeconds,
-                                        PerformanceResultDto performanceResultDto) {
+                                        PerformanceResultDto performanceResultDto,
+                                        PerformanceDatasetRuntimeContext datasetRuntimeContext) {
         long rampUpDelayMillis = calculateRampUpDelayMillis(threadNumber, threadCount, rampUpPeriodSeconds);
         if (rampUpDelayMillis > 0) {
             try {
@@ -577,6 +589,7 @@ public class ApiCallServiceImpl {
                 markRunningStepsStopped(stepList, "Stopped by user");
                 return;
             }
+            performanceDatasetRuntimeService.applyRow(datasetRuntimeContext, threadProcessFlow.getParameterContext(), threadNumber, loop);
             for (ProcessFlowStepRelationDto stepRelation : threadProcessFlow.getProcessFlowStepRelations()) {
                 if (System.currentTimeMillis() > deadlineMillis || isCancellationRequested(performanceResultDto.getPerformanceResultId())) {
                     markRunningStepsStopped(stepList, "Stopped by user");
@@ -596,7 +609,7 @@ public class ApiCallServiceImpl {
                     this.processRequestBody(step, apiInformation, threadProcessFlow);
                     performanceResultItemDto.setStartedAt(new Date());
                     stopWatch.start();
-                    result = this.sendApiInformationXML(apiInformation, step, false, threadProcessFlow.getProjectId(), threadProcessFlow.getParameterContext());
+                    result = this.sendApiInformationXML(apiInformation, step, false, threadProcessFlow.getProjectId(), threadProcessFlow.getParameterContext(), new ApiCallRequestOptions(performanceResultDto.getTimeoutMs()));
                     stopWatch.stop();
                     performanceResultItemDto.setFinishedAt(new Date());
                 } catch (Exception e) {
@@ -702,6 +715,11 @@ public class ApiCallServiceImpl {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void executeFlowPerformanceTest(ProcessFlowDto processFlowDto, PerformanceResultDto performanceResultDto) {
+        executeFlowPerformanceTest(processFlowDto, performanceResultDto, PerformanceDatasetRuntimeContext.empty());
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void executeFlowPerformanceTest(ProcessFlowDto processFlowDto, PerformanceResultDto performanceResultDto, PerformanceDatasetRuntimeContext datasetRuntimeContext) {
         PerformanceThreadGroup runningItem = performanceResultDto.getThreadGroup();
         ConcurrentHashMap<Integer, List<PerformanceResultItemDto>> resultMap = runningItem.groups().stream()
                 .collect(Collectors.toMap(PerformanceThread::threadNumber, PerformanceThread::steps,
@@ -717,7 +735,7 @@ public class ApiCallServiceImpl {
 
         List<CompletableFuture<?>> futures = resultMap.entrySet().stream()
                 .map(entry ->
-                        CompletableFuture.runAsync(() -> this.processPerformanceTask(processFlowDto, entry.getValue(), entry.getKey(), threadCount, rawRampUp, performanceResultDto), this.virtualThreadExecutor)
+                        CompletableFuture.runAsync(() -> this.processPerformanceTask(processFlowDto, entry.getValue(), entry.getKey(), threadCount, rawRampUp, performanceResultDto, datasetRuntimeContext), this.virtualThreadExecutor)
                 )
                 .collect(Collectors.toList());
         performanceRunRegistry.register(performanceResultDto.getPerformanceResultId(), futures);
@@ -804,13 +822,25 @@ public class ApiCallServiceImpl {
         entity.setAnalysisSummary(analysisSummary);
         entity.setErrorAnalysis(errorAnalysis);
         entity.setEnvironmentMetrics(environmentMetrics);
+        entity.setAiReport(performanceAiReportService.generateReport(entity, runningItem));
         PerfRsltEntity saved = performanceResultRepository.save(entity);
         PerfRsltEntity compared = performanceBaselineService.applyAutomaticBaselineComparison(saved);
+        compared.setSloScore(performanceSloScoreService.calculate(compared.getRunSummary(), compared.getThresholdConfig(), compared.getBaselineComparison()));
+        compared.setAiReport(performanceAiReportService.generateReport(compared, runningItem));
         compared.setValidationChecklist(performanceValidationChecklistBuilder.build(compared, runningItem));
-        PerformanceReportSnapshotService.PerformanceReportSnapshot snapshot = performanceReportSnapshotService.build(compared, runningItem);
-        compared.setInsightReport(snapshot.insightReport());
-        compared.setAiManagementReport(snapshot.aiManagementReport());
         performanceResultRepository.save(compared);
+    }
+
+    private boolean isTimeoutException(IllegalStateException exception, ApiCallRequestOptions options) {
+        return options != null
+                && options.hasTimeout()
+                && exception.getMessage() != null
+                && exception.getMessage().toLowerCase(Locale.ROOT).contains("timeout");
+    }
+
+    private ResponseEntity<String> timeoutResponse(ApiCallRequestOptions options) {
+        return ResponseEntity.status(HttpStatus.GATEWAY_TIMEOUT)
+                .body("Request timed out after " + options.timeoutMs() + " ms");
     }
 
     private PerformanceAnalysisSummary withStopWarnings(PerformanceAnalysisSummary analysisSummary,
@@ -944,56 +974,118 @@ public class ApiCallServiceImpl {
 
     public ResponseEntity<Map<String, Object>> parallelCallXmlProcessFlowWithParameterContext(String project, String system,
                                                                                              String flow, ParallelCallRequestDto parallelCallRequestDto) {
-        int threadCount = Math.min(5, parallelCallRequestDto.getTotalCalls());
-        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
-        List<CompletableFuture<Map<String, Object>>> futures = new ArrayList<>();
-        
-        for (int i = 0; i < parallelCallRequestDto.getTotalCalls(); i++) {
-            final int callIndex = i + 1;
-            futures.add(CompletableFuture.supplyAsync(() -> {
-                try {
-                    ResponseEntity<Map<String, Object>> response =
-                            callXmlProcessFlowWithParameterContext(project, system, flow, false, false,
-                                    parallelCallRequestDto.getParameterRequest());
+        if (parallelCallRequestDto == null) parallelCallRequestDto = new ParallelCallRequestDto();
+        int totalCalls = parallelCallRequestDto.getTotalCalls();
+        int batchSize = 50;
+        Map<String, Object> allResults = new LinkedHashMap<>();
+        int globalIndex = 1;
 
-                    Map<String, Object> responseBody = Optional.ofNullable(response.getBody())
-                            .orElse(new LinkedHashMap<>());
-
-                    LinkedHashMap<String, Object> result = new LinkedHashMap<>();
-                    @SuppressWarnings("unchecked")
-                    Optional<Map<String, Object>> parametrelerOpt = Optional.ofNullable(responseBody.get("Parametreler"))
-                            .filter(value -> value instanceof Map)
-                            .map(value -> (Map<String, Object>) value);
-
-                    parametrelerOpt.flatMap(parametrelerMap -> Optional.ofNullable(parametrelerMap.get("customerId")))
-                            .ifPresent(customerId -> result.put(callIndex + "-customerId", customerId));
-
-                    /*Optional<Object> firstValue = responseBody.entrySet().stream()
-                            .findFirst()
-                            .map(Map.Entry::getValue);
-                    if (firstValue.isPresent() && firstValue.get() instanceof Map) {
-                        Map<String, String> innerMap = (Map<String, String>) firstValue.get();
-                        innerMap.entrySet().stream()
-                                .reduce((first, second) -> second)
-                                .ifPresent(lastEntry -> result.put(lastEntry.getKey(), lastEntry.getValue()));
-                    }
-                    responseBody.entrySet().stream()
-                            .reduce((first, second) -> second)
-                            .ifPresent(lastEntry -> result.put(lastEntry.getKey(), lastEntry.getValue()));*/
-
-                    return result;
-                } catch (Exception ex) {
-                    Map<String, Object> errorResult = new HashMap<>();
-                    errorResult.put("error", ex.getMessage());
-                    return errorResult;
-                }
-            }, executor));
+        ProjectDto projectDto = this.projectService.getProject(project);
+        ProcessFlowEntity processFlowEntity = this.processFlowRepository.getByShortCodeAndProjectId(flow, projectDto.getProjectId());
+        ProcessFlowDto processFlowTemplate = ProcessFlowMapper.INSTANCE.toDto(processFlowEntity);
+        DefaultRequestEntity defaultRequest = defaultRequestRepository.findDefaultRequest(project, system, flow);
+        ParameterRequestDto baseRequest;
+        try {
+            baseRequest = prepareParameterRequest(parallelCallRequestDto.getParameterRequest(), defaultRequest);
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException("Parameter request parse edilemedi", e);
         }
 
-        Map<String, Object> results = new LinkedHashMap<>();
-        futures.forEach(future -> results.putAll(future.join()));
+        while (globalIndex <= totalCalls) {
+            int batchEnd = Math.min(globalIndex + batchSize - 1, totalCalls);
+            List<CompletableFuture<Map.Entry<Integer, Object>>> futures = new ArrayList<>();
 
-        executor.shutdown();
-        return ResponseEntity.ok(results);
+            for (int i = globalIndex; i <= batchEnd; i++) {
+                final int callIndex = i;
+                ParameterRequestDto isolatedRequest = deepCopyParameterRequest(baseRequest);
+                futures.add(CompletableFuture.supplyAsync(() -> {
+                    try {
+                        ProcessFlowDto threadProcessFlow = copyProcessFlowForThread(processFlowTemplate);
+                        applyParameterRequest(threadProcessFlow, isolatedRequest);
+                        ResponseEntity<Map<String, Object>> response =
+                                callXmlProcessFlowCallApi2(projectDto, system, threadProcessFlow, false, false);
+
+                        Map<String, Object> responseBody = Optional.ofNullable(response.getBody())
+                                .orElse(new LinkedHashMap<>());
+
+                        @SuppressWarnings("unchecked")
+                        Optional<Map<String, Object>> parametrelerOpt = Optional.ofNullable(responseBody.get("Parametreler"))
+                                .filter(value -> value instanceof Map)
+                                .map(value -> (Map<String, Object>) value);
+
+                        Object customerId = parametrelerOpt
+                                .map(m -> m.get("customerId"))
+                                .orElse("ERROR");
+
+                        return Map.entry(callIndex, customerId);
+                    } catch (Exception ex) {
+                        return Map.entry(callIndex, (Object) ("ERROR: " + ex.getMessage()));
+                    }
+                }, virtualThreadExecutor));
+            }
+
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+
+            futures.stream()
+                    .map(CompletableFuture::join)
+                    .sorted(Map.Entry.comparingByKey())
+                    .forEach(entry -> allResults.put(entry.getKey() + "-customerId", entry.getValue()));
+
+            globalIndex = batchEnd + 1;
+        }
+
+        return ResponseEntity.ok(allResults);
+    }
+
+    private ParameterRequestDto prepareParameterRequest(ParameterRequestDto parameterRequest,
+                                                       DefaultRequestEntity defaultRequest) throws JsonProcessingException {
+        boolean missingParameterContext = Objects.isNull(parameterRequest)
+                || Objects.isNull(parameterRequest.getParameterContext())
+                || parameterRequest.getParameterContext().isEmpty();
+
+        if (!missingParameterContext) {
+            return parameterRequest;
+        }
+
+        ParameterRequestDto preparedRequest = new ParameterRequestDto();
+        if (defaultRequest != null) {
+            if (defaultRequest.getParameterContext() != null && !defaultRequest.getParameterContext().trim().isEmpty()) {
+                Map<String, Object> parameterContext = objectMapper.readValue(defaultRequest.getParameterContext(), Map.class);
+                preparedRequest.setParameterContext(parameterContext);
+            }
+            if (defaultRequest.getGlobalHeaders() != null && !defaultRequest.getGlobalHeaders().trim().isEmpty()) {
+                Map<String, Object> globalHeaders = objectMapper.readValue(defaultRequest.getGlobalHeaders(), Map.class);
+                preparedRequest.setGlobalHeaders(globalHeaders);
+            }
+        }
+        return preparedRequest;
+    }
+
+    private void applyParameterRequest(ProcessFlowDto processFlow, ParameterRequestDto parameterRequest) {
+        Optional.ofNullable(parameterRequest)
+                .map(ParameterRequestDto::getParameterContext)
+                .ifPresent(parameterContext -> parameterContext.forEach((key, value) -> {
+                    String stringValue = value != null ? value.toString() : null;
+                    processFlow.getParameterContext().put(key, stringValue);
+                }));
+
+        Optional.ofNullable(parameterRequest)
+                .map(ParameterRequestDto::getGlobalHeaders)
+                .ifPresent(globalHeaders -> globalHeaders.forEach((key, value) -> {
+                    String stringValue = value != null ? value.toString() : null;
+                    processFlow.getGlobalHeaders().put(key, stringValue);
+                }));
+    }
+
+    private ParameterRequestDto deepCopyParameterRequest(ParameterRequestDto source) {
+        if (source == null) return new ParameterRequestDto();
+        ParameterRequestDto copy = new ParameterRequestDto();
+        if (source.getParameterContext() != null) {
+            copy.setParameterContext(new LinkedHashMap<>(source.getParameterContext()));
+        }
+        if (source.getGlobalHeaders() != null) {
+            copy.setGlobalHeaders(new LinkedHashMap<>(source.getGlobalHeaders()));
+        }
+        return copy;
     }
 }

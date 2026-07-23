@@ -27,7 +27,6 @@ public class AuthService {
     private final UserServiceImpl userService;
     private final AuthenticationManager authenticationManager;
     private final KeyPair rsaKeyPair;
-    private final LdapUserService ldapUserService;
 
     public AuthResponse login(AuthRequest authRequest) {
         String decryptedPassword = decryptPassword(authRequest.getPassword());
@@ -38,11 +37,6 @@ public class AuthService {
         authToken.setDetails(authRequest.getAuthType());
 
         authenticationManager.authenticate(authToken);
-
-        if ("ldap".equalsIgnoreCase(authRequest.getAuthType())) {
-            logger.info("LDAP user authenticated, generating token without DB lookup: {}", normalizedUsername);
-            return jwtUtils.generateJwtTokenForLdapUser(normalizedUsername);
-        }
 
         UserEntity userEntity = this.userService.getUserByEmail(normalizedUsername)
                 .orElseThrow(() -> new SecurityException("User not found"));
@@ -56,19 +50,10 @@ public class AuthService {
         }
 
         String email = jwtUtils.extractUsername(refreshToken);
-        String authType = jwtUtils.extractAuthType(refreshToken);
-
-        if ("ldap".equalsIgnoreCase(authType)) {
-            ldapUserService.getActiveLdapUserOrThrow(email);
-            return jwtUtils.generateJwtTokenForLdapUser(email);
-        }
 
         return this.userService.getUserByEmail(email)
                 .map(jwtUtils::generateJwtToken)
-                .orElseGet(() -> {
-                    ldapUserService.getActiveLdapUserOrThrow(email);
-                    return jwtUtils.generateJwtTokenForLdapUser(email);
-                });
+                .orElseThrow(() -> new BadCredentialsException("User not found"));
     }
 
     private String decryptPassword(String password) {
@@ -86,9 +71,17 @@ public class AuthService {
     }
 
     private String normalizeUsername(String username, String authType) {
-        if (!"ldap".equalsIgnoreCase(authType) || username == null) {
-            return username;
+        if (username == null) {
+            return null;
         }
-        return ldapUserService.normalizeUsername(username);
+        if ("ldap".equalsIgnoreCase(authType)) {
+            String normalizedUsername = username.trim();
+            int atIndex = normalizedUsername.indexOf('@');
+            if (atIndex > 0) {
+                return normalizedUsername.substring(0, atIndex);
+            }
+            return normalizedUsername;
+        }
+        return username;
     }
 }

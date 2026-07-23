@@ -1,9 +1,10 @@
 package etiya.omniAutomation.controller;
 
+import etiya.omniAutomation.common.PermissionConstants;
 import etiya.omniAutomation.service.CacheServiceImpl;
-import jakarta.annotation.security.RolesAllowed;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -13,13 +14,13 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/cache")
-@RolesAllowed("ROLE_USER")
 @RequiredArgsConstructor
 public class CacheController {
 
     private final CacheServiceImpl cacheService;
 
     @PostMapping("/clear")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.CACHE_CLEAR + "')")
     public ResponseEntity<Map<String, Object>> clearAllCaches() {
         Map<String, Object> response = new HashMap<>();
 
@@ -42,6 +43,7 @@ public class CacheController {
         }
     }
     @PostMapping("/clear/{cacheName}")
+    @PreAuthorize("@authorizationPermissionService.hasPermission(authentication, '" + PermissionConstants.CACHE_CLEAR + "')")
     public ResponseEntity<Map<String, Object>> clearSpecificCache(@PathVariable String cacheName) {
         Map<String, Object> response = new HashMap<>();
         try {

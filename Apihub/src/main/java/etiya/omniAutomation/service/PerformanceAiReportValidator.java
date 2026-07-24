@@ -95,7 +95,7 @@ public class PerformanceAiReportValidator {
             }
         }
 
-        return errors.isEmpty() ? PerformanceAiValidationResult.valid() : PerformanceAiValidationResult.invalid(errors);
+        return errors.isEmpty() ? PerformanceAiValidationResult.ofValid() : PerformanceAiValidationResult.invalid(errors);
     }
 
     private Set<String> allowedSteps(PerformanceManagementReport managementReport, PerformanceInsightReport insightReport) {

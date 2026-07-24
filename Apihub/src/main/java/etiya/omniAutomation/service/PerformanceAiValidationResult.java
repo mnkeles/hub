@@ -3,7 +3,7 @@ package etiya.omniAutomation.service;
 import java.util.List;
 
 public record PerformanceAiValidationResult(boolean valid, List<String> errors) {
-    public static PerformanceAiValidationResult valid() {
+    public static PerformanceAiValidationResult ofValid() {
         return new PerformanceAiValidationResult(true, List.of());
     }
 

@@ -1,8 +1,6 @@
 package etiya.omniAutomation.service;
 
-import etiya.omniAutomation.business.dto.PerformanceAiManagementReport;
-import etiya.omniAutomation.business.dto.PerformanceInsightReport;
-import etiya.omniAutomation.business.dto.PerformanceManagementReport;
+import etiya.omniAutomation.business.dto.PerformanceAiReport;
 import etiya.omniAutomation.business.dto.PerformanceThreadGroup;
 import etiya.omniAutomation.entity.PerfRsltEntity;
 import etiya.omniAutomation.repository.PerformanceResultRepository;
@@ -17,12 +15,10 @@ import org.springframework.web.server.ResponseStatusException;
 public class PerformanceAiReportRegenerationService {
 
     private final PerformanceResultRepository performanceResultRepository;
-    private final PerformanceManagementReportBuilder performanceManagementReportBuilder;
-    private final PerformanceInsightBuilder performanceInsightBuilder;
     private final PerformanceAiReportService performanceAiReportService;
 
     @Transactional
-    public PerformanceAiManagementReport regenerate(
+    public PerformanceAiReport regenerate(
             Long performanceResultId,
             PerformanceThreadGroup threadDetail
     ) {
@@ -31,41 +27,8 @@ public class PerformanceAiReportRegenerationService {
         }
         PerfRsltEntity result = performanceResultRepository.findById(performanceResultId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Performance result not found: " + performanceResultId));
-        PerformanceManagementReport managementReport = performanceManagementReportBuilder.build(
-                result.getRunSummary(),
-                result.getThresholdResult(),
-                result.getAnalysisSummary(),
-                result.getErrorAnalysis(),
-                result.getEnvironmentMetrics(),
-                result.getBaselineComparison(),
-                result.getSummary()
-        );
-        PerformanceInsightReport insightReport = result.getInsightReport();
-        if (insightReport == null) {
-            insightReport = performanceInsightBuilder.build(
-                    result.getRunSummary(),
-                    result.getThresholdResult(),
-                    result.getAnalysisSummary(),
-                    result.getErrorAnalysis(),
-                    result.getEnvironmentMetrics(),
-                    result.getBaselineComparison(),
-                    result.getSummary(),
-                    threadDetail
-            );
-            result.setInsightReport(insightReport);
-        }
-        PerformanceAiManagementReport aiReport = performanceAiReportService.generate(
-                managementReport,
-                insightReport,
-                result.getRunSummary(),
-                result.getThresholdResult(),
-                result.getAnalysisSummary(),
-                result.getErrorAnalysis(),
-                result.getEnvironmentMetrics(),
-                result.getBaselineComparison(),
-                result.getSummary()
-        );
-        result.setAiManagementReport(aiReport);
+        PerformanceAiReport aiReport = performanceAiReportService.generateReport(result, threadDetail);
+        result.setAiReport(aiReport);
         performanceResultRepository.save(result);
         return aiReport;
     }

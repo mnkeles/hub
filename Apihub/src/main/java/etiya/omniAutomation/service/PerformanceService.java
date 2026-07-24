@@ -53,6 +53,7 @@ public class PerformanceService {
     private final PerformanceBaselineService performanceBaselineService;
     private final PerformanceValidationChecklistBuilder performanceValidationChecklistBuilder;
     private final PerformanceDatasetRuntimeService performanceDatasetRuntimeService;
+    private final PerformanceReportSnapshotService performanceReportSnapshotService;
 
     @Transactional
     public PerformanceResultDto executePerformanceTest(PerformanceRequest request) {
@@ -233,6 +234,11 @@ public class PerformanceService {
     public PerformanceExportPayload getAnalysis(long performanceResultId) {
         PerfRsltEntity result = this.performanceResultRepository.findById(performanceResultId)
                 .orElseThrow(() -> new RuntimeException("Performance result not found: " + performanceResultId));
+        PerformanceThreadGroup threadGroup = loadThreadGroup(performanceResultId);
+        if (result.getAiReport() == null) {
+            result.setAiReport(this.performanceReportSnapshotService.build(result, threadGroup).aiReport());
+            result = this.performanceResultRepository.save(result);
+        }
         return new PerformanceExportPayload(
                 result.getResultSchemaVersion(),
                 result.getThresholdPreset(),
@@ -250,7 +256,7 @@ public class PerformanceService {
                 result.getTestDataId(),
                 result.getSloScore(),
                 result.getSummary(),
-                loadThreadGroup(performanceResultId)
+                threadGroup
         );
     }
 

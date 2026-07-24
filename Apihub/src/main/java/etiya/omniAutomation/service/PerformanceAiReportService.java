@@ -16,7 +16,6 @@ import etiya.omniAutomation.business.dto.PerformanceThresholdResult;
 import etiya.omniAutomation.common.GeneralEnums;
 import etiya.omniAutomation.entity.PerfRsltEntity;
 import lombok.RequiredArgsConstructor;
-import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -36,18 +35,17 @@ public class PerformanceAiReportService {
             Cevabini yalnizca istenen JSON semasinda ver. Markdown, XML veya ek aciklama yazma.
             """;
 
-    private final ChatClient.Builder chatClientBuilder;
+    private final PerformanceAiClient performanceAiClient;
     private final ObjectMapper objectMapper;
 
     public PerformanceAiReport generateReport(PerfRsltEntity result, PerformanceThreadGroup threadGroup) {
         try {
-            String raw = chatClientBuilder.build()
-                    .prompt()
-                    .system(SYSTEM_PROMPT)
-                    .user(buildUserPrompt(result))
-                    .call()
-                    .content();
-            return parseAiReportResponse(raw);
+            String raw = performanceAiClient.complete(SYSTEM_PROMPT, buildUserPrompt(result));
+            PerformanceAiReport report = parseAiReportResponse(raw);
+            if (isUsable(report)) {
+                return report;
+            }
+            return fallbackReport(result, threadGroup, "AI report response was empty or incomplete");
         } catch (Exception e) {
             return fallbackReport(result, threadGroup, e.getMessage());
         }
@@ -304,6 +302,22 @@ public class PerformanceAiReportService {
         return values.stream()
                 .filter(value -> value != null && !value.isBlank())
                 .toList();
+    }
+
+    private boolean isUsable(PerformanceAiReport report) {
+        return report != null
+                && hasText(report.executiveSummary())
+                && hasText(report.overallStatus())
+                && hasText(report.businessImpact())
+                && hasText(report.technicalDetails())
+                && (!safeList(report.goodPoints()).isEmpty()
+                || !safeList(report.badPoints()).isEmpty()
+                || !safeList(report.risks()).isEmpty()
+                || !safeList(report.recommendedActions()).isEmpty());
+    }
+
+    private boolean hasText(String value) {
+        return value != null && !value.isBlank();
     }
 
     private record AiReportResponse(

@@ -14,7 +14,6 @@ import etiya.omniAutomation.business.dto.PerformanceThresholdResult;
 import etiya.omniAutomation.common.GeneralEnums;
 import etiya.omniAutomation.entity.PerfRsltEntity;
 import org.junit.jupiter.api.Test;
-import org.springframework.ai.chat.client.ChatClient;
 
 import java.util.Date;
 import java.util.List;
@@ -22,6 +21,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -29,7 +29,7 @@ class PerformanceAiReportServiceTest {
 
     @Test
     void parseAiReportResponseReturnsAiSourceWhenJsonParses() throws Exception {
-        PerformanceAiReportService service = new PerformanceAiReportService(mock(ChatClient.Builder.class), new ObjectMapper());
+        PerformanceAiReportService service = new PerformanceAiReportService(mock(PerformanceAiClient.class), new ObjectMapper());
 
         PerformanceAiReport report = service.parseAiReportResponse("""
                 {
@@ -52,9 +52,10 @@ class PerformanceAiReportServiceTest {
 
     @Test
     void generateReportReturnsFallbackWhenAiThrows() {
-        ChatClient.Builder builder = mock(ChatClient.Builder.class);
-        when(builder.build()).thenThrow(new RuntimeException("AI unavailable"));
-        PerformanceAiReportService service = new PerformanceAiReportService(builder, new ObjectMapper());
+        PerformanceAiClient aiClient = mock(PerformanceAiClient.class);
+        when(aiClient.complete(org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyString()))
+                .thenThrow(new RuntimeException("AI unavailable"));
+        PerformanceAiReportService service = new PerformanceAiReportService(aiClient, new ObjectMapper());
 
         PerformanceAiReport report = service.generateReport(entity(), null);
 
@@ -63,8 +64,23 @@ class PerformanceAiReportServiceTest {
     }
 
     @Test
+    void generateReportReturnsFallbackWhenAiReturnsIncompletePayload() {
+        PerformanceAiClient aiClient = mock(PerformanceAiClient.class);
+        when(aiClient.complete(org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyString()))
+                .thenReturn("{\"executiveSummary\":\"\",\"overallStatus\":\"\",\"businessImpact\":\"\",\"goodPoints\":[],\"badPoints\":[],\"risks\":[],\"recommendedActions\":[],\"technicalDetails\":\"\"}");
+
+        PerformanceAiReportService service = new PerformanceAiReportService(aiClient, new ObjectMapper());
+
+        PerformanceAiReport report = service.generateReport(entity(), null);
+
+        assertEquals(PerformanceAiReportSource.FALLBACK, report.source());
+        assertEquals("FAILED", report.overallStatus());
+        assertFalse(report.recommendedActions().isEmpty());
+    }
+
+    @Test
     void fallbackReportIncludesThresholdFailuresAndActions() {
-        PerformanceAiReportService service = new PerformanceAiReportService(mock(ChatClient.Builder.class), new ObjectMapper());
+        PerformanceAiReportService service = new PerformanceAiReportService(mock(PerformanceAiClient.class), new ObjectMapper());
 
         PerformanceAiReport report = service.fallbackReport(entity(), null, "parse failed");
 
@@ -73,6 +89,33 @@ class PerformanceAiReportServiceTest {
         assertFalse(report.recommendedActions().isEmpty());
         assertFalse(report.risks().isEmpty());
         assertEquals("FAILED", report.overallStatus());
+        assertTrue(report.executiveSummary().contains("Performans testi"));
+    }
+
+    @Test
+    void generateReportReturnsAiSourceWhenClientReturnsStructuredJson() {
+        PerformanceAiClient aiClient = mock(PerformanceAiClient.class);
+        when(aiClient.complete(org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyString()))
+                .thenReturn("""
+                        {
+                          "executiveSummary": "summary",
+                          "overallStatus": "FAILED",
+                          "businessImpact": "impact",
+                          "goodPoints": ["good"],
+                          "badPoints": ["bad"],
+                          "risks": ["risk"],
+                          "recommendedActions": ["action"],
+                          "technicalDetails": "details"
+                        }
+                        """);
+
+        PerformanceAiReportService service = new PerformanceAiReportService(aiClient, new ObjectMapper());
+
+        PerformanceAiReport report = service.generateReport(entity(), null);
+
+        assertEquals(PerformanceAiReportSource.AI, report.source());
+        assertEquals("summary", report.executiveSummary());
+        assertEquals(List.of("action"), report.recommendedActions());
     }
 
     private PerfRsltEntity entity() {

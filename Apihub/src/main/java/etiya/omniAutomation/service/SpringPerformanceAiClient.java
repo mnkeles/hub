@@ -1,18 +1,20 @@
 package etiya.omniAutomation.service;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
 public class SpringPerformanceAiClient implements PerformanceAiClient {
 
-    private final ChatClient.Builder chatClientBuilder;
+    private final ChatClient chatClient;
+
+    public SpringPerformanceAiClient(ChatClient.Builder chatClientBuilder) {
+        this.chatClient = chatClientBuilder.build();
+    }
 
     @Override
     public String complete(String systemPrompt, String userPrompt) {
-        return chatClientBuilder.build()
+        return chatClient
                 .prompt()
                 .system(systemPrompt)
                 .user(userPrompt)

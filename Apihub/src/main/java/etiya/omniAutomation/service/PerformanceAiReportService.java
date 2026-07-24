@@ -204,17 +204,17 @@ public class PerformanceAiReportService {
     }
 
     private String overallStatus(GeneralEnums.PerformanceStatus status, PerformanceThresholdResult thresholdResult) {
-        if (status == GeneralEnums.PerformanceStatus.COMPLETED_PASSED || (thresholdResult != null && thresholdResult.passed())) {
-            return "PASSED";
-        }
-        if (status == GeneralEnums.PerformanceStatus.COMPLETED_FAILED || (thresholdResult != null && !thresholdResult.passed())) {
-            return "FAILED";
-        }
         if (status == GeneralEnums.PerformanceStatus.STOPPED) {
             return "STOPPED";
         }
         if (status == GeneralEnums.PerformanceStatus.ERROR) {
             return "ERROR";
+        }
+        if (status == GeneralEnums.PerformanceStatus.COMPLETED_PASSED || (thresholdResult != null && thresholdResult.passed())) {
+            return "PASSED";
+        }
+        if (status == GeneralEnums.PerformanceStatus.COMPLETED_FAILED || (thresholdResult != null && !thresholdResult.passed())) {
+            return "FAILED";
         }
         return status == null ? "UNKNOWN" : status.name();
     }

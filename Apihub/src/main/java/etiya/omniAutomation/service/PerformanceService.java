@@ -44,7 +44,6 @@ public class PerformanceService {
     private final PlatformTransactionManager platformTransactionManager;
     @PersistenceContext
     private final EntityManager entityManager;
-    private final ObjectMapper objectMapper = new ObjectMapper();
     private final DefaultRequestRepository defaultRequestRepository;
     private final PerformanceRunRegistry performanceRunRegistry;
     private final PerformanceComparisonService performanceComparisonService;
@@ -54,6 +53,7 @@ public class PerformanceService {
     private final PerformanceValidationChecklistBuilder performanceValidationChecklistBuilder;
     private final PerformanceDatasetRuntimeService performanceDatasetRuntimeService;
     private final PerformanceReportSnapshotService performanceReportSnapshotService;
+    private final ObjectMapper objectMapper;
 
     @Transactional
     public PerformanceResultDto executePerformanceTest(PerformanceRequest request) {
@@ -231,6 +231,7 @@ public class PerformanceService {
         return perfRsltItemEntity.getPerformanceThreadGroup();
     }
 
+    @Transactional
     public PerformanceExportPayload getAnalysis(long performanceResultId) {
         PerfRsltEntity result = this.performanceResultRepository.findById(performanceResultId)
                 .orElseThrow(() -> new RuntimeException("Performance result not found: " + performanceResultId));

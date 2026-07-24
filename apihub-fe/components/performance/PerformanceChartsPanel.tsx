@@ -28,6 +28,11 @@ interface TimeSeriesRow {
     throughput: number;
 }
 
+interface ActiveThreadRow {
+    time: string;
+    activeThreads: number;
+}
+
 function buildTimeSeries(detail: PerformanceDetailResponse | null): TimeSeriesRow[] {
     const rows = detail?.groups.flatMap((group) => group.steps.map((step) => ({
         finishedAt: step.finishedAt,
@@ -56,9 +61,42 @@ function buildTimeSeries(detail: PerformanceDetailResponse | null): TimeSeriesRo
     });
 }
 
+function buildActiveThreadSeries(detail: PerformanceDetailResponse | null): ActiveThreadRow[] {
+    const events = detail?.groups.flatMap((group) =>
+        group.steps.flatMap((step) => {
+            if (!step.startedAt || !step.finishedAt) {
+                return [];
+            }
+            return [
+                { timestamp: new Date(step.startedAt).getTime(), delta: 1 },
+                { timestamp: new Date(step.finishedAt).getTime(), delta: -1 },
+            ];
+        })
+    ) ?? [];
+
+    const validEvents = events
+        .filter((event) => !Number.isNaN(event.timestamp))
+        .sort((a, b) => {
+            if (a.timestamp === b.timestamp) {
+                return b.delta - a.delta;
+            }
+            return a.timestamp - b.timestamp;
+        });
+
+    let activeThreads = 0;
+    return validEvents.map((event) => {
+        activeThreads = Math.max(0, activeThreads + event.delta);
+        return {
+            time: new Date(event.timestamp).toLocaleTimeString('tr-TR'),
+            activeThreads,
+        };
+    });
+}
+
 export default function PerformanceChartsPanel({ detail, summaries }: PerformanceChartsPanelProps) {
     const t = useTranslations('performance');
     const timeSeries = buildTimeSeries(detail);
+    const activeThreadSeries = buildActiveThreadSeries(detail);
     const stepChartData = summaries.map((summary) => ({
         step: summary.stepName,
         average: summary.averageElapsedTime,
@@ -100,6 +138,22 @@ export default function PerformanceChartsPanel({ detail, summaries }: Performanc
                         </ResponsiveContainer>
                     </Box>
                 </>
+            )}
+
+            {activeThreadSeries.length > 0 && (
+                <Box>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Active Threads Over Time</Typography>
+                    <ResponsiveContainer width="100%" height={260}>
+                        <LineChart data={activeThreadSeries}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="time" />
+                            <YAxis />
+                            <Tooltip />
+                            <Legend />
+                            <Line type="monotone" dataKey="activeThreads" stroke="#6d4c41" dot={false} />
+                        </LineChart>
+                    </ResponsiveContainer>
+                </Box>
             )}
 
             {stepChartData.length > 0 && (

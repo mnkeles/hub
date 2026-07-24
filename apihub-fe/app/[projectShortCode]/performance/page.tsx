@@ -1,24 +1,20 @@
 'use client';
-import { useState } from 'react';
-import { Container, Box, Typography, Fab } from '@mui/material';
+
+import { use, useState } from 'react';
+import { Container, Fab, Typography } from '@mui/material';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
-import PerformanceRunner from '@/components/PerformanceRunner';
-import PerformanceResultsGrid from '@/components/PerformanceResultGrid';
 import AiChatDialog from '@/components/AiChatDialog';
+import PerformanceTestsContent from '@/components/performance/PerformanceTestsContent';
 
 interface PageProps {
-    params: {
+    params: Promise<{
         projectShortCode: string;
-    };
+    }>;
 }
 
 export default function PerformancePage({ params }: PageProps) {
-    const [refreshKey, setRefreshKey] = useState(0);
+    const { projectShortCode } = use(params);
     const [chatOpen, setChatOpen] = useState(false);
-
-    const handleTestComplete = () => {
-        setRefreshKey(prev => prev + 1);
-    };
 
     return (
         <Container maxWidth="xl" sx={{ py: 4 }}>
@@ -26,19 +22,12 @@ export default function PerformancePage({ params }: PageProps) {
                 Performans Test Runner
             </Typography>
 
-            <Box sx={{ mb: 4 }}>
-                <PerformanceRunner
-                    projectShortCode={params.projectShortCode}
-                    onTestComplete={handleTestComplete}
-                />
-            </Box>
-
-            <PerformanceResultsGrid
-                projectShortCode={params.projectShortCode}
-                refreshKey={refreshKey}
+            <PerformanceTestsContent
+                key={projectShortCode}
+                projectShortCode={projectShortCode}
+                useDashboardProjectContext={false}
             />
 
-            {/* Floating AI Button */}
             <Fab
                 color="primary"
                 sx={{
@@ -56,7 +45,7 @@ export default function PerformancePage({ params }: PageProps) {
             <AiChatDialog
                 open={chatOpen}
                 onClose={() => setChatOpen(false)}
-                projectShortCode={params.projectShortCode}
+                projectShortCode={projectShortCode}
             />
         </Container>
     );

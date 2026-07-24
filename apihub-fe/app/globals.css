@@ -24,3 +24,28 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .performance-report-print-root,
+  .performance-report-print-root * {
+    visibility: visible;
+  }
+
+  .performance-report-print-root {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    background: #ffffff;
+    color: #000000;
+    padding: 16px;
+  }
+
+  .performance-report-print-hidden {
+    display: none !important;
+  }
+}

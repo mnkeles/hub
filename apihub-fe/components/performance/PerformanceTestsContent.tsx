@@ -239,9 +239,7 @@ export default function PerformanceTestsContent({ projectShortCode, useDashboard
             const data = await processFlowService.getAll();
             const filtered = data.filter((flow: ProcessFlowDto) => flow.projectId === selectedProject.projectId);
             setProcessFlows(filtered);
-            if (filtered.length > 0 && filtered[0].processFlowId !== null) {
-                setProcessFlowId(filtered[0].processFlowId);
-            }
+            setProcessFlowId(filtered.find((flow) => flow.processFlowId != null)?.processFlowId ?? 0);
         } catch (err: unknown) {
             setError(getErrorMessage(err, 'Akışlar yüklenemedi'));
         }
@@ -255,9 +253,7 @@ export default function PerformanceTestsContent({ projectShortCode, useDashboard
             const data = await generalWebSystemService.getAll();
             const filtered = data.filter((sys: GeneralWebSystemDto) => sys.projectId === selectedProject.projectId && sys.actv);
             setEnvironments(filtered);
-            if (filtered.length > 0) {
-                setEnvironment(filtered[0].shortCode);
-            }
+            setEnvironment(filtered[0]?.shortCode ?? '');
         } catch (err: unknown) {
             setError(getErrorMessage(err, 'Ortamlar yüklenemedi'));
         }
@@ -302,19 +298,13 @@ export default function PerformanceTestsContent({ projectShortCode, useDashboard
             setError('Lütfen proje, ortam ve akış seçin');
             return;
         }
-        if (threadCount > 500 && !window.confirm('Thread sayısı 500 üzerinde. Devam etmek istiyor musunuz?')) {
-            return;
-        }
-        if (threadCount >= 100 && rampUpPeriod === 0 && !window.confirm('Ramp Up 0 ve thread sayısı yüksek. Devam etmek istiyor musunuz?')) {
-            return;
-        }
-
         if (thresholdPreset === 'CUSTOM' && !hasCompleteThresholdConfig(thresholdConfig)) {
             setError('Custom threshold preset icin tum threshold degerlerini girin');
             return;
         }
         const thresholdSummary = `${t('thresholdPreset')}: ${thresholdPreset}, ${t('maxErrorRatePercent')}: ${thresholdConfig.maxErrorRatePercent ?? '-'}, ${t('maxAverageMs')}: ${thresholdConfig.maxAverageMs ?? '-'}, ${t('maxP95Ms')}: ${thresholdConfig.maxP95Ms ?? '-'}, ${t('maxP99Ms')}: ${thresholdConfig.maxP99Ms ?? '-'}, ${t('minThroughputPerSecond')}: ${thresholdConfig.minThroughputPerSecond ?? '-'}`;
-        if ((threadCount > 500 || (threadCount >= 100 && rampUpPeriod === 0)) && !window.confirm(thresholdSummary)) {
+        const requiresHighLoadConfirmation = threadCount > 500 || (threadCount >= 100 && rampUpPeriod === 0);
+        if (requiresHighLoadConfirmation && !window.confirm(thresholdSummary)) {
             return;
         }
 
@@ -396,12 +386,21 @@ export default function PerformanceTestsContent({ projectShortCode, useDashboard
         setAnalysisData(null);
 
         try {
-            const [detail, analysis] = await Promise.all([
+            const [detailResult, analysisResult] = await Promise.allSettled([
                 performanceService.getPerformanceDetail(performanceResultId),
-                performanceService.getAnalysis(performanceResultId).catch(() => null),
+                performanceService.getAnalysis(performanceResultId),
             ]);
-            setDetailData(detail);
-            setAnalysisData(analysis);
+
+            if (detailResult.status === 'rejected') {
+                throw detailResult.reason;
+            }
+
+            setDetailData(detailResult.value);
+            if (analysisResult.status === 'fulfilled') {
+                setAnalysisData(analysisResult.value);
+            } else {
+                setError(getErrorMessage(analysisResult.reason, 'Analiz verisi yüklenemedi'));
+            }
         } catch (err: unknown) {
             setError(getErrorMessage(err, 'Detaylar yüklenemedi'));
         } finally {

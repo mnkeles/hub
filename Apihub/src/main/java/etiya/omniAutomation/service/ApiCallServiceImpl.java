@@ -822,7 +822,6 @@ public class ApiCallServiceImpl {
         entity.setAnalysisSummary(analysisSummary);
         entity.setErrorAnalysis(errorAnalysis);
         entity.setEnvironmentMetrics(environmentMetrics);
-        entity.setAiReport(performanceAiReportService.generateReport(entity, runningItem));
         PerfRsltEntity saved = performanceResultRepository.save(entity);
         PerfRsltEntity compared = performanceBaselineService.applyAutomaticBaselineComparison(saved);
         compared.setSloScore(performanceSloScoreService.calculate(compared.getRunSummary(), compared.getThresholdConfig(), compared.getBaselineComparison()));

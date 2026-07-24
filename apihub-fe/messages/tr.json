@@ -593,6 +593,7 @@
     "reportSource": "Kaynak",
     "generatedAt": "Oluşturulma",
     "reportNotGenerated": "Rapor henüz oluşturulmadı.",
+    "reportUnavailable": "Rapor verisi bulunamadı.",
     "projectLoadFailed": "Proje bilgisi yüklenemedi.",
       "timeSeriesUnavailable": "Bu testte zaman serisi verisi yok.",
       "dataset": "Dataset",

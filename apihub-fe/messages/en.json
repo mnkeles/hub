@@ -593,6 +593,7 @@
     "reportSource": "Source",
     "generatedAt": "Generated At",
     "reportNotGenerated": "Report has not been generated yet.",
+    "reportUnavailable": "Report data is not available.",
     "projectLoadFailed": "Project could not be loaded.",
       "timeSeriesUnavailable": "This test has no time-series data.",
       "dataset": "Dataset",

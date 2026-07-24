@@ -78,19 +78,34 @@ export default function PerformanceSchedulePanel({ projectId, processFlowId, req
     };
 
     const handleToggle = async (item: PerformanceSchedule, nextEnabled: boolean) => {
-        await performanceScheduleService.setEnabled(item.scheduleId, nextEnabled);
-        await loadSchedules();
+        setError(null);
+        try {
+            await performanceScheduleService.setEnabled(item.scheduleId, nextEnabled);
+            await loadSchedules();
+        } catch (err) {
+            setError(errorMessage(err, 'Schedule durumu güncellenemedi'));
+        }
     };
 
     const handleRunNow = async (item: PerformanceSchedule) => {
-        const result = await performanceScheduleService.runNow(item.scheduleId);
-        onRunStarted(result);
-        await loadSchedules();
+        setError(null);
+        try {
+            const result = await performanceScheduleService.runNow(item.scheduleId);
+            onRunStarted(result);
+            await loadSchedules();
+        } catch (err) {
+            setError(errorMessage(err, 'Schedule çalıştırılamadı'));
+        }
     };
 
     const handleDeactivate = async (item: PerformanceSchedule) => {
-        await performanceScheduleService.deactivate(item.scheduleId);
-        await loadSchedules();
+        setError(null);
+        try {
+            await performanceScheduleService.deactivate(item.scheduleId);
+            await loadSchedules();
+        } catch (err) {
+            setError(errorMessage(err, 'Schedule pasifleştirilemedi'));
+        }
     };
 
     return (

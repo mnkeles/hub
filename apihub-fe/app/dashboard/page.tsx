@@ -91,24 +91,6 @@ interface FailedService {
     status: 'failed' | 'broken';
 }
 
-interface AllureTreeNode {
-    name?: string;
-    status?: 'passed' | 'failed' | 'broken' | string;
-    statistic?: {
-        passed?: number;
-        failed?: number;
-        broken?: number;
-    };
-    children?: AllureTreeNode[];
-    error?: string;
-}
-
-interface AllureCategory {
-    name?: string;
-    total?: number;
-    uid?: string;
-}
-
 export default function AdminDashboard() {
     const { selectedProject } = useProject();
     const [totalProcessFlows, setTotalProcessFlows] = useState<number>(0);
@@ -249,7 +231,7 @@ export default function AdminDashboard() {
                     let passedCount = 0;
                     let failedCount = 0;
                     
-                    const countTests = (node: AllureTreeNode): void => {
+                    const countTests = (node: any): void => {
                         // Check if current node has status (individual test)
                         if (node.status) {
                             if (node.status === 'passed') {
@@ -258,7 +240,7 @@ export default function AdminDashboard() {
                                 console.log('🔴 Found failed/broken test:', node.name, '| Status:', node.status);
                                 
                                 // Extract service name from test name
-                                const serviceName = node.name?.split(':').pop()?.trim() || node.name || 'Unknown service';
+                                const serviceName = node.name.split(':').pop()?.trim() || node.name;
                                 failedServicesList.push({
                                     name: serviceName,
                                     status: node.status
@@ -277,7 +259,7 @@ export default function AdminDashboard() {
                         
                         // Recursively check children
                         if (Array.isArray(node.children)) {
-                            node.children.forEach((child) => {
+                            node.children.forEach((child: any) => {
                                 countTests(child);
                             });
                         }
@@ -317,7 +299,7 @@ export default function AdminDashboard() {
                     let failedCount = 0;
                     
                     if (Array.isArray(categoriesData)) {
-                        categoriesData.forEach((category: AllureCategory) => {
+                        categoriesData.forEach((category: any) => {
                             console.log('📊 Category:', category.name, '| Total:', category.total, '| UID:', category.uid);
                             // Sum up all categories (Product defects, Test defects, etc.)
                             // Categories with failures typically include all test failures
@@ -447,7 +429,7 @@ export default function AdminDashboard() {
     };
 
     return (
-        <DashboardLayout>
+        <DashboardLayout requiredPermission="MENU.DASHBOARD.VIEW">
             <Box>
                 <Typography variant="h4" sx={{ mb: 3, fontWeight: 700 }}>
                     Dashboard

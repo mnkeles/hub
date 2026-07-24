@@ -8,7 +8,6 @@ export interface DatabaseConfigDto {
     username: string;
     password?: string;
     isActv: boolean;
-    actv?: boolean;
     schema: string;
     driver: string;
     projectId: number;

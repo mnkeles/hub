@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Locale, defaultLocale, locales } from '@/i18n/config';
 
@@ -12,21 +12,20 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-    const [locale, setLocaleState] = useState<Locale>(() => {
-        if (typeof document === 'undefined') {
-            return defaultLocale;
-        }
+    const [locale, setLocaleState] = useState<Locale>(defaultLocale);
+    const router = useRouter();
 
+    useEffect(() => {
+        // Get locale from cookie on mount
         const cookieLocale = document.cookie
             .split('; ')
             .find(row => row.startsWith('NEXT_LOCALE='))
             ?.split('=')[1];
-
-        return cookieLocale && locales.includes(cookieLocale as Locale)
-            ? cookieLocale as Locale
-            : defaultLocale;
-    });
-    const router = useRouter();
+        
+        if (cookieLocale && locales.includes(cookieLocale as Locale)) {
+            setLocaleState(cookieLocale as Locale);
+        }
+    }, []);
 
     const setLocale = (newLocale: Locale) => {
         // Set cookie

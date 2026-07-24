@@ -12,16 +12,6 @@ export type PerformanceThresholdPreset = 'SMOKE' | 'NORMAL' | 'STRESS' | 'STRICT
 
 export type PerformanceValidationStatus = 'PASSED' | 'FAILED' | 'WARNING' | 'NOT_APPLICABLE';
 
-export type PerformanceAiReportSource = 'AI' | 'FALLBACK';
-
-export type PerformanceDatasetSourceType = 'MANUAL' | 'CSV' | 'JSON';
-
-export type PerformanceScheduleStatus = 'NEVER_RUN' | 'STARTED' | 'FAILED_TO_START' | 'SKIPPED_RUNNING' | 'DISABLED';
-
-export type PerformanceSloGrade = 'A' | 'B' | 'C' | 'D' | 'F';
-
-export type PerformanceSloStatus = 'EXCELLENT' | 'GOOD' | 'WARNING' | 'CRITICAL';
-
 export interface PerformanceRequest {
     environment: string;
     processFlowId: number;
@@ -33,7 +23,6 @@ export interface PerformanceRequest {
     thinkTimeMs?: number | null;
     timeoutMs?: number | null;
     testDataId?: number | null;
-    datasetMapping?: Record<string, string> | null;
     environmentBaseUrl?: string | null;
     thresholdPreset?: PerformanceThresholdPreset | null;
     maxErrorRatePercent?: number | null;
@@ -186,215 +175,6 @@ export interface PerformanceEnvironmentMetrics {
     warnings?: string[];
 }
 
-export interface PerformanceAiReport {
-    executiveSummary?: string | null;
-    overallStatus?: string | null;
-    businessImpact?: string | null;
-    goodPoints?: string[] | null;
-    badPoints?: string[] | null;
-    risks?: string[] | null;
-    recommendedActions?: string[] | null;
-    technicalDetails?: string | null;
-    source?: PerformanceAiReportSource | null;
-    generatedAt?: string | null;
-}
-
-export type PerformanceManagementRiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
-
-export type PerformanceManagementStepStatus = 'GOOD' | 'WATCH' | 'NEEDS_IMPROVEMENT';
-
-export type PerformanceReleaseReadiness = 'READY' | 'CONDITIONAL' | 'BLOCKED';
-
-export type PerformanceInsightSeverity = 'INFO' | 'WARNING' | 'HIGH' | 'CRITICAL';
-
-export interface PerformanceManagementStepAssessment {
-    stepName?: string | null;
-    status?: PerformanceManagementStepStatus | null;
-    priority?: PerformanceManagementRiskLevel | null;
-    mainReason?: string | null;
-    evidence?: string | null;
-    impact?: string | null;
-    recommendation?: string | null;
-    averageMs?: number | null;
-    p95Ms?: number | null;
-    p99Ms?: number | null;
-    errorRate?: number | null;
-    throughputPerSecond?: number | null;
-}
-
-export interface PerformanceManagementProblemArea {
-    title: string;
-    stepName?: string | null;
-    metric?: string | null;
-    value?: string | number | null;
-    impact?: string | null;
-}
-
-export interface PerformanceManagementReport {
-    executiveSummary?: string | null;
-    overallStatus?: string | null;
-    riskLevel?: PerformanceManagementRiskLevel | null;
-    stepAssessmentSummary?: string | null;
-    trendSummary?: string | null;
-    recommendedActions?: string[];
-    stepAssessments?: PerformanceManagementStepAssessment[];
-    problemAreas?: PerformanceManagementProblemArea[];
-}
-
-export interface PerformanceMetricInsight {
-    metric?: string | null;
-    severity?: PerformanceInsightSeverity | null;
-    actual?: string | number | null;
-    expected?: string | number | null;
-    explanation?: string | null;
-}
-
-export interface PerformanceRootCauseHint {
-    category?: string | null;
-    signal?: string | null;
-    severity?: PerformanceInsightSeverity | null;
-    explanation?: string | null;
-    recommendation?: string | null;
-}
-
-export interface PerformanceStepInsight {
-    stepName?: string | null;
-    explanation?: string | null;
-}
-
-export interface PerformanceInsightReport {
-    schemaVersion?: number | string | null;
-    generatedByVersion?: string | null;
-    apdexScore?: number | null;
-    sloCompliancePercent?: number | null;
-    regressionAvailable?: boolean | null;
-    regressionScore?: number | null;
-    anomalyScore?: number | null;
-    releaseReadiness?: PerformanceReleaseReadiness | null;
-    bottleneckType?: string | null;
-    metricInsights?: PerformanceMetricInsight[];
-    rootCauseHints?: PerformanceRootCauseHint[];
-    stepInsights?: PerformanceStepInsight[];
-}
-
-export interface PerformanceAiRecommendedAction {
-    priority?: string | null;
-    title?: string | null;
-    description?: string | null;
-    relatedStepName?: string | null;
-    relatedMetric?: string | null;
-}
-
-export interface PerformanceAiManagementReport {
-    generated?: boolean | null;
-    executiveNarrative?: string | null;
-    technicalNarrative?: string | null;
-    rootCauseNarrative?: string | null;
-    releaseReadinessNarrative?: string | null;
-    recommendedActionPlan?: PerformanceAiRecommendedAction[];
-    limitations?: string[];
-    errorMessage?: string | null;
-    failureReason?: string | null;
-    validationErrors?: string[];
-    schemaVersion?: number | string | null;
-    generatedByVersion?: string | null;
-    model?: string | null;
-    durationMs?: number | null;
-    attemptCount?: number | null;
-    promptHash?: string | null;
-    inputSummaryHash?: string | null;
-    responseSize?: number | null;
-    promptTokens?: number | null;
-    completionTokens?: number | null;
-    totalTokens?: number | null;
-}
-
-export interface PerformanceDataset {
-    datasetId: number;
-    projectId: number;
-    name: string;
-    description?: string | null;
-    sourceType: PerformanceDatasetSourceType;
-    columnSchema?: Record<string, unknown> | null;
-    defaultMapping?: Record<string, string> | null;
-    rowCount: number;
-    active: boolean;
-    createdAt?: string | null;
-    updatedAt?: string | null;
-}
-
-export interface PerformanceDatasetRow {
-    rowId: number;
-    datasetId: number;
-    rowIndex: number;
-    data: Record<string, unknown>;
-    active: boolean;
-}
-
-export interface PerformanceDatasetPreview {
-    dataset: PerformanceDataset;
-    rows: PerformanceDatasetRow[];
-}
-
-export interface PerformanceDatasetRequest {
-    projectId: number;
-    name: string;
-    description?: string | null;
-    defaultMapping?: Record<string, string> | null;
-}
-
-export interface PerformanceDatasetRowRequest {
-    data: Record<string, unknown>;
-}
-
-export interface PerformanceSchedule {
-    scheduleId: number;
-    projectId: number;
-    processFlowId: number;
-    name: string;
-    cronExpression: string;
-    timezone: string;
-    enabled: boolean;
-    requestSnapshot: PerformanceRequest;
-    lastRunAt?: string | null;
-    nextRunAt?: string | null;
-    lastResultId?: number | null;
-    lastStatus?: PerformanceScheduleStatus | null;
-    createdAt?: string | null;
-    updatedAt?: string | null;
-}
-
-export interface PerformanceScheduleRequest {
-    projectId: number;
-    processFlowId: number;
-    name: string;
-    cronExpression: string;
-    timezone: string;
-    enabled?: boolean | null;
-    requestSnapshot: PerformanceRequest;
-}
-
-export interface PerformanceSloMetricScore {
-    metricName: string;
-    score: number;
-    maxScore: number;
-    actualValue?: number | null;
-    targetValue?: number | null;
-    direction?: string | null;
-    message?: string | null;
-}
-
-export interface PerformanceSloScore {
-    score: number;
-    grade: PerformanceSloGrade;
-    status: PerformanceSloStatus;
-    metricScores?: PerformanceSloMetricScore[];
-    strengths?: string[];
-    weaknesses?: string[];
-    recommendations?: string[];
-    calculatedAt?: string | null;
-}
-
 export interface PerformanceLiveSnapshot {
     performanceResultId?: number;
     status?: PerformanceStatus;
@@ -458,12 +238,6 @@ export interface PerformanceExportPayload {
     analysisSummary?: PerformanceAnalysisSummary | null;
     errorAnalysis?: PerformanceErrorAnalysis | null;
     environmentMetrics?: PerformanceEnvironmentMetrics | null;
-    aiReport?: PerformanceAiReport | null;
-    managementReport?: PerformanceManagementReport | null;
-    insightReport?: PerformanceInsightReport | null;
-    aiManagementReport?: PerformanceAiManagementReport | null;
-    testDataId?: number | null;
-    sloScore?: PerformanceSloScore | null;
     stepSummaries?: PerformanceStepSummary[] | null;
     threadDetail?: PerformanceThreadGroup | null;
 }
@@ -485,10 +259,6 @@ export interface PerformanceResultDto {
     analysisSummary?: PerformanceAnalysisSummary | null;
     errorAnalysis?: PerformanceErrorAnalysis | null;
     environmentMetrics?: PerformanceEnvironmentMetrics | null;
-    aiReport?: PerformanceAiReport | null;
-    managementReport?: PerformanceManagementReport | null;
-    insightReport?: PerformanceInsightReport | null;
-    aiManagementReport?: PerformanceAiManagementReport | null;
     resultSchemaVersion?: number | null;
     thresholdPreset?: PerformanceThresholdPreset | null;
     thresholdConfig?: PerformanceThresholdConfig | null;
@@ -501,8 +271,6 @@ export interface PerformanceResultDto {
     thinkTimeMs?: number | null;
     timeoutMs?: number | null;
     environmentBaseUrl?: string | null;
-    testDataId?: number | null;
-    sloScore?: PerformanceSloScore | null;
 }
 
 export interface PerformanceHistoryItem {
@@ -520,10 +288,6 @@ export interface PerformanceHistoryItem {
     analysisSummary?: PerformanceAnalysisSummary | null;
     errorAnalysis?: PerformanceErrorAnalysis | null;
     environmentMetrics?: PerformanceEnvironmentMetrics | null;
-    aiReport?: PerformanceAiReport | null;
-    managementReport?: PerformanceManagementReport | null;
-    insightReport?: PerformanceInsightReport | null;
-    aiManagementReport?: PerformanceAiManagementReport | null;
     resultSchemaVersion?: number | null;
     thresholdPreset?: PerformanceThresholdPreset | null;
     thresholdConfig?: PerformanceThresholdConfig | null;
@@ -531,8 +295,6 @@ export interface PerformanceHistoryItem {
     baselineResultId?: number | null;
     baselineComparison?: PerformanceComparisonResult | null;
     validationChecklist?: PerformanceValidationChecklist | null;
-    testDataId?: number | null;
-    sloScore?: PerformanceSloScore | null;
     performanceSummaries: PerformanceStepSummary[];
     createdAt: string;
 }

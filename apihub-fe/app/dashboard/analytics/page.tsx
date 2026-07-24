@@ -10,7 +10,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 
 export default function AnalyticsPage() {
     return (
-        <DashboardLayout>
+        <DashboardLayout requiredPermission="MENU.DASHBOARD.VIEW">
             <Box>
                 <Typography variant="h4" sx={{ mb: 3, fontWeight: 700 }}>
                     Analytics

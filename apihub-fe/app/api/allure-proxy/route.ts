@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getErrorMessage } from '@/lib/errorUtils';
 
 // Project to Allure port mapping
 const PROJECT_ALLURE_PORTS: { [key: string]: number } = {
@@ -62,10 +61,10 @@ export async function GET(request: NextRequest) {
                 'Cache-Control': 'no-store, max-age=0',
             },
         });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Allure proxy error:', error);
         return NextResponse.json(
-            { error: getErrorMessage(error, 'Failed to fetch Allure data') },
+            { error: error.message || 'Failed to fetch Allure data', stack: error.stack },
             { status: 500 }
         );
     }

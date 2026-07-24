@@ -18,19 +18,24 @@ type AuthServiceError = Error & {
     };
 };
 
+export interface AuthUser {
+    id: string;
+    username: string;
+    email?: string;
+    authType?: string;
+    permissions?: string[];
+}
+
 export interface LoginResponse {
     accessToken: string;
     refreshToken: string;
-    user?: {
-        id: string;
-        username: string;
-        email?: string;
-    };
+    user?: AuthUser;
 }
 
 export interface RefreshTokenResponse {
     accessToken: string;
     refreshToken: string;
+    user?: AuthUser;
 }
 
 async function parseAuthResponse<T>(response: Response): Promise<T> {
@@ -76,6 +81,14 @@ const encryptPassword = async (password: string, publicKeyPem: string): Promise<
     return encrypted;
 };
 
+const normalizeUser = (user: AuthUser | undefined, username: string): AuthUser => ({
+    id: user?.id || 'user',
+    username: user?.username || username,
+    email: user?.email,
+    authType: user?.authType,
+    permissions: user?.permissions || [],
+});
+
 export const authService = {
     login: async (credentials: LoginCredentials): Promise<LoginResponse> => {
         const publicKey = await getPublicKey();
@@ -106,13 +119,7 @@ export const authService = {
         if (loginResponse.accessToken && loginResponse.refreshToken) {
             localStorage.setItem('token', loginResponse.accessToken);
             localStorage.setItem('refreshToken', loginResponse.refreshToken);
-            // Backend'den user gelmiyorsa, username'den basit bir user objesi oluştur
-            const user = loginResponse.user || {
-                id: 'user',
-                username: credentials.username,
-            };
-            localStorage.setItem('user', JSON.stringify(user));
-            // Token'ın alındığı zamanı kaydet
+            localStorage.setItem('user', JSON.stringify(normalizeUser(loginResponse.user, credentials.username)));
             localStorage.setItem('tokenTimestamp', Date.now().toString());
         }
         return loginResponse;
@@ -143,6 +150,9 @@ export const authService = {
         if (refreshResponse.accessToken && refreshResponse.refreshToken) {
             localStorage.setItem('token', refreshResponse.accessToken);
             localStorage.setItem('refreshToken', refreshResponse.refreshToken);
+            if (refreshResponse.user) {
+                localStorage.setItem('user', JSON.stringify(normalizeUser(refreshResponse.user, refreshResponse.user.username)));
+            }
             localStorage.setItem('tokenTimestamp', Date.now().toString());
         }
 
@@ -184,13 +194,22 @@ export const authService = {
         return null;
     },
 
-    getUser: () => {
+    getUser: (): AuthUser | null => {
         if (typeof window !== 'undefined') {
             const userStr = localStorage.getItem('user');
             return userStr ? JSON.parse(userStr) : null;
         }
         return null;
     },
+
+    getPermissions: (): string[] => authService.getUser()?.permissions || [],
+
+    hasPermission: (permission: string): boolean => {
+        const permissions = authService.getPermissions();
+        return permissions.includes('*') || permissions.includes(permission);
+    },
+
+    hasAnyPermission: (permissions: string[]): boolean => permissions.some((permission) => authService.hasPermission(permission)),
 
     isAuthenticated: (): boolean => {
         return !!authService.getToken();

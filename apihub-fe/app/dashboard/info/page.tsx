@@ -246,7 +246,7 @@ export default function DashboardInfoPage() {
     const dataGenerationHighlights = content.dataGenerationHighlights;
 
     return (
-        <DashboardLayout>
+        <DashboardLayout requiredPermission="MENU.DASHBOARD.VIEW">
             <Box>
                 <Typography variant="h4" sx={{ mb: 3, fontWeight: 700 }}>
                     {content.pageTitle}

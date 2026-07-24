@@ -63,7 +63,6 @@ import { useRouter, useParams } from 'next/navigation';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { useProject } from '@/contexts/ProjectContext';
-import { getErrorMessage } from '@/lib/errorUtils';
 
 const getResolvedApiId = (api?: ApiInformationDto | ProcessFlowStepDto | null) => {
     if (!api) {
@@ -159,8 +158,8 @@ export default function ProcessFlowStepsPage() {
         try {
             const flowData = await processFlowService.getById(flowId);
             setFlow(flowData);
-        } catch (err) {
-            setError(getErrorMessage(err, 'Failed to fetch process flow'));
+        } catch (err: any) {
+            setError(err.message || 'Failed to fetch process flow');
         }
     };
 
@@ -168,7 +167,7 @@ export default function ProcessFlowStepsPage() {
         try {
             const apis = await apiInformationService.getAll();
             setApiList(apis);
-        } catch (err) {
+        } catch (err: any) {
             console.error('Failed to fetch API list:', err);
         }
     };
@@ -199,8 +198,8 @@ export default function ProcessFlowStepsPage() {
             });
             const sortedSteps = response.data.sort((a, b) => a.stepOrder - b.stepOrder);
             setSteps(sortedSteps);
-        } catch (err) {
-            setError(getErrorMessage(err, 'Failed to fetch steps'));
+        } catch (err: any) {
+            setError(err.message || 'Failed to fetch steps');
         } finally {
             setLoading(false);
         }
@@ -269,9 +268,9 @@ export default function ProcessFlowStepsPage() {
             handleCloseDialog();
             await fetchSteps();
             setTimeout(() => setSuccess(null), 3000);
-        } catch (err) {
+        } catch (err: any) {
             console.error('Save error:', err);
-            setError(getErrorMessage(err, 'Failed to save step'));
+            setError(err.message || 'Failed to save step');
         } finally {
             setSaving(false);
         }
@@ -295,7 +294,7 @@ export default function ProcessFlowStepsPage() {
         setParamDialogOpen(false);
     };
 
-    const handleParamInputChange = <K extends keyof ProcessFlowStepParmDto>(field: K, value: ProcessFlowStepParmDto[K]) => {
+    const handleParamInputChange = (field: keyof ProcessFlowStepParmDto, value: any) => {
         setNewParam(prev => ({ ...prev, [field]: value }));
     };
 
@@ -312,7 +311,7 @@ export default function ProcessFlowStepsPage() {
         setTimeout(() => setSuccess(null), 3000);
     };
 
-    const handleUpdateParam = <K extends keyof ProcessFlowStepParmDto>(index: number, field: K, value: ProcessFlowStepParmDto[K]) => {
+    const handleUpdateParam = (index: number, field: keyof ProcessFlowStepParmDto, value: any) => {
         const updatedParams = [...(formData.processFlowStepParmList || [])];
         updatedParams[index] = { ...updatedParams[index], [field]: value };
         setFormData(prev => ({ ...prev, processFlowStepParmList: updatedParams }));
@@ -332,8 +331,8 @@ export default function ProcessFlowStepsPage() {
                 setStepToDelete(null);
                 fetchSteps();
                 setTimeout(() => setSuccess(null), 3000);
-            } catch (err) {
-                setError(getErrorMessage(err, 'Failed to delete step'));
+            } catch (err: any) {
+                setError(err.message || 'Failed to delete step');
             }
         }
     };
@@ -376,15 +375,15 @@ export default function ProcessFlowStepsPage() {
                 await processFlowStepService.updateStepOrders(orderUpdates);
                 setSuccess('Sıralama güncellendi');
                 setTimeout(() => setSuccess(null), 3000);
-            } catch (err) {
-                setError(getErrorMessage(err, 'Sıralama güncellenemedi'));
+            } catch (err: any) {
+                setError(err.message || 'Sıralama güncellenemedi');
                 // Revert on error
                 fetchSteps();
             }
         }
     };
 
-    const handleInputChange = <K extends keyof ProcessFlowStepDto>(field: K, value: ProcessFlowStepDto[K]) => {
+    const handleInputChange = (field: keyof ProcessFlowStepDto, value: any) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
     };
 
@@ -463,7 +462,7 @@ export default function ProcessFlowStepsPage() {
     }
 
     return (
-        <DashboardLayout>
+        <DashboardLayout requiredPermission="MENU.PROCESS_FLOWS.VIEW">
             <Box>
                 <Box sx={{ mb: 2 }}>
                     <Button

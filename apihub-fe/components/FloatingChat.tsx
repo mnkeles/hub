@@ -25,6 +25,7 @@ import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import StopIcon from '@mui/icons-material/Stop';
 import { useStreamingChat } from '@/hooks/useStreamingChat';
 import { useProject } from '@/contexts/ProjectContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface FloatingChatProps {
     title?: string;
@@ -52,6 +53,7 @@ export default function FloatingChat({
     systemShortCode,
 }: FloatingChatProps) {
     const t = useTranslations('chatUi');
+    const { hasPermission } = useAuth();
     const { selectedProject } = useProject();
     const [chatOpen, setChatOpen] = useState(false);
     const [inputMessage, setInputMessage] = useState('');
@@ -60,6 +62,8 @@ export default function FloatingChat({
     const [showSuggestions, setShowSuggestions] = useState(true);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const canViewChat = hasPermission('MENU.AI_CHAT.VIEW');
+    const canUseChat = hasPermission('AI_CHAT.USE');
     const resolvedProjectShortCode = projectShortCode?.trim() || selectedProject?.shortCode?.trim() || undefined;
     const resolvedSystemShortCode = systemShortCode?.trim() || undefined;
     const resolvedTitle = title ?? t('floating.defaultTitle');
@@ -168,8 +172,12 @@ export default function FloatingChat({
         };
     }, [clearMessages, clearOnUnmount]);
 
+    if (!canViewChat) {
+        return null;
+    }
+
     const handleSendMessage = async () => {
-        if ((!inputMessage.trim() && !uploadedFile) || isStreaming) return;
+        if (!canUseChat || (!inputMessage.trim() && !uploadedFile) || isStreaming) return;
 
         let message = inputMessage.trim();
         
@@ -210,7 +218,7 @@ export default function FloatingChat({
             try {
                 JSON.parse(content);
                 setFileContent(content);
-            } catch (error) {
+            } catch {
                 alert(t('errors.invalidHarFormat'));
                 setUploadedFile(null);
             }
@@ -529,7 +537,7 @@ export default function FloatingChat({
                             <Tooltip title={t('tooltips.attachHarFile')}>
                                 <IconButton
                                     onClick={handleAttachClick}
-                                    disabled={isStreaming}
+                                    disabled={!canUseChat || isStreaming}
                                     size="small"
                                     sx={{
                                         color: uploadedFile ? '#667eea' : 'text.secondary',
@@ -551,7 +559,7 @@ export default function FloatingChat({
                                 onChange={(e) => setInputMessage(e.target.value)}
                                 onKeyPress={handleKeyPress}
                                 placeholder={t('prompts.chatInput')}
-                                disabled={isStreaming}
+                                disabled={!canUseChat || isStreaming}
                                 sx={{
                                     '& .MuiOutlinedInput-root': {
                                         borderRadius: 2,
@@ -579,7 +587,7 @@ export default function FloatingChat({
                             ) : (
                                 <IconButton
                                     onClick={handleSendMessage}
-                                    disabled={isStreaming || (!inputMessage.trim() && !uploadedFile)}
+                                    disabled={!canUseChat || isStreaming || (!inputMessage.trim() && !uploadedFile)}
                                     sx={{
                                         bgcolor: '#667eea',
                                         color: 'white',

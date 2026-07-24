@@ -10,7 +10,6 @@ import {
     formatPercent,
     formatThroughput,
 } from './PerformanceMetricFormatters';
-import PerformanceSloScorePanel from './PerformanceSloScorePanel';
 import PerformanceThresholdStatusChip from './PerformanceThresholdStatusChip';
 
 interface PerformanceRunSummaryTableProps {
@@ -54,7 +53,6 @@ export default function PerformanceRunSummaryTable({
                         {selectable && <TableCell>{t('compare')}</TableCell>}
                         <TableCell>{t('date')}</TableCell>
                         <TableCell>{t('status')}</TableCell>
-                        <TableCell>{t('sloScore')}</TableCell>
                         <TableCell>{t('baseline')}</TableCell>
                         <TableCell>{t('autoBaselineComparison')}</TableCell>
                         <TableCell>{t('threadCount')}</TableCell>
@@ -98,9 +96,6 @@ export default function PerformanceRunSummaryTable({
                                 <TableCell>{formatDateTime(item.createdAt ?? runSummary?.startedAt)}</TableCell>
                                 <TableCell>
                                     <PerformanceThresholdStatusChip status={status} thresholdResult={item.thresholdResult ?? null} />
-                                </TableCell>
-                                <TableCell>
-                                    {item.sloScore ? <PerformanceSloScorePanel score={item.sloScore} compact /> : '-'}
                                 </TableCell>
                                 <TableCell>
                                     {item.baseline ? <Chip size="small" color="primary" label={t('currentBaseline')} /> : '-'}

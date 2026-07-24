@@ -45,6 +45,12 @@ api.interceptors.response.use(
         return response;
     },
     (error) => {
+        if (error.response?.status === 403) {
+            if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('apihub:forbidden', { detail: 'You do not have permission to perform this action.' }));
+            }
+        }
+
         if (error.response?.status === 401) {
             // Token is invalid or expired
             if (typeof window !== 'undefined') {

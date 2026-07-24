@@ -1,6 +1,5 @@
 import api from './api';
 import {
-    PerformanceAiManagementReport,
     PerformanceComparisonResult,
     PerformanceDetailResponse,
     PerformanceExportPayload,
@@ -101,11 +100,6 @@ export const performanceService = {
             params: { performanceResultId, format: 'csv' },
             responseType: 'blob',
         });
-        return response.data;
-    },
-
-    async regenerateAiReport(performanceResultId: number): Promise<PerformanceAiManagementReport> {
-        const response = await api.post(`/performance/${performanceResultId}/ai-report/regenerate`);
         return response.data;
     },
 };

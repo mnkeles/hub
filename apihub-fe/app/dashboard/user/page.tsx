@@ -100,7 +100,7 @@ export default function UserPage() {
     const status = currentUser ? getDisplayStatus(currentUser.enabled) : null;
 
     return (
-        <DashboardLayout>
+        <DashboardLayout requiredPermission="MENU.USER.VIEW">
             <Box>
                 <Typography variant="h4" sx={{ mb: 3, fontWeight: 700 }}>
                     Kullanıcı Bilgileri

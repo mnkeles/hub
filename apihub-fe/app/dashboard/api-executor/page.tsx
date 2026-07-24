@@ -47,8 +47,7 @@ import { apiCallService } from '@/services/apiCallService';
 import { generalWebSystemService } from '@/services/generalWebSystemService';
 import { processFlowService } from '@/services/processFlowService';
 import { projectService } from '@/services/projectService';
-import { ParameterRequestDto, GeneralWebSystemDto, ProcessFlowDto, ProjectDto, ProcessFlowStepParmDto } from '@/types/api';
-import { getApiErrorStatus, getErrorMessage } from '@/lib/errorUtils';
+import { ParameterRequestDto, GeneralWebSystemDto, ProcessFlowDto, ProjectDto } from '@/types/api';
 
 interface KeyValuePair {
     id: string;
@@ -57,38 +56,10 @@ interface KeyValuePair {
     enabled: boolean;
 }
 
-type RequestType = 'single' | 'flow' | 'flowV2' | 'flowV2ContinueOnError';
-
-type ApiExecutorResponse = Record<string, unknown> & {
-    _xml?: string;
-    _type?: 'xml' | string;
-    _hasXmlValues?: boolean;
-    result?: unknown;
-    Result?: unknown;
-    parameterContext?: Record<string, unknown>;
-    Parametreler?: unknown;
-    parametreler?: unknown;
-};
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-    typeof value === 'object' && value !== null;
-
-const isApiExecutorResponse = (value: unknown): value is ApiExecutorResponse =>
-    isRecord(value);
-
-const getRecordField = (source: unknown, field: string): Record<string, unknown> | undefined => {
-    if (!isRecord(source)) {
-        return undefined;
-    }
-
-    const value = source[field];
-    return isRecord(value) ? value : undefined;
-};
-
 export default function ApiExecutorPage() {
     const t = useTranslations('apiExecutor');
     // Request Configuration
-    const [requestType, setRequestType] = useState<RequestType>('flow');
+    const [requestType, setRequestType] = useState<'single' | 'flow' | 'flowV2' | 'flowV2ContinueOnError'>('flow');
     const [selectedProject, setSelectedProject] = useState<ProjectDto | null>(null);
     const [selectedSystem, setSelectedSystem] = useState<GeneralWebSystemDto | null>(null);
     const [selectedFlow, setSelectedFlow] = useState<ProcessFlowDto | null>(null);
@@ -105,7 +76,7 @@ export default function ApiExecutorPage() {
     
     // Response State
     const [loading, setLoading] = useState(false);
-    const [response, setResponse] = useState<ApiExecutorResponse | null>(null);
+    const [response, setResponse] = useState<any>(null);
     const [error, setError] = useState<string | null>(null);
     const [responseTab, setResponseTab] = useState(0);
     const [responseTime, setResponseTime] = useState<number>(0);
@@ -116,7 +87,7 @@ export default function ApiExecutorPage() {
     const [projects, setProjects] = useState<ProjectDto[]>([]);
     const [systems, setSystems] = useState<GeneralWebSystemDto[]>([]);
     const [flows, setFlows] = useState<ProcessFlowDto[]>([]);
-    const [flowParameters, setFlowParameters] = useState<ProcessFlowStepParmDto[]>([]);
+    const [flowParameters, setFlowParameters] = useState<any[]>([]);
 
     // Filter systems by selected project
     const filteredSystems = React.useMemo(() => {
@@ -162,7 +133,7 @@ export default function ApiExecutorPage() {
             console.log('Flow keys:', Object.keys(flowWithRelations));
             
             // Collect all unique parameters from all steps
-            const allParams: ProcessFlowStepParmDto[] = [];
+            const allParams: any[] = [];
             
             // Get steps from the correct property
             const steps = flowWithRelations.processFlowStepList || [];
@@ -209,7 +180,7 @@ export default function ApiExecutorPage() {
             setProjects(projectsData);
             setSystems(systemsData);
             setFlows(flowsData);
-        } catch (err) {
+        } catch (err: any) {
             console.error('Failed to load data:', err);
         }
     };
@@ -330,10 +301,10 @@ export default function ApiExecutorPage() {
             }
             
             // Check if result object contains XML strings and parse them
-            if (isApiExecutorResponse(parsedResult) && isRecord(parsedResult.result)) {
-                const resultObj = parsedResult.result;
+            if (parsedResult && typeof parsedResult === 'object' && parsedResult.result && typeof parsedResult.result === 'object') {
+                const resultObj = parsedResult.result as Record<string, any>;
                 let hasXml = false;
-                const extractedParams: Record<string, string> = {};
+                const extractedParams: any = {};
                 
                 // Check if any value looks like XML and extract parameters
                 for (const key in resultObj) {
@@ -376,32 +347,32 @@ export default function ApiExecutorPage() {
                 }
                 
                 if (hasXml) {
-                    parsedResult._hasXmlValues = true;
+                    (parsedResult as any)._hasXmlValues = true;
                     // Merge extracted parameters into parameterContext
                     if (Object.keys(extractedParams).length > 0) {
-                        parsedResult.parameterContext = {
-                            ...(parsedResult.parameterContext || {}),
+                        (parsedResult as any).parameterContext = {
+                            ...((parsedResult as any).parameterContext || {}),
                             ...extractedParams
                         };
                     }
                 }
             }
             
-            setResponse(isApiExecutorResponse(parsedResult) ? parsedResult : { value: parsedResult });
+            setResponse(parsedResult);
             setStatusCode(200); // Assuming success
-        } catch (err) {
-            setError(getErrorMessage(err, 'Request failed'));
-            setStatusCode(getApiErrorStatus(err) || 500);
+        } catch (err: any) {
+            setError(err.message || 'Request failed');
+            setStatusCode(err.status || 500);
         } finally {
             setLoading(false);
         }
     };
 
-    const filterResponse = (data: unknown): unknown => {
-        if (!isRecord(data)) return data;
+    const filterResponse = (data: any): any => {
+        if (!data || typeof data !== 'object') return data;
         
         // Response'un bir kopyasını oluştur
-        const filtered: Record<string, unknown> = { ...data };
+        const filtered = { ...data };
         
         // Always remove parameterContext from display
         if (filtered.parameterContext) {
@@ -420,7 +391,7 @@ export default function ApiExecutorPage() {
         }
         
         // Parse JSON strings in the response recursively
-        const parseJsonStrings = (obj: unknown): unknown => {
+        const parseJsonStrings = (obj: any): any => {
             if (typeof obj === 'string') {
                 // Try to parse if it looks like JSON
                 if ((obj.startsWith('{') && obj.endsWith('}')) || (obj.startsWith('[') && obj.endsWith(']'))) {
@@ -433,10 +404,10 @@ export default function ApiExecutorPage() {
                 return obj;
             } else if (Array.isArray(obj)) {
                 return obj.map(item => parseJsonStrings(item));
-            } else if (isRecord(obj)) {
-                const parsed: Record<string, unknown> = {};
-                for (const [key, value] of Object.entries(obj)) {
-                    parsed[key] = parseJsonStrings(value);
+            } else if (obj && typeof obj === 'object') {
+                const parsed: any = {};
+                for (const key in obj) {
+                    parsed[key] = parseJsonStrings(obj[key]);
                 }
                 return parsed;
             }
@@ -453,7 +424,7 @@ export default function ApiExecutorPage() {
         }
     };
 
-    const formatResponse = (data: ApiExecutorResponse) => {
+    const formatResponse = (data: any) => {
         try {
             // Check if this is XML response
             if (data && data._type === 'xml' && data._xml) {
@@ -463,8 +434,8 @@ export default function ApiExecutorPage() {
             }
             
             // Check if response contains XML - show formatted XML with red service names
-            if (data._hasXmlValues && isRecord(data.result)) {
-                const resultObj = data.result;
+            if (data && data._hasXmlValues && data.result && typeof data.result === 'object') {
+                const resultObj = data.result as Record<string, any>;
                 let output = '';
                 
                 // Format each XML service
@@ -517,7 +488,7 @@ export default function ApiExecutorPage() {
     };
 
     return (
-        <DashboardLayout>
+        <DashboardLayout requiredPermission="MENU.API_EXECUTOR.VIEW">
             <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
                 {/* Header */}
                 <Box sx={{ 
@@ -570,7 +541,7 @@ export default function ApiExecutorPage() {
                                 <Select
                                     value={requestType}
                                     label={t('requestType')}
-                                    onChange={(e) => setRequestType(e.target.value as RequestType)}
+                                    onChange={(e) => setRequestType(e.target.value as any)}
                                 >
                                     <MenuItem value="single">Tekli Adım</MenuItem>
                                     <MenuItem value="flow">Akış</MenuItem>
@@ -963,9 +934,8 @@ export default function ApiExecutorPage() {
                                                         shortCode: key,
                                                         processFlowStepParmId: idx, // Use index as unique ID
                                                         processFlowStepId: idx,
-                                                        value: String(response.parameterContext?.[key] ?? ''),
-                                                        paramOrder: idx,
-                                                        useContext: true,
+                                                        parmName: key,
+                                                        parmValue: response.parameterContext[key]
                                                     }));
                                                 }
                                                 
@@ -1041,23 +1011,18 @@ export default function ApiExecutorPage() {
                                                     
                                                     // If not found, try other locations
                                                     if (requestValue === undefined || requestValue === null) {
-                                                        const context = getRecordField(response, 'context');
-                                                        const parameters = getRecordField(response, 'parameters');
-                                                        const dataParameterContext = getRecordField(getRecordField(response, 'data'), 'parameterContext');
-                                                        const resultParameterContext = getRecordField(response.result, 'parameterContext');
-
-                                                        requestValue = context?.[cleanParamName] ||
-                                                                      context?.[param.shortCode] ||
-                                                                      context?.[withBraces] ||
-                                                                      parameters?.[cleanParamName] ||
-                                                                      parameters?.[param.shortCode] ||
-                                                                      parameters?.[withBraces] ||
-                                                                      dataParameterContext?.[cleanParamName] ||
-                                                                      dataParameterContext?.[param.shortCode] ||
-                                                                      dataParameterContext?.[withBraces] ||
-                                                                      resultParameterContext?.[cleanParamName] ||
-                                                                      resultParameterContext?.[param.shortCode] ||
-                                                                      resultParameterContext?.[withBraces];
+                                                        requestValue = response.context?.[cleanParamName] ||
+                                                                      response.context?.[param.shortCode] ||            
+                                                                      response.context?.[withBraces] ||
+                                                                      response.parameters?.[cleanParamName] ||
+                                                                      response.parameters?.[param.shortCode] ||         
+                                                                      response.parameters?.[withBraces] ||
+                                                                      response.data?.parameterContext?.[cleanParamName] ||
+                                                                      response.data?.parameterContext?.[param.shortCode] || 
+                                                                      response.data?.parameterContext?.[withBraces] ||
+                                                                      response.result?.parameterContext?.[cleanParamName] ||
+                                                                      response.result?.parameterContext?.[param.shortCode] || 
+                                                                      response.result?.parameterContext?.[withBraces];
                                                     }
                                                 }
                                                 

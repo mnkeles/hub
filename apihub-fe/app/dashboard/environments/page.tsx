@@ -37,7 +37,6 @@ import { useTranslations } from 'next-intl';
 import DashboardLayout from '@/components/DashboardLayout';
 import { databaseConfigService, DatabaseConfigDto } from '@/services/databaseConfigService';
 import { useProject } from '@/contexts/ProjectContext';
-import { getErrorMessage } from '@/lib/errorUtils';
 
 export default function EnvironmentsPage() {
     const t = useTranslations('environments');
@@ -83,12 +82,12 @@ export default function EnvironmentsPage() {
             // Backend'den actv geliyor, isActv'ye map et
             const normalizedData = databasesData.map(db => ({
                 ...db,
-                isActv: db.actv === true || db.isActv === true
+                isActv: (db as any).actv === true || db.isActv === true
             }));
             
             setDatabases(normalizedData);
-        } catch (err) {
-            setError(getErrorMessage(err, 'Failed to load data'));
+        } catch (err: any) {
+            setError(err.message || 'Failed to load data');
         } finally {
             setLoading(false);
         }
@@ -156,27 +155,27 @@ export default function EnvironmentsPage() {
             setError(null);
             
             // Backend'e actv alanı olarak gönder
-            const dataToSave: DatabaseConfigDto = {
+            const dataToSave = {
                 ...formData,
                 actv: formData.isActv
             };
             
             if (editingDatabase) {
-                await databaseConfigService.update(dataToSave);
+                await databaseConfigService.update(dataToSave as any);
                 setSuccess('Database updated successfully');
             } else {
-                await databaseConfigService.save(dataToSave);
+                await databaseConfigService.save(dataToSave as any);
                 setSuccess('Database created successfully');
             }
             handleCloseDialog();
             await loadDatabases();
             setTimeout(() => setSuccess(null), 3000);
-        } catch (err) {
-            setError(getErrorMessage(err, 'Failed to save database'));
+        } catch (err: any) {
+            setError(err.message || 'Failed to save database');
         }
     };
 
-    const handleInputChange = <K extends keyof DatabaseConfigDto>(field: K, value: DatabaseConfigDto[K]) => {
+    const handleInputChange = (field: keyof DatabaseConfigDto, value: any) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
     };
 
@@ -199,8 +198,8 @@ export default function EnvironmentsPage() {
                 setEnvToDelete(null);
                 await loadDatabases();
                 setTimeout(() => setSuccess(null), 3000);
-            } catch (err) {
-                setError(getErrorMessage(err, 'Veritabanı bağlantısı silinemedi'));
+            } catch (err: any) {
+                setError(err.message || 'Veritabanı bağlantısı silinemedi');
             }
         }
     };
@@ -216,7 +215,7 @@ export default function EnvironmentsPage() {
     };
 
     return (
-        <DashboardLayout>
+        <DashboardLayout requiredPermission="MENU.DATA_CONNECTIONS.VIEW">
             <Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>

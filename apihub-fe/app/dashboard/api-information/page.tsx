@@ -33,7 +33,6 @@ import { apiInformationService } from '@/services/apiInformationService';
 import { ApiInformationDto, GeneralFilter } from '@/types/api';
 import { useProject } from '@/contexts/ProjectContext';
 import { useRouter } from 'next/navigation';
-import { getErrorMessage } from '@/lib/errorUtils';
 
 export default function APIInformationPage() {
     const router = useRouter();
@@ -125,7 +124,7 @@ export default function APIInformationPage() {
             }
             
             // Sıralama
-            const sortedData = filteredData.sort((a, b) => {
+            let sortedData = filteredData.sort((a, b) => {
                 const idA = a.gnlApiInformationId || a.id || 0;
                 const idB = b.gnlApiInformationId || b.id || 0;
                 return sortOrder === 'asc' ? idA - idB : idB - idA;
@@ -134,8 +133,8 @@ export default function APIInformationPage() {
             setApis(sortedData);
             setFilteredApis(sortedData);
             setTotalCount(sortedData.length);
-        } catch (err) {
-            setError(getErrorMessage(err, 'Failed to fetch APIs'));
+        } catch (err: any) {
+            setError(err.message || 'Failed to fetch APIs');
         } finally {
             setLoading(false);
         }
@@ -203,12 +202,12 @@ export default function APIInformationPage() {
             handleCloseDialog();
             await fetchApis();
             setTimeout(() => setSuccess(null), 3000);
-        } catch (err) {
-            setError(getErrorMessage(err, 'Failed to save API'));
+        } catch (err: any) {
+            setError(err.message || 'Failed to save API');
         }
     };
 
-    const handleInputChange = <K extends keyof ApiInformationDto>(field: K, value: ApiInformationDto[K]) => {
+    const handleInputChange = (field: keyof ApiInformationDto, value: any) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
     };
 
@@ -230,13 +229,13 @@ export default function APIInformationPage() {
                 setDeletingApiId(null);
                 await fetchApis();
                 setTimeout(() => setSuccess(null), 3000);
-            } catch (err) {
-                setError(getErrorMessage(err, 'Failed to delete API'));
+            } catch (err: any) {
+                setError(err.message || 'Failed to delete API');
             }
         }
     };
     return (
-        <DashboardLayout>
+        <DashboardLayout requiredPermission="MENU.API_INFORMATION.VIEW">
             <Box>
                 <Box sx={{ 
                     display: 'flex', 
@@ -675,6 +674,7 @@ export default function APIInformationPage() {
                                             <MenuItem value={formData.mediaType}>{formData.mediaType}</MenuItem>
                                         )}
                                         <MenuItem value="application/json">application/json</MenuItem>
+                                        <MenuItem value="application/x-www-form-urlencoded">application/x-www-form-urlencoded</MenuItem>
                                         <MenuItem value="APPLICATION/JSON">APPLICATION/JSON</MenuItem>
                                         <MenuItem value="application/xml">application/xml</MenuItem>
                                         <MenuItem value="APPLICATION/XML">APPLICATION/XML</MenuItem>
@@ -779,7 +779,7 @@ export default function APIInformationPage() {
                 <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
                     <DialogTitle>API Sil</DialogTitle>
                     <DialogContent>
-                        <Typography>Bu API&apos;yi silmek istediğinizden emin misiniz?</Typography>
+                        <Typography>Bu API'yi silmek istediğinizden emin misiniz?</Typography>
                     </DialogContent>
                     <DialogActions sx={{ px: 3, pb: 2 }}>
                         <Button 

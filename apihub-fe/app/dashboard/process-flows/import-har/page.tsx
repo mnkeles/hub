@@ -1048,7 +1048,7 @@ export default function ImportHarPage() {
     };
 
     return (
-        <DashboardLayout>
+        <DashboardLayout requiredPermission="MENU.PROCESS_FLOWS.VIEW">
             <Box>
                 <Box sx={{ mb: 2 }}>
                     <Button

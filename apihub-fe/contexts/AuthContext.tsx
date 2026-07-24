@@ -1,28 +1,35 @@
 'use client';
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import { authService, LoginCredentials } from '@/services/authService';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
+import { authService, LoginCredentials, AuthUser } from '@/services/authService';
 import { useRouter } from 'next/navigation';
 
-interface User {
-    id: string;
-    username: string;
-    email?: string;
-}
-
 interface AuthContextType {
-    user: User | null;
+    user: AuthUser | null;
+    permissions: string[];
     isAuthenticated: boolean;
     isLoading: boolean;
     login: (credentials: LoginCredentials) => Promise<void>;
     logout: () => void;
+    hasPermission: (permissionKey: string) => boolean;
+    hasAnyPermission: (permissionKeys: string[]) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-    const [user, setUser] = useState<User | null>(null);
+    const [user, setUser] = useState<AuthUser | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
+
+    const permissions = useMemo(() => user?.permissions || [], [user?.permissions]);
+
+    const hasPermission = useCallback((permissionKey: string) => {
+        return permissions.includes('*') || permissions.includes('SUPER_USER') || permissions.includes(permissionKey);
+    }, [permissions]);
+
+    const hasAnyPermission = useCallback((permissionKeys: string[]) => {
+        return permissions.includes('*') || permissions.includes('SUPER_USER') || permissionKeys.some((permissionKey) => permissions.includes(permissionKey));
+    }, [permissions]);
 
     const logout = useCallback(() => {
         authService.logout();
@@ -30,19 +37,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         router.push('/login');
     }, [router]);
 
-    // Token yenileme fonksiyonu
     const refreshAccessToken = useCallback(async () => {
         try {
-            await authService.refreshToken();
+            const response = await authService.refreshToken();
+            const savedUser = authService.getUser();
+            if (response.user || savedUser) {
+                setUser(savedUser);
+            }
             console.log('Token refreshed successfully');
         } catch (error) {
             console.error('Token refresh failed:', error);
-            // Token yenileme başarısız olursa kullanıcıyı logout yap
             logout();
         }
     }, [logout]);
 
-    // Token yenileme zamanlayıcısını ayarla
     useEffect(() => {
         const token = authService.getToken();
         const refreshToken = authService.getRefreshToken();
@@ -52,16 +60,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             return;
         }
 
-        // 25 dakika sonra token'ı yenile (30 dakikalık sürenin 5 dakika öncesi)
-        const REFRESH_INTERVAL = 25 * 60 * 1000; // 25 dakika (milisaniye cinsinden)
+        const REFRESH_INTERVAL = 25 * 60 * 1000;
         
-        // İlk yükleme sırasında token'ın ne kadar süredir geçerli olduğunu kontrol et
         const tokenTimestamp = authService.getTokenTimestamp();
         if (tokenTimestamp) {
             const elapsed = Date.now() - tokenTimestamp;
             const remaining = REFRESH_INTERVAL - elapsed;
             
-            // Eğer token zaten 25 dakikadan eski ise hemen yenile
             if (remaining <= 0) {
                 initialRefreshTimeoutId = setTimeout(() => {
                     void refreshAccessToken();
@@ -69,7 +74,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             }
         }
 
-        // Periyodik olarak token'ı yenile
         const intervalId = setInterval(() => {
             refreshAccessToken();
         }, REFRESH_INTERVAL);
@@ -84,7 +88,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }, [refreshAccessToken, user]);
 
     useEffect(() => {
-        // Check if user is already logged in
         const token = authService.getToken();
         const refreshToken = authService.getRefreshToken();
         const savedUser = authService.getUser();
@@ -95,6 +98,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
                 try {
                     await authService.refreshToken();
+                    setUser(authService.getUser());
                 } catch (error) {
                     console.error('Initial auth refresh failed:', error);
                     authService.logout();
@@ -111,12 +115,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const login = async (credentials: LoginCredentials) => {
         try {
             await authService.login(credentials);
-            // User'ı localStorage'dan al (authService.login içinde kaydedildi)
             const savedUser = authService.getUser();
             if (savedUser) {
                 setUser(savedUser);
             }
-            // Router.push yerine window.location kullan (client-side navigation sorunu için)
             window.location.href = '/dashboard';
         } catch (error) {
             console.error('Login failed:', error);
@@ -128,10 +130,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         <AuthContext.Provider
             value={{
                 user,
+                permissions,
                 isAuthenticated: !!user,
                 isLoading,
                 login,
                 logout,
+                hasPermission,
+                hasAnyPermission,
             }}
         >
             {children}

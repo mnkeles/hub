@@ -12,7 +12,6 @@ import {
     CircularProgress,
     Tooltip,
     Fade,
-    Button,
 } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
@@ -26,10 +25,14 @@ import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useProject } from '@/contexts/ProjectContext';
 import { useStreamingChat } from '@/hooks/useStreamingChat';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function ChatPage() {
     const t = useTranslations('chatUi');
+    const { hasPermission } = useAuth();
     const { selectedProject } = useProject();
+    const canViewChat = hasPermission('MENU.AI_CHAT.VIEW');
+    const canUseChat = hasPermission('AI_CHAT.USE');
     const [inputMessage, setInputMessage] = useState('');
     const [initialLoading, setInitialLoading] = useState(true);
     const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -137,8 +140,20 @@ export default function ChatPage() {
         loadInitialHistory();
     }, [loadHistory]);
 
+
+    if (!canViewChat) {
+        return (
+            <DashboardLayout requiredPermission="MENU.AI_CHAT.VIEW">
+                <Box sx={{ p: 3 }}>
+                    <Typography variant="h5" color="error">Unauthorized</Typography>
+                    <Typography variant="body2">You do not have permission to view AI Chat.</Typography>
+                </Box>
+            </DashboardLayout>
+        );
+    }
+
     const handleSendMessage = async () => {
-        if ((!inputMessage.trim() && !uploadedFile) || isStreaming) return;
+        if (!canUseChat || (!inputMessage.trim() && !uploadedFile) || isStreaming) return;
 
         let message = inputMessage.trim();
         
@@ -182,7 +197,7 @@ export default function ChatPage() {
                 // Validate JSON format
                 JSON.parse(content);
                 setFileContent(content);
-            } catch (error) {
+            } catch {
                 alert(t('errors.invalidHarFormat'));
                 setUploadedFile(null);
             }
@@ -226,7 +241,7 @@ export default function ChatPage() {
 
     if (initialLoading) {
         return (
-            <DashboardLayout>
+            <DashboardLayout requiredPermission="MENU.AI_CHAT.VIEW">
                 <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
                     <CircularProgress />
                 </Box>
@@ -235,7 +250,7 @@ export default function ChatPage() {
     }
 
     return (
-        <DashboardLayout>
+        <DashboardLayout requiredPermission="MENU.AI_CHAT.VIEW">
             <Box sx={{ height: 'calc(100vh - 120px)', display: 'flex', flexDirection: 'column' }}>
             {/* Header */}
             <Paper
@@ -497,7 +512,7 @@ export default function ChatPage() {
                     <Tooltip title={t('tooltips.attachHarFile')}>
                         <IconButton
                             onClick={handleAttachClick}
-                            disabled={isStreaming}
+                            disabled={!canUseChat || isStreaming}
                             sx={{
                                 color: uploadedFile ? '#667eea' : 'text.secondary',
                                 '&:hover': {
@@ -516,7 +531,7 @@ export default function ChatPage() {
                         onChange={(e) => setInputMessage(e.target.value)}
                         onKeyPress={handleKeyPress}
                         placeholder={t('prompts.chatInputWithEnter')}
-                        disabled={isStreaming}
+                        disabled={!canUseChat || isStreaming}
                         variant="outlined"
                         sx={{
                             '& .MuiOutlinedInput-root': {
@@ -546,7 +561,7 @@ export default function ChatPage() {
                         <IconButton
                             color="primary"
                             onClick={handleSendMessage}
-                            disabled={isStreaming || (!inputMessage.trim() && !uploadedFile)}
+                            disabled={!canUseChat || isStreaming || (!inputMessage.trim() && !uploadedFile)}
                             sx={{
                                 bgcolor: '#667eea',
                                 color: 'white',

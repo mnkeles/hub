@@ -14,7 +14,6 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { performanceService } from '@/services/performanceService';
 import { processFlowService } from '@/services/processFlowService';
 import { ProcessFlowDto } from '@/types/api';
-import { getApiErrorMessage } from '@/lib/errorUtils';
 
 interface Props {
     projectShortCode: string;
@@ -62,8 +61,8 @@ export default function PerformanceRunner({ projectShortCode, onTestComplete }: 
             onTestComplete?.();
 
             setTimeout(() => setSuccess(false), 3000);
-        } catch (err) {
-            setError(getApiErrorMessage(err, 'Test başlatılamadı'));
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'Test başlatılamadı');
         } finally {
             setLoading(false);
         }

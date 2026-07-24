@@ -33,6 +33,8 @@ import CodeIcon from '@mui/icons-material/Code';
 import PaletteIcon from '@mui/icons-material/Palette';
 import DescriptionIcon from '@mui/icons-material/Description';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import SecurityIcon from '@mui/icons-material/Security';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import { useRouter, usePathname } from 'next/navigation';
@@ -41,6 +43,7 @@ import { useProject } from '@/contexts/ProjectContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { ThemeColor, themeConfigs } from '@/themes/themeConfig';
 import LanguageSwitcher from './LanguageSwitcher';
+import { useAuth } from '@/contexts/AuthContext';
 
 const drawerWidth = 260;
 
@@ -49,27 +52,31 @@ interface NavigationItem {
     icon: React.ReactNode;
     path: string;
     nested?: boolean;
+    permission?: string;
 }
 
 type NavigationTranslator = (key: string) => string;
 
 const getMenuItems = (t: NavigationTranslator): NavigationItem[] => [
-    { text: t('apiInfo'), icon: <ApiIcon />, path: '/dashboard/api-information' },
-    { text: t('flows'), icon: <AccountTreeIcon />, path: '/dashboard/process-flows' },
-    { text: t('environments'), icon: <StorageIcon />, path: '/dashboard/systems' },
-    { text: t('dataConnections'), icon: <StorageIcon />, path: '/dashboard/environments' },
-    { text: t('performance'), icon: <SpeedIcon />, path: '/dashboard/performance' },
-    { text: t('apiExecutor'), icon: <CodeIcon />, path: '/dashboard/api-executor' },
-    { text: t('documents'), icon: <DescriptionIcon />, path: '/dashboard/documents' },
-    { text: t('user'), icon: <AccountCircleIcon />, path: '/dashboard/user' },
+    { text: t('apiInfo'), icon: <ApiIcon />, path: '/dashboard/api-information', permission: 'MENU.API_INFORMATION.VIEW' },
+    { text: t('flows'), icon: <AccountTreeIcon />, path: '/dashboard/process-flows', permission: 'MENU.PROCESS_FLOWS.VIEW' },
+    { text: t('environments'), icon: <StorageIcon />, path: '/dashboard/systems', permission: 'MENU.SYSTEMS.VIEW' },
+    { text: t('dataConnections'), icon: <StorageIcon />, path: '/dashboard/environments', permission: 'MENU.DATA_CONNECTIONS.VIEW' },
+    { text: t('performance'), icon: <SpeedIcon />, path: '/dashboard/performance', permission: 'MENU.PERFORMANCE.VIEW' },
+    { text: t('apiExecutor'), icon: <CodeIcon />, path: '/dashboard/api-executor', permission: 'MENU.API_EXECUTOR.VIEW' },
+    { text: t('documents'), icon: <DescriptionIcon />, path: '/dashboard/documents', permission: 'MENU.DOCUMENTS.VIEW' },
+    { text: 'AI Chat', icon: <AutoAwesomeIcon />, path: '/dashboard/chat', permission: 'MENU.AI_CHAT.VIEW' },
+    { text: 'Authorization', icon: <SecurityIcon />, path: '/dashboard/authorization', permission: 'MENU.AUTHORIZATION.VIEW' },
+    { text: t('user'), icon: <AccountCircleIcon />, path: '/dashboard/user', permission: 'MENU.USER.VIEW' },
     { text: t('settings'), icon: <SettingsIcon />, path: '/logout' },
 ];
 
 interface DashboardLayoutProps {
     children: React.ReactNode;
+    requiredPermission?: string;
 }
 
-export default function DashboardLayout({ children }: DashboardLayoutProps) {
+export default function DashboardLayout({ children, requiredPermission }: DashboardLayoutProps) {
     const [mobileOpen, setMobileOpen] = useState(false);
     const [desktopOpen, setDesktopOpen] = useState(true);
     const [themeMenuAnchor, setThemeMenuAnchor] = useState<null | HTMLElement>(null);
@@ -80,7 +87,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
     const router = useRouter();
     const pathname = usePathname();
-    const menuItems = getMenuItems(t);
+    const { hasPermission } = useAuth();
+    const menuItems = getMenuItems(t).filter((item) => !item.permission || hasPermission(item.permission));
 
     const handleDrawerToggle = () => {
         if (isMobile) {
@@ -204,6 +212,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     backgroundColor: theme.palette.background.paper,
                     color: theme.palette.text.primary,
                     boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
+                    transition: theme.transitions.create(['margin', 'width'], {
+                        easing: theme.transitions.easing.sharp,
+                        duration: theme.transitions.duration.enteringScreen,
+                    }),
+                    ...(isMobile
+                        ? {}
+                        : desktopOpen
+                            ? { width: `calc(100% - ${drawerWidth}px)`, marginLeft: `${drawerWidth}px` }
+                            : { width: `calc(100% - ${theme.spacing(7)})`, marginLeft: theme.spacing(7) }
+                    ),
                 }}
             >
                 <Toolbar>
@@ -232,7 +250,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                         {selectedProject?.shortCode ? `${selectedProject.shortCode} OTOMASYON` : 'OMNI OTOMASYON'}
                     </Typography>
                     <Box sx={{ flexGrow: 1 }} />
-                    <Tooltip title={themeMode === 'light' ? 'Koyu Tema' : 'Açık Tema'}>
+                    <Tooltip title={themeMode === 'light' ? 'Koyu Tema' : 'AÃ§Ä±k Tema'}>
                         <IconButton
                             onClick={toggleThemeMode}
                             sx={{ 
@@ -252,7 +270,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                             <LanguageSwitcher />
                         </Box>
                     </Tooltip>
-                    <Tooltip title="Renk Teması">
+                    <Tooltip title="Renk TemasÄ±">
                         <IconButton
                             onClick={handleThemeMenuOpen}
                             sx={{ 
@@ -422,10 +440,28 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     width: '100%',
                     minHeight: '100vh',
                     backgroundColor: theme.palette.background.default,
+                    transition: theme.transitions.create('margin', {
+                        easing: theme.transitions.easing.sharp,
+                        duration: theme.transitions.duration.enteringScreen,
+                    }),
+                    ...(isMobile
+                        ? {}
+                        : desktopOpen
+                            ? { marginLeft: 0 }
+                            : { marginLeft: 0 }
+                    ),
                 }}
             >
                 <Toolbar />
-                {children}
+                {requiredPermission && !hasPermission(requiredPermission) ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+                        <Typography variant="h5" color="text.secondary">
+                            You do not have permission to access this page.
+                        </Typography>
+                    </Box>
+                ) : (
+                    children
+                )}
             </Box>
         </Box>
     );

@@ -1,30 +1,9 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeColor, ThemeMode, createAppTheme } from '@/themes/themeConfig';
-
-const themeColors: ThemeColor[] = ['indigo', 'blue', 'green', 'purple', 'orange', 'red'];
-const themeModes: ThemeMode[] = ['light', 'dark'];
-
-const getStoredThemeColor = (): ThemeColor => {
-    if (typeof window === 'undefined') {
-        return 'indigo';
-    }
-
-    const savedColor = localStorage.getItem('themeColor');
-    return themeColors.includes(savedColor as ThemeColor) ? savedColor as ThemeColor : 'indigo';
-};
-
-const getStoredThemeMode = (): ThemeMode => {
-    if (typeof window === 'undefined') {
-        return 'light';
-    }
-
-    const savedMode = localStorage.getItem('themeMode');
-    return themeModes.includes(savedMode as ThemeMode) ? savedMode as ThemeMode : 'light';
-};
 
 interface ThemeContextType {
     themeColor: ThemeColor;
@@ -49,21 +28,30 @@ interface CustomThemeProviderProps {
 }
 
 export function CustomThemeProvider({ children }: CustomThemeProviderProps) {
-    const [themeColor, setThemeColorState] = useState<ThemeColor>(getStoredThemeColor);
-    const [themeMode, setThemeModeState] = useState<ThemeMode>(getStoredThemeMode);
+    const [themeColor, setThemeColorState] = useState<ThemeColor>('indigo');
+    const [themeMode, setThemeModeState] = useState<ThemeMode>('light');
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+        const savedColor = localStorage.getItem('themeColor') as ThemeColor;
+        const savedMode = localStorage.getItem('themeMode') as ThemeMode;
+        if (savedColor) {
+            setThemeColorState(savedColor);
+        }
+        if (savedMode) {
+            setThemeModeState(savedMode);
+        }
+    }, []);
 
     const setThemeColor = (color: ThemeColor) => {
         setThemeColorState(color);
-        if (typeof window !== 'undefined') {
-            localStorage.setItem('themeColor', color);
-        }
+        localStorage.setItem('themeColor', color);
     };
 
     const setThemeMode = (mode: ThemeMode) => {
         setThemeModeState(mode);
-        if (typeof window !== 'undefined') {
-            localStorage.setItem('themeMode', mode);
-        }
+        localStorage.setItem('themeMode', mode);
     };
 
     const toggleThemeMode = () => {
@@ -72,6 +60,11 @@ export function CustomThemeProvider({ children }: CustomThemeProviderProps) {
     };
 
     const theme = createAppTheme(themeColor, themeMode);
+
+    // Prevent flash of unstyled content
+    if (!mounted) {
+        return null;
+    }
 
     return (
         <ThemeContext.Provider value={{ themeColor, themeMode, setThemeColor, setThemeMode, toggleThemeMode }}>

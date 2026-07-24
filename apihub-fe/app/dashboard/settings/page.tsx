@@ -16,7 +16,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 
 export default function SettingsPage() {
     return (
-        <DashboardLayout>
+        <DashboardLayout requiredPermission="MENU.SETTINGS.VIEW">
             <Box>
                 <Typography variant="h4" sx={{ mb: 3, fontWeight: 700 }}>
                     Settings

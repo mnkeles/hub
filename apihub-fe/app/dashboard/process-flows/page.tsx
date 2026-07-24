@@ -30,7 +30,6 @@ import { processFlowService } from '@/services/processFlowService';
 import { ProcessFlowDto } from '@/types/api';
 import { useRouter } from 'next/navigation';
 import { useProject } from '@/contexts/ProjectContext';
-import { getApiErrorStatus, getErrorMessage } from '@/lib/errorUtils';
 
 export default function ProcessFlowsPage() {
     const router = useRouter();
@@ -73,7 +72,7 @@ export default function ProcessFlowsPage() {
             let flowsData: ProcessFlowDto[] = [];
             try {
                 flowsData = await processFlowService.getByProject(selectedProject.projectId);
-            } catch (error) {
+            } catch (error: any) {
                 console.error('Failed to fetch flows:', error);
                 flowsData = [];
             }
@@ -85,12 +84,12 @@ export default function ProcessFlowsPage() {
                 return idA - idB;
             });
             setFlows(sortedFlows);
-        } catch (err) {
+        } catch (err: any) {
             console.error('Error fetching flows:', err);
-            if (getApiErrorStatus(err) === 404) {
+            if (err.response?.status === 404) {
                 setFlows([]);
             } else {
-                setError(getErrorMessage(err, 'Failed to fetch process flows'));
+                setError(err.message || 'Failed to fetch process flows');
             }
         } finally {
             setLoading(false);
@@ -185,7 +184,7 @@ export default function ProcessFlowsPage() {
             }
             
             // Backend'den dönen ID'yi al
-            const newFlowId = copyResult.data;
+            const newFlowId = (copyResult.data as any)?.processFlowId || copyResult.data;
             
             setSuccess('Akış başarıyla kopyalandı! Tüm adımlar ve parametreler kopyalandı.');
             
@@ -199,9 +198,9 @@ export default function ProcessFlowsPage() {
                 }, 1500);
             }
             
-        } catch (err) {
+        } catch (err: any) {
             console.error('Copy error:', err);
-            setError(getErrorMessage(err, 'Akış kopyalanırken hata oluştu'));
+            setError(err.message || 'Akış kopyalanırken hata oluştu');
         } finally {
             setLoading(false);
             setFlowToCopy(null);
@@ -234,9 +233,9 @@ export default function ProcessFlowsPage() {
             await fetchFlows();
             
             setTimeout(() => setSuccess(null), 3000);
-        } catch (err) {
+        } catch (err: any) {
             console.error('Save error:', err);
-            setError(getErrorMessage(err, 'Akış kaydedilemedi'));
+            setError(err.message || 'Akış kaydedilemedi');
         }
     };
 
@@ -261,16 +260,16 @@ export default function ProcessFlowsPage() {
                 
                 setSuccess('Akış başarıyla silindi');
                 setTimeout(() => setSuccess(null), 3000);
-            } catch (err) {
+            } catch (err: any) {
                 console.error('Delete error:', err);
-                setError(getErrorMessage(err, 'Akış silinirken hata oluştu'));
+                setError(err.message || 'Akış silinirken hata oluştu');
                 setDeleteConfirmOpen(false);
                 setFlowToDelete(null);
             }
         }
     };
 
-    const handleInputChange = <K extends keyof ProcessFlowDto>(field: K, value: ProcessFlowDto[K]) => {
+    const handleInputChange = (field: keyof ProcessFlowDto, value: any) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
     };
 
@@ -279,7 +278,7 @@ export default function ProcessFlowsPage() {
     };
 
     return (
-        <DashboardLayout>
+        <DashboardLayout requiredPermission="MENU.PROCESS_FLOWS.VIEW">
             <Box>
                 <Box sx={{ 
                     display: 'flex', 

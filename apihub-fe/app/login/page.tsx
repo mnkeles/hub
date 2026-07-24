@@ -90,7 +90,7 @@ export default function LoginPage() {
                         <Box sx={{ textAlign: 'center', mb: 3 }}>
                             <LoginIcon sx={{ fontSize: 48, color: 'primary.main', mb: 1 }} />
                             <Typography variant="h5" component="h1" gutterBottom>
-                                Etiya Mock Platform
+                                APIHUB
                             </Typography>
                             <Typography variant="body2" color="text.secondary">
                                 {activeTab === 0
@@ -119,7 +119,7 @@ export default function LoginPage() {
                                 disabled={loading}
                                 placeholder={
                                     activeTab === 0
-                                        ? 'LDAP kullanıcı adı veya e-posta (necati.keles@etiya.com)'
+                                        ? 'isim.soyisim@etiya.com'
                                         : 'Kullanıcı adı veya e-posta'
                                 }
                             />

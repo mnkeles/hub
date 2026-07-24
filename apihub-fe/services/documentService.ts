@@ -30,14 +30,14 @@ export interface Document {
     title: string;
     category: string;
     ingestedAt: string;
-    metadata?: Record<string, unknown>;
+    metadata?: Record<string, any>;
 }
 
 export interface DocumentCreateRequest {
     content: string;
     title: string;
     category: string;
-    metadata?: Record<string, unknown>;
+    metadata?: Record<string, any>;
 }
 
 export interface DocumentResponse {

@@ -23,7 +23,6 @@ import { apiInformationService } from '@/services/apiInformationService';
 import { ApiInformationDto } from '@/types/api';
 import { useRouter, useParams } from 'next/navigation';
 import { useProject } from '@/contexts/ProjectContext';
-import { getErrorMessage } from '@/lib/errorUtils';
 
 export default function APIDetailPage() {
     const router = useRouter();
@@ -66,8 +65,8 @@ export default function APIDetailPage() {
                 mediaType: apiData.mediaType || 'application/json',
                 active: apiData.active || 'Aktif',
             });
-        } catch (err) {
-            setError(getErrorMessage(err, 'Failed to fetch API details'));
+        } catch (err: any) {
+            setError(err.message || 'Failed to fetch API details');
         } finally {
             setLoading(false);
         }
@@ -79,18 +78,18 @@ export default function APIDetailPage() {
             await apiInformationService.update(formData);
             setSuccess('API updated successfully');
             setTimeout(() => setSuccess(null), 3000);
-        } catch (err) {
-            setError(getErrorMessage(err, 'Failed to save API'));
+        } catch (err: any) {
+            setError(err.message || 'Failed to save API');
         }
     };
 
-    const handleInputChange = <K extends keyof ApiInformationDto>(field: K, value: ApiInformationDto[K]) => {
+    const handleInputChange = (field: keyof ApiInformationDto, value: any) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
     };
 
     if (loading) {
         return (
-            <DashboardLayout>
+            <DashboardLayout requiredPermission="MENU.API_INFORMATION.VIEW">
                 <Box sx={{ display: 'flex', justifyContent: 'center', p: 8 }}>
                     <CircularProgress size={60} />
                 </Box>
@@ -99,7 +98,7 @@ export default function APIDetailPage() {
     }
 
     return (
-        <DashboardLayout>
+        <DashboardLayout requiredPermission="MENU.API_INFORMATION.VIEW">
             <Box>
                 <Box sx={{ mb: 3 }}>
                     <Button

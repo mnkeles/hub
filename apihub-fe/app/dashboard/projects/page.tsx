@@ -29,7 +29,6 @@ import FolderIcon from '@mui/icons-material/Folder';
 import DashboardLayout from '@/components/DashboardLayout';
 import { projectService } from '@/services/projectService';
 import { ProjectDto } from '@/types/api';
-import { getErrorMessage } from '@/lib/errorUtils';
 
 export default function ProjectsPage() {
     const [projects, setProjects] = useState<ProjectDto[]>([]);
@@ -56,8 +55,8 @@ export default function ProjectsPage() {
             setError(null);
             const data = await projectService.getAll();
             setProjects(data);
-        } catch (err) {
-            setError(getErrorMessage(err, 'Failed to fetch projects'));
+        } catch (err: any) {
+            setError(err.message || 'Failed to fetch projects');
         } finally {
             setLoading(false);
         }
@@ -107,8 +106,8 @@ export default function ProjectsPage() {
 
             handleCloseDialog();
             fetchProjects();
-        } catch (err) {
-            setError(getErrorMessage(err, 'Failed to save project'));
+        } catch (err: any) {
+            setError(err.message || 'Failed to save project');
         } finally {
             setLoading(false);
         }
@@ -125,15 +124,15 @@ export default function ProjectsPage() {
             await projectService.delete(projectId);
             setSuccess('Project deleted successfully');
             fetchProjects();
-        } catch (err) {
-            setError(getErrorMessage(err, 'Failed to delete project'));
+        } catch (err: any) {
+            setError(err.message || 'Failed to delete project');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <DashboardLayout>
+        <DashboardLayout requiredPermission="PROJECT.VIEW">
             <Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>

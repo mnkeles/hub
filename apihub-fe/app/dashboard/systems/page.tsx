@@ -35,7 +35,6 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { generalWebSystemService } from '@/services/generalWebSystemService';
 import { GeneralWebSystemDto } from '@/types/api';
 import { useProject } from '@/contexts/ProjectContext';
-import { getErrorMessage } from '@/lib/errorUtils';
 
 export default function SystemsPage() {
     const t = useTranslations('systems');
@@ -76,9 +75,9 @@ export default function SystemsPage() {
             setError(null);
             const systemsData = await generalWebSystemService.getAll();
             setSystems(systemsData);
-        } catch (err) {
+        } catch (err: any) {
             console.error('Error loading data:', err);
-            setError(getErrorMessage(err, 'Failed to load data'));
+            setError(err.message || 'Failed to load data');
         } finally {
             setLoading(false);
         }
@@ -150,12 +149,12 @@ export default function SystemsPage() {
             handleCloseDialog();
             await loadSystems();
             setTimeout(() => setSuccess(null), 3000);
-        } catch (err) {
-            setError(getErrorMessage(err, 'Failed to save system'));
+        } catch (err: any) {
+            setError(err.message || 'Failed to save system');
         }
     };
 
-    const handleInputChange = <K extends keyof GeneralWebSystemDto>(field: K, value: GeneralWebSystemDto[K]) => {
+    const handleInputChange = (field: keyof GeneralWebSystemDto, value: any) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
     };
 
@@ -173,14 +172,14 @@ export default function SystemsPage() {
                 setDeletingSystemId(null);
                 await loadSystems();
                 setTimeout(() => setSuccess(null), 3000);
-            } catch (err) {
-                setError(getErrorMessage(err, 'Ortam bağlantısı silinemedi'));
+            } catch (err: any) {
+                setError(err.message || 'Ortam bağlantısı silinemedi');
             }
         }
     };
 
     return (
-        <DashboardLayout>
+        <DashboardLayout requiredPermission="MENU.SYSTEMS.VIEW">
             <Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>

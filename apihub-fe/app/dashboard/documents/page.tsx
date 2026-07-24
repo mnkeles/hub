@@ -183,7 +183,7 @@ export default function DocumentsPage() {
     const displayList = searchMode ? searchResults : documents;
 
     return (
-        <DashboardLayout>
+        <DashboardLayout requiredPermission="MENU.DOCUMENTS.VIEW">
             <Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                     <Typography variant="h4" sx={{ fontWeight: 700 }}>

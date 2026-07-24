@@ -126,7 +126,7 @@ export interface ProcessFlowStepRelationDto {
 
 // API Call Execution Types
 export interface ParameterRequestDto {
-    parameterContext?: Record<string, unknown>;
+    parameterContext?: Record<string, any>;
     globalHeaders?: Record<string, string>;
     combination?: boolean;
 }
@@ -136,7 +136,7 @@ export interface ApiCallResponse {
 }
 
 // Result Type
-export interface Result<T = unknown> {
+export interface Result<T = any> {
     success: boolean;
     message: string;
     data?: T;
